@@ -1,13 +1,14 @@
-# Sorrel — landing + waitlist + articles
+# skipr — landing + waitlist + articles
 
-Marketing site for **Sorrel** (repo working name: `cockpit`), feature `001-landing-waitlist`.
-Astro + Vercel, static-first, with a single on-demand endpoint for the waitlist.
+Marketing site for **skipr** (repo working name: `cockpit`). Astro + Vercel, static-first, with a
+single on-demand endpoint for the waitlist. English (primary) + Spanish (secondary, `/es/`).
 
-> Sorrel is an independent tool and is **not affiliated with Anthropic**.
+> skipr is an independent tool and is **not affiliated with Anthropic**.
 
 ## Stack
 
-- **Astro 5** (static output) + `@astrojs/vercel` (one serverless endpoint) + `@astrojs/sitemap`
+- **Astro 5** (static output, built-in i18n) + `@astrojs/vercel` (one serverless endpoint) +
+  `@astrojs/sitemap`
 - **Supabase** (Postgres) for the owned waitlist — INSERT-only RLS policy, server-side
 - **Vitest** (unit) + **Playwright** (e2e) + **Lighthouse CI** (≥ 95 perf/seo/a11y)
 

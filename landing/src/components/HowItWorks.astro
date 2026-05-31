@@ -1,0 +1,78 @@
+---
+import { useTranslations, getLocale } from '../i18n/ui';
+
+const locale = getLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+
+const steps = [
+  { n: '1', title: t('how.s1t'), desc: t('how.s1d') },
+  { n: '2', title: t('how.s2t'), desc: t('how.s2d') },
+  { n: '3', title: t('how.s3t'), desc: t('how.s3d') },
+  { n: '4', title: t('how.s4t'), desc: t('how.s4d') },
+  { n: '5', title: t('how.s5t'), desc: t('how.s5d') },
+];
+---
+
+<section class="how">
+  <h2 class="how__title">{t('how.title')}</h2>
+  <p class="how__lede">{t('how.lede')}</p>
+
+  <ol class="how__steps">
+    {
+      steps.map((s) => (
+        <li class="how__step">
+          <span class="how__n accent">{s.n}</span>
+          <div>
+            <p class="how__steptitle">{s.title}</p>
+            <p class="how__stepdesc muted">{s.desc}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .how {
+    margin: 3.5rem 0;
+  }
+  .how__title {
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    margin: 0 0 0.5rem;
+  }
+  .how__lede {
+    color: var(--fg-muted);
+    margin: 0 0 1.75rem;
+  }
+  .how__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .how__step {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    padding: 1rem 1.1rem;
+  }
+  .how__n {
+    flex: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    width: 1.6rem;
+    text-align: center;
+  }
+  .how__steptitle {
+    margin: 0 0 0.2rem;
+    font-weight: 600;
+  }
+  .how__stepdesc {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+</style>

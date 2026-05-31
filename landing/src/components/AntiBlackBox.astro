@@ -1,0 +1,96 @@
+---
+import { useTranslations, getLocale } from '../i18n/ui';
+
+const locale = getLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+
+const you = [t('abb.you1'), t('abb.you2'), t('abb.you3'), t('abb.you4')];
+const them = [t('abb.them1'), t('abb.them2'), t('abb.them3'), t('abb.them4')];
+---
+
+<section class="abb">
+  <h2 class="abb__title">{t('abb.title')}</h2>
+  <p class="abb__lede">{t('abb.lede')}</p>
+
+  <div class="abb__grid">
+    <div class="abb__col abb__col--you">
+      <p class="abb__head accent">{t('abb.you')}</p>
+      <ul>
+        {
+          you.map((item) => (
+            <li>
+              <span class="mark accent">✓</span>
+              {item}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="abb__col abb__col--them">
+      <p class="abb__head muted">{t('abb.them')}</p>
+      <ul>
+        {
+          them.map((item) => (
+            <li>
+              <span class="mark muted">✕</span>
+              {item}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .abb {
+    margin: 3.5rem 0;
+  }
+  .abb__title {
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    margin: 0 0 0.5rem;
+  }
+  .abb__lede {
+    color: var(--fg-muted);
+    max-width: 44rem;
+    margin: 0 0 1.75rem;
+  }
+  .abb__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .abb__col {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    padding: 1.25rem;
+  }
+  .abb__col--you {
+    border-color: var(--accent-dim);
+  }
+  .abb__head {
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+  }
+  .abb__col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .abb__col li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+  .mark {
+    flex: none;
+  }
+  @media (max-width: 560px) {
+    .abb__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

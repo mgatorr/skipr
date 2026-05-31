@@ -3,8 +3,10 @@ title: How much context are your MCP servers wasting?
 description: Every MCP server you connect injects its full tool schema into every message. Here's how to measure the cost — and why it's often 30–40% of your context window.
 publishDate: 2026-05-31
 ogImage: /og/mcp-context-cost.png
-draft: false
+draft: true
 ---
+
+<!-- Retired during the skipr repositioning (2026-06-01): kept in history, hidden from the index. -->
 
 You connected a handful of MCP servers to Claude Code and everything got a little slower,
 a little pricier, and you're not totally sure why. Here's the uncomfortable part: **every

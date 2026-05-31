@@ -1,82 +1,82 @@
 <div align="center">
 
-<img src="./assets/sorrel-hero.png" alt="Sorrel — a friendly control layer for piloting Claude Code. See what your MCP servers really cost." width="880">
+<img src="./assets/skipr-hero.png" alt="skipr — build real software with AI, and actually own it." width="880">
 
 <br/><br/>
 
 [![status](https://img.shields.io/badge/status-pre--launch-3ddc84?style=flat-square)](#roadmap)
 [![landing](https://img.shields.io/badge/landing-live-3ddc84?style=flat-square)](./landing)
 [![stack](https://img.shields.io/badge/landing-Astro%20%2B%20Vercel-111?style=flat-square)](./landing)
-[![product](https://img.shields.io/badge/product-Go%20%2B%20Charm%20(planned)-00ADD8?style=flat-square)](./docs/design.md)
+[![product](https://img.shields.io/badge/product-desktop%20app%20(planned)-00ADD8?style=flat-square)](./docs/design.md)
 [![not affiliated](https://img.shields.io/badge/not%20affiliated%20with-Anthropic-9aa?style=flat-square)](#a-note-on-branding)
 
 </div>
 
 ---
 
-Sorrel is a friendly control layer for piloting Claude Code: a free, open-source **CLI installer**
-plus a paid **TUI dashboard** (Go + Charm). Its hero feature measures **how much of your context
-window each MCP server is costing you** — the most-cited, least-addressed Claude Code pain.
+**skipr** is the friendly way for **non-technical founders to build real software with AI — and
+actually own it.** It guides you from idea to a shipped app — Claude Code, your files on your
+machine, your GitHub, your deploy — **without living in the terminal**, and **without the black box**
+of no-code tools.
 
 ```text
-$ sorrel analyze
-server            tools   context cost
-github             42     8,310 tok
-playwright         31     6,740 tok
-supabase           28     5,120 tok
-filesystem          9     1,180 tok
-────────────────────────────────────
-total                     21,350 tok  (~34% of context)
-# est. — measured from each server's tools/list schema
+$ skipr new my-app
+✓ Claude Code ready — no terminal
+✓ spec written from your idea
+✓ building — your files, your machine
+✓ pushed to your GitHub
+✓ deployed — Vercel + Supabase
+your app is live — and it's yours.
 ```
 
 ## The problem
 
-Every MCP server you connect injects its **full tool schema into every message** — whether you use
-those tools or not. Developers measure **30–40% of their context window** lost to schemas they never
-call. That's context you pay for on every turn, crowding out your actual code and raising latency
-and cost. Nothing on the market makes this **visible**. Sorrel does.
+No-code tools (Lovable, Base44) get you moving fast, then trap you: the **80/20 wall**, a **black
+box** you can't see into, and **lock-in**. What actually predicts success isn't how well you prompt —
+it's whether you **understand and control** what's built. skipr gives you that, without the terminal.
 
-## How it's built — phases, each sellable alone
+## Not a black box
 
-Sorrel grows in phases (validate first, build the platform later — never the other way around):
+| With skipr | No-code black boxes |
+|---|---|
+| The code lives on your machine | Code you can't see or move |
+| Your own GitHub repo | Locked into their platform |
+| A deploy you understand | A black-box deploy |
+| You learn and level up | You stay dependent |
 
-| Phase | What | Status |
-|------:|------|--------|
-| **−1** | **Landing + waitlist + launch article** — validate demand, collect a list | ✅ **built** → [`landing/`](./landing) |
-| **0** | MVP: free Go CLI installer + minimal paid TUI (hero = token-cost analyzer) | 🔭 next → [`specs/002-cockpit-mvp`](./specs) |
-| **1** | TUI also manages skills/hooks + profiles/projects | 🗺️ planned |
-| **2** | Spec-Kit flows from the TUI ("make Claude Code friendly") | 🗺️ planned |
+## How it works
 
-> **Open-core:** the CLI installer is MIT and genuinely useful on its own (the funnel); the TUI
-> dashboard + token analyzer are paid (one-time purchase, majors at a discount).
+Five guided steps, no terminal required, on a stack the AI knows well:
+
+**setup → spec → code → GitHub → deploy** &nbsp;·&nbsp; Claude Code · GitHub · Supabase · Vercel
 
 ## Repository layout
 
 ```text
 .
-├── landing/                  # Phase −1 — Astro + Vercel marketing site + waitlist (LIVE)
-│   ├── src/                  #   hero, waitlist endpoint, articles (content collection)
-│   └── supabase/migrations/  #   owned waitlist table (INSERT-only RLS)
+├── landing/                       # Astro + Vercel marketing site + waitlist (LIVE, en + es)
+│   ├── src/                       #   hero, anti-black-box, how-it-works, waitlist, articles
+│   └── supabase/migrations/       #   owned waitlist table (INSERT-only RLS)
 ├── docs/
-│   ├── design.md             # the "why": research, monetization, architecture
-│   └── constitution.md       # non-negotiable principles (security, test-first, branding…)
-├── specs/
-│   └── 001-landing-waitlist/ # spec → plan → tasks → contracts (Spec-Driven Development)
-└── KICKOFF.md                # how this repo was bootstrapped
+│   ├── design.md                  # the "why": research, audience, differentiator, vision
+│   ├── constitution.md            # non-negotiable principles (v1.1.0)
+│   └── superpowers/specs/         # the repositioning design doc
+└── specs/
+    ├── 001-landing-waitlist/      # the landing (built)
+    └── 003-skipr-repositioning/   # re-message + rebrand to skipr (this work)
 ```
 
-This repo follows **Spec-Driven Development** (Spec Kit): every feature is `spec → plan → tasks →
-implement`, with a constitution that gates each change.
+Built with **Spec-Driven Development** (Spec Kit): every feature is `spec → plan → tasks →
+implement`, gated by the constitution.
 
-## The landing (Phase −1, shipped)
+## The landing (live)
 
-A static-first **Astro + Vercel** site in Sorrel's dark terminal aesthetic:
+Static-first **Astro + Vercel**, dark terminal aesthetic, **English + Spanish**:
 
-- **Waitlist** stored in our **own Supabase** table (INSERT-only RLS) — works with **JavaScript
-  disabled**, honeypot anti-spam, idempotent.
-- **Articles** as a content collection (one Markdown file = one article), full SEO/OG/sitemap.
-- **Lighthouse ≥ 95** (performance / SEO / accessibility); secrets never committed (gitleaks in CI).
+- **Waitlist** in our **own Supabase** table (INSERT-only RLS) — works with **JavaScript disabled**,
+  honeypot anti-spam, idempotent.
+- **Articles** as a content collection; full SEO/OG/sitemap.
+- **Lighthouse ≥ 95**; no secrets committed (gitleaks in CI).
 
 ```bash
 cd landing
@@ -86,22 +86,20 @@ pnpm dev                  # http://localhost:4321
 pnpm test && pnpm test:e2e
 ```
 
-See [`landing/README.md`](./landing/README.md) for full details.
+See [`landing/README.md`](./landing/README.md) for details.
 
 ## Roadmap
 
-- [x] Phase −1 — landing + waitlist + launch article
-- [ ] Validate demand (collect signups, ship the launch article)
-- [ ] Phase 0 — `sorrel` Go CLI installer (MIT) + minimal paid TUI
-- [ ] Hero: per-server MCP token-cost analyzer in the TUI
-- [ ] Store + licensing (one-time purchase, majors at a discount)
+- [x] Landing repositioned to skipr (message, anti-black-box, en + es)
+- [ ] Validate demand (collect signups; watch real non-technical founders)
+- [ ] MVP — guided desktop app: setup → spec → code → GitHub → deploy
+- [ ] Expand: more of the flow, cross-tool (Codex, Gemini CLI)
 
 ## A note on branding
 
-**Sorrel is an independent project and is not affiliated with Anthropic.** "Claude" and "Claude
-Code" are trademarks of their respective owner. Any token-savings figures are **measured estimates**
-with a stated method, not guarantees.
+**skipr is an independent project and is not affiliated with Anthropic.** "Claude" and "Claude Code"
+are trademarks of their respective owner.
 
 ---
 
-<div align="center"><sub>Built for people who'd rather pilot their tools than fight them.</sub></div>
+<div align="center"><sub>Built for founders who want to own what they build.</sub></div>

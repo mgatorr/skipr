@@ -20,9 +20,9 @@ matching implementation.
 
 ## Phase 1: Setup
 
-- [ ] T001 Configure Astro i18n in `landing/astro.config.mjs` (`defaultLocale: 'en'`, `locales: ['en','es']`, `routing.prefixDefaultLocale: false`)
-- [ ] T002 [P] Create `landing/src/i18n/ui.ts` with `en`/`es` string dictionaries (same keys) and a `t(locale)` helper (es falls back to en)
-- [ ] T003 [P] Add a locale helper for locale-aware paths + a locale switcher util in `landing/src/i18n/`
+- [X] T001 Configure Astro i18n in `landing/astro.config.mjs` (`defaultLocale: 'en'`, `locales: ['en','es']`, `routing.prefixDefaultLocale: false`)
+- [X] T002 [P] Create `landing/src/i18n/ui.ts` with `en`/`es` string dictionaries (same keys) and a `t(locale)` helper (es falls back to en)
+- [X] T003 [P] Add a locale helper for locale-aware paths + a locale switcher util in `landing/src/i18n/`
 
 ---
 
@@ -30,8 +30,8 @@ matching implementation.
 
 **⚠️ Must complete before user stories.**
 
-- [ ] T004 Rebrand `landing/src/layouts/BaseLayout.astro` to **skipr** (brand, footer, default title/description) and add `<html lang>` + `hreflang` alternates (en/es/x-default) per locale
-- [ ] T005 [P] Update `landing/package.json` name → `skipr-landing` and `landing/.env.example` comments to skipr (no behavior change)
+- [X] T004 Rebrand `landing/src/layouts/BaseLayout.astro` to **skipr** (brand, footer, default title/description) and add `<html lang>` + `hreflang` alternates (en/es/x-default) per locale
+- [X] T005 [P] Update `landing/package.json` name → `skipr-landing` and `landing/.env.example` comments to skipr (no behavior change)
 
 **Checkpoint**: i18n + skipr shell ready.
 
@@ -47,18 +47,18 @@ ownership/control (not a black box); brand reads skipr; no "Sorrel"/"Cockpit" an
 
 ### Tests (write first)
 
-- [ ] T006 [P] [US1] E2E: hero value prop + no-terminal/guided framing + anti-black-box (Lovable/Base44; keep code/repo/control) + "not affiliated" disclaimer + mobile CTA, in `landing/tests/e2e/landing-content.spec.ts`
-- [ ] T007 [P] [US1] E2E brand-residue: built `dist/` contains no `Sorrel`/`Cockpit`, in `landing/tests/e2e/brand.spec.ts`
+- [X] T006 [P] [US1] E2E: hero value prop + no-terminal/guided framing + anti-black-box (Lovable/Base44; keep code/repo/control) + "not affiliated" disclaimer + mobile CTA, in `landing/tests/e2e/landing-content.spec.ts`
+- [X] T007 [P] [US1] E2E brand-residue: built `dist/` contains no `Sorrel`/`Cockpit`, in `landing/tests/e2e/brand.spec.ts`
 
 ### Implementation
 
-- [ ] T008 [US1] Rewrite `landing/src/components/Hero.astro` (headline "Build real software with AI — and actually own it" + sub; strings via i18n; guided framing; CTA)
-- [ ] T009 [P] [US1] Create `landing/src/components/AntiBlackBox.astro` (explicit contrast vs Lovable/Base44: you keep the code, the repo, the control, and you learn)
-- [ ] T010 [US1] Compose `Hero` + `AntiBlackBox` into `landing/src/pages/index.astro`
-- [ ] T011 [P] [US1] Rewrite `landing/scripts/make-hero.mjs` → skipr guided-flow hero; output `assets/skipr-hero.png` and remove `assets/sorrel-hero.png`
-- [ ] T012 [P] [US1] Rewrite `landing/scripts/make-og.mjs` → skipr OG cards
-- [ ] T013 [US1] Regenerate assets (`pnpm hero && pnpm og`) and point README/OG meta to `skipr-hero.png` (depends on T011, T012)
-- [ ] T014 [US1] Rebrand all remaining user-visible copy Sorrel→skipr across `landing/src`; confirm zero residual
+- [X] T008 [US1] Rewrite `landing/src/components/Hero.astro` (headline "Build real software with AI — and actually own it" + sub; strings via i18n; guided framing; CTA)
+- [X] T009 [P] [US1] Create `landing/src/components/AntiBlackBox.astro` (explicit contrast vs Lovable/Base44: you keep the code, the repo, the control, and you learn)
+- [X] T010 [US1] Compose `Hero` + `AntiBlackBox` into `landing/src/pages/index.astro`
+- [X] T011 [P] [US1] Rewrite `landing/scripts/make-hero.mjs` → skipr guided-flow hero; output `assets/skipr-hero.png` and remove `assets/sorrel-hero.png`
+- [X] T012 [P] [US1] Rewrite `landing/scripts/make-og.mjs` → skipr OG cards
+- [X] T013 [US1] Regenerate assets (`pnpm hero && pnpm og`) and point README/OG meta to `skipr-hero.png` (depends on T011, T012)
+- [X] T014 [US1] Rebrand all remaining user-visible copy Sorrel→skipr across `landing/src`; confirm zero residual
 
 **Checkpoint**: English repositioned landing message is live and on-brand — MVP shippable.
 
@@ -70,9 +70,9 @@ ownership/control (not a black box); brand reads skipr; no "Sorrel"/"Cockpit" an
 
 **Independent Test**: a reader can describe the five steps in order after one read.
 
-- [ ] T015 [P] [US2] E2E: the 5 steps present and in order, in `landing/tests/e2e/how-it-works.spec.ts`
-- [ ] T016 [US2] Create `landing/src/components/HowItWorks.astro` (5 steps, ownership framing, no terminal; strings via i18n)
-- [ ] T017 [US2] Add `HowItWorks` to `landing/src/pages/index.astro`
+- [X] T015 [P] [US2] E2E: the 5 steps present and in order, in `landing/tests/e2e/how-it-works.spec.ts`
+- [X] T016 [US2] Create `landing/src/components/HowItWorks.astro` (5 steps, ownership framing, no terminal; strings via i18n)
+- [X] T017 [US2] Add `HowItWorks` to `landing/src/pages/index.astro`
 
 **Checkpoint**: the "how" makes "build real software" believable.
 
@@ -84,8 +84,8 @@ ownership/control (not a black box); brand reads skipr; no "Sorrel"/"Cockpit" an
 
 **Independent Test**: valid email → success; invalid → inline; no-JS → still works (unchanged).
 
-- [ ] T018 [P] [US3] E2E waitlist (happy/no-JS/invalid) with new copy, update `landing/tests/e2e/waitlist.spec.ts`
-- [ ] T019 [US3] Localize `landing/src/components/WaitlistForm.astro` strings via i18n (keep Supabase endpoint + behavior)
+- [X] T018 [P] [US3] E2E waitlist (happy/no-JS/invalid) with new copy, update `landing/tests/e2e/waitlist.spec.ts`
+- [X] T019 [US3] Localize `landing/src/components/WaitlistForm.astro` strings via i18n (keep Supabase endpoint + behavior)
 
 **Checkpoint**: lead capture intact under the new message.
 
@@ -97,10 +97,10 @@ ownership/control (not a black box); brand reads skipr; no "Sorrel"/"Cockpit" an
 
 **Independent Test**: new article renders with SEO/OG + CTA, in the index; token-cost article gone.
 
-- [ ] T020 [P] [US4] E2E article: "from no-code to software you own" renders + SEO/OG + CTA; token-cost article not indexed, update `landing/tests/e2e/articles.spec.ts`
-- [ ] T021 [US4] Write `landing/src/content/articles/from-no-code-to-software-you-own.md` (draft:false, CTA, ogImage)
-- [ ] T022 [US4] Set `landing/src/content/articles/how-much-context-your-mcp-servers-waste.md` → `draft: true` (retire)
-- [ ] T023 [P] [US4] Add an OG card for the new article in `landing/scripts/make-og.mjs` + regenerate
+- [X] T020 [P] [US4] E2E article: "from no-code to software you own" renders + SEO/OG + CTA; token-cost article not indexed, update `landing/tests/e2e/articles.spec.ts`
+- [X] T021 [US4] Write `landing/src/content/articles/from-no-code-to-software-you-own.md` (draft:false, CTA, ogImage)
+- [X] T022 [US4] Set `landing/src/content/articles/how-much-context-your-mcp-servers-waste.md` → `draft: true` (retire)
+- [X] T023 [P] [US4] Add an OG card for the new article in `landing/scripts/make-og.mjs` + regenerate
 
 **Checkpoint**: content carries the new narrative.
 
@@ -112,10 +112,10 @@ ownership/control (not a black box); brand reads skipr; no "Sorrel"/"Cockpit" an
 
 **Independent Test**: `/` English, `/es/` Spanish; `lang`/`hreflang` correct; switch keeps equivalent page.
 
-- [ ] T024 [P] [US5] E2E i18n smoke (`/` en, `/es/` es, `lang`/`hreflang`), in `landing/tests/e2e/i18n.spec.ts`
-- [ ] T025 [US5] Fill the Spanish (`es`) dictionary in `landing/src/i18n/ui.ts` for hero, anti-black-box, how-it-works, waitlist, disclaimer, nav
-- [ ] T026 [US5] Create `landing/src/pages/es/index.astro` (Spanish landing reusing the components at `es` locale)
-- [ ] T027 [US5] Add a locale switcher in the header (`BaseLayout`) and make article links locale-aware
+- [X] T024 [P] [US5] E2E i18n smoke (`/` en, `/es/` es, `lang`/`hreflang`), in `landing/tests/e2e/i18n.spec.ts`
+- [X] T025 [US5] Fill the Spanish (`es`) dictionary in `landing/src/i18n/ui.ts` for hero, anti-black-box, how-it-works, waitlist, disclaimer, nav
+- [X] T026 [US5] Create `landing/src/pages/es/index.astro` (Spanish landing reusing the components at `es` locale)
+- [X] T027 [US5] Add a locale switcher in the header (`BaseLayout`) and make article links locale-aware
 
 **Checkpoint**: en + es both live.
 
@@ -123,13 +123,13 @@ ownership/control (not a black box); brand reads skipr; no "Sorrel"/"Cockpit" an
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T028 [P] Rebrand `README.md` (root) and `landing/README.md` to skipr
-- [ ] T029 [P] Update `landing/lighthouserc.json` to assert `/`, `/es/`, and the article; run `pnpm lighthouse` ≥ 95
-- [ ] T030 Verify unit tests (validateEmail/honeypot/waitlist unchanged) still pass; adjust any copy refs
-- [ ] T031 Run the full suite green: `pnpm check`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm build`
-- [ ] T032 [P] Rename the GitHub repo `sorrel` → `skipr` (`gh repo rename skipr`) and update the git remote
-- [ ] T033 Final checks: `grep -riE 'sorrel|cockpit' landing/dist` clean; no secrets in `dist/client`; `gitleaks detect` clean (tree + history)
-- [ ] T034 Run `quickstart.md` verification end-to-end (all acceptance scenarios, both locales)
+- [X] T028 [P] Rebrand `README.md` (root) and `landing/README.md` to skipr
+- [X] T029 [P] Update `landing/lighthouserc.json` to assert `/`, `/es/`, and the article; run `pnpm lighthouse` ≥ 95
+- [X] T030 Verify unit tests (validateEmail/honeypot/waitlist unchanged) still pass; adjust any copy refs
+- [X] T031 Run the full suite green: `pnpm check`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm build`
+- [X] T032 [P] Rename the GitHub repo `sorrel` → `skipr` (`gh repo rename skipr`) and update the git remote
+- [X] T033 Final checks: `grep -riE 'sorrel|cockpit' landing/dist` clean; no secrets in `dist/client`; `gitleaks detect` clean (tree + history)
+- [X] T034 Run `quickstart.md` verification end-to-end (all acceptance scenarios, both locales)
 
 ---
 

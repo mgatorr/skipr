@@ -1,38 +1,36 @@
 ---
 import WaitlistForm from './WaitlistForm.astro';
 import Terminal from './Terminal.astro';
-import Disclaimer from './Disclaimer.astro';
+import { useTranslations, getLocale } from '../i18n/ui';
+
+const locale = getLocale(Astro.currentLocale);
+const t = useTranslations(locale);
 ---
 
 <section class="hero">
-  <p class="badge">▲ coming soon</p>
+  <p class="badge">{t('hero.badge')}</p>
   <h1 class="hero__title">
-    See what your MCP servers <span class="accent">really cost</span>.
+    {t('hero.titleLead')}
+    <span class="accent">{t('hero.titleAccent')}</span>
   </h1>
-  <p class="hero__lede">
-    Sorrel is a friendly control layer for piloting Claude Code. Its hero feature measures how much
-    of your context window <strong>each MCP server</strong> eats — so you can stop paying for tool schemas
-    you never use.
-  </p>
+  <p class="hero__lede">{t('hero.lede')}</p>
 
   <div class="hero__cta" id="waitlist">
     <WaitlistForm source="landing" />
   </div>
 
   <div class="hero__demo">
-    <Terminal>
+    <Terminal title="skipr — guided">
       <pre
-        class="demo"><span class="muted">$ sorrel analyze</span>
-server            tools   <span class="muted">context cost</span>
-github             42     <span class="accent">8,310 tok</span>
-playwright         31     <span class="accent">6,740 tok</span>
-supabase           28     <span class="accent">5,120 tok</span>
-filesystem          9     <span class="accent">1,180 tok</span>
+        class="demo"><span class="muted">$ skipr new my-app</span>
+<span class="accent">✓</span> Claude Code ready  <span class="muted">— no terminal needed</span>
+<span class="accent">✓</span> spec written from your idea
+<span class="accent">✓</span> building…  <span class="muted">your files, on your machine</span>
+<span class="accent">✓</span> pushed to <span class="muted">your</span> GitHub repo
+<span class="accent">✓</span> deployed to Vercel + Supabase
 <span class="muted">────────────────────────────────────</span>
-total                     <span class="accent">21,350 tok</span>  <span class="muted">(~34% of context)</span>
-<span class="muted"># est. — measured from each server's tools/list schema</span></pre>
+your app is live — <span class="accent">and it&rsquo;s yours.</span></pre>
     </Terminal>
-    <Disclaimer />
   </div>
 </section>
 
@@ -58,7 +56,7 @@ total                     <span class="accent">21,350 tok</span>  <span class="m
   .hero__lede {
     font-size: clamp(1rem, 2.4vw, 1.2rem);
     color: var(--fg-muted);
-    max-width: 42rem;
+    max-width: 44rem;
     margin: 0 0 1.75rem;
   }
   .hero__cta {
@@ -73,7 +71,7 @@ total                     <span class="accent">21,350 tok</span>  <span class="m
     margin: 0;
     overflow-x: auto;
     font-size: 0.85rem;
-    line-height: 1.5;
+    line-height: 1.6;
     white-space: pre;
   }
 </style>

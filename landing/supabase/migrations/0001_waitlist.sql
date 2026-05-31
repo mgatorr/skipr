@@ -1,5 +1,5 @@
--- Sorrel waitlist — owned list in our own Postgres (feature 001).
--- Run this in the Supabase SQL Editor of the dedicated Sorrel project.
+-- skipr waitlist — owned list in our own Postgres.
+-- Run this in the Supabase SQL Editor of the dedicated skipr project.
 
 create table if not exists public.waitlist (
   id          uuid primary key default gen_random_uuid(),

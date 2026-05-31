@@ -1,10 +1,10 @@
 ---
-// Reusable neutral-branding disclaimer (Principle VII).
+import { useTranslations, getLocale } from '../i18n/ui';
+const locale = getLocale(Astro.currentLocale);
+const t = useTranslations(locale);
 ---
 
-<p class="disclaimer muted">
-  Sorrel is an independent tool and is <strong>not affiliated with Anthropic</strong>.
-</p>
+<p class="disclaimer muted">{t('disclaimer')}</p>
 
 <style>
   .disclaimer {

@@ -30,12 +30,12 @@ const jsonLd = {
   datePublished: isoDate,
   url,
   ...(ogImage ? { image: new URL(ogImage, siteUrl).href } : {}),
-  publisher: { '@type': 'Organization', name: 'Sorrel' },
+  publisher: { '@type': 'Organization', name: 'skipr' },
 };
 ---
 
 <BaseLayout
-  title={`${title} — Sorrel`}
+  title={`${title} — skipr`}
   description={description}
   ogImage={ogImage}
   type="article"
@@ -53,9 +53,9 @@ const jsonLd = {
     </div>
 
     <aside class="article__cta" id="waitlist">
-      <h2>Want to measure your own MCP context cost?</h2>
+      <h2>Want to build real software you own?</h2>
       <p class="muted">
-        Sorrel is coming soon. Join the waitlist and we&rsquo;ll email you at launch.
+        skipr is coming soon. Join the waitlist and we&rsquo;ll email you at launch.
       </p>
       <WaitlistForm source={`article:${slug}`} />
       <Disclaimer />

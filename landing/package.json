@@ -1,9 +1,9 @@
 {
-  "name": "sorrel-landing",
+  "name": "skipr-landing",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Sorrel — landing + waitlist + articles (feature 001). Not affiliated with Anthropic.",
+  "description": "skipr — landing + waitlist + articles. Not affiliated with Anthropic.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

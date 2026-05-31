@@ -1,6 +1,5 @@
-// Generate the README hero banner (PNG) — a premium "observability dashboard"
-// look (inspired by Datadog/DRUIDS) in Sorrel's dark terminal palette.
-// Run: node scripts/make-hero.mjs
+// Generate the README hero banner (PNG) — skipr's guided build-and-own flow in
+// the dark terminal aesthetic. Run: node scripts/make-hero.mjs
 import sharp from 'sharp';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -12,42 +11,34 @@ const outDir = resolve(here, '../../assets');
 const W = 1280;
 const H = 460;
 
-// data for the mini "context cost" panel
-const rows = [
-  { name: 'github', tools: 42, tok: 8310 },
-  { name: 'playwright', tools: 31, tok: 6740 },
-  { name: 'supabase', tools: 28, tok: 5120 },
-  { name: 'filesystem', tools: 9, tok: 1180 },
-];
-const maxTok = Math.max(...rows.map((r) => r.tok));
-const BAR_MAX = 168;
-
-const panelX = 712;
-const panelY = 84;
-const panelW = 496;
-const panelH = 308;
-const rowsY = panelY + 84;
-const rowGap = 40;
-const barX = panelX + 150;
+const panelX = 700;
+const panelY = 70;
+const panelW = 508;
+const panelH = 320;
 
 // single-quote font names: these go inside double-quoted XML attributes
 const sans = "Inter, 'Helvetica Neue', Arial, sans-serif";
 const mono = "'JetBrains Mono', 'SF Mono', Menlo, monospace";
 
-const barRows = rows
-  .map((r, i) => {
-    const y = rowsY + i * rowGap;
-    const w = Math.round((r.tok / maxTok) * BAR_MAX);
-    const tok = r.tok.toLocaleString('en-US');
-    return `
-      <text x="${panelX + 28}" y="${y + 5}" font-family="${mono}" font-size="17" fill="#d6e2dd">${r.name}</text>
-      <rect x="${barX}" y="${y - 11}" width="${BAR_MAX}" height="15" rx="7.5" fill="#0a1410"/>
-      <rect x="${barX}" y="${y - 11}" width="${w}" height="15" rx="7.5" fill="url(#bar)"/>
-      <text x="${panelX + panelW - 24}" y="${y + 5}" text-anchor="end" font-family="${mono}" font-size="16" fill="#3ddc84">${tok} tok</text>`;
-  })
-  .join('');
+const steps = [
+  ['Claude Code ready', '— no terminal'],
+  ['spec written from your idea', ''],
+  ['building', '— your files, your machine'],
+  ['pushed to your GitHub', ''],
+  ['deployed — Vercel + Supabase', ''],
+];
 
-const totalY = rowsY + rows.length * rowGap + 26;
+const linesY = panelY + 78;
+const lineGap = 38;
+const stepLines = steps
+  .map((s, i) => {
+    const y = linesY + i * lineGap;
+    const muted = s[1] ? `<tspan fill="#50615b">  ${s[1]}</tspan>` : '';
+    return `<text x="${panelX + 28}" y="${y}" font-family="${mono}" font-size="16" fill="#d6e2dd"><tspan fill="#3ddc84">✓</tspan>  ${s[0]}${muted}</text>`;
+  })
+  .join('\n    ');
+
+const finalY = linesY + steps.length * lineGap + 16;
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
@@ -55,14 +46,10 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
       <stop offset="0" stop-color="#0a0e0d"/>
       <stop offset="1" stop-color="#070b0a"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.82" cy="0.1" r="0.7">
+    <radialGradient id="glow" cx="0.8" cy="0.12" r="0.75">
       <stop offset="0" stop-color="#3ddc84" stop-opacity="0.16"/>
       <stop offset="1" stop-color="#3ddc84" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#2a9c5e"/>
-      <stop offset="1" stop-color="#3ddc84"/>
-    </linearGradient>
     <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#ffffff"/>
       <stop offset="1" stop-color="#b8f5d4"/>
@@ -75,27 +62,28 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
 
   <!-- LEFT: brand + value prop -->
   <g>
-    <rect x="70" y="92" width="280" height="30" rx="15" fill="none" stroke="#1c2a26"/>
-    <circle cx="90" cy="107" r="3.5" fill="#3ddc84"/>
-    <text x="104" y="112" font-family="${mono}" font-size="13" letter-spacing="1.5" fill="#7d8f88">OBSERVABILITY FOR CLAUDE CODE</text>
+    <rect x="68" y="92" width="320" height="30" rx="15" fill="none" stroke="#1c2a26"/>
+    <circle cx="88" cy="107" r="3.5" fill="#3ddc84"/>
+    <text x="102" y="112" font-family="${mono}" font-size="12.5" letter-spacing="1.4" fill="#7d8f88">FOR FOUNDERS WHO SHIP FOR REAL</text>
 
-    <text x="68" y="214" font-family="${sans}" font-size="92" font-weight="800" fill="url(#title)" letter-spacing="-2">sorrel</text>
+    <text x="66" y="210" font-family="${sans}" font-size="92" font-weight="800" fill="url(#title)" letter-spacing="-2">skipr</text>
 
-    <text x="72" y="262" font-family="${sans}" font-size="27" font-weight="600" fill="#d6e2dd">See what your MCP servers <tspan fill="#3ddc84">really cost</tspan>.</text>
+    <text x="70" y="258" font-family="${sans}" font-size="26" font-weight="600" fill="#d6e2dd">Build real software with AI —</text>
+    <text x="70" y="292" font-family="${sans}" font-size="26" font-weight="600" fill="#3ddc84">and actually own it.</text>
 
-    <text x="72" y="298" font-family="${mono}" font-size="16" fill="#7d8f88">A friendly control layer for piloting Claude Code.</text>
+    <text x="70" y="328" font-family="${mono}" font-size="15" fill="#7d8f88">From idea to a deployed app you control. No black box.</text>
 
     <g font-family="${mono}" font-size="13" fill="#7d8f88">
-      <rect x="72" y="328" width="116" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
-      <text x="86" y="346">Go · Charm</text>
-      <rect x="198" y="328" width="150" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
-      <text x="212" y="346">Astro · Vercel</text>
-      <rect x="358" y="328" width="150" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
-      <text x="372" y="346">single binary</text>
+      <rect x="70" y="352" width="116" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
+      <text x="84" y="370">your code</text>
+      <rect x="196" y="352" width="128" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
+      <text x="210" y="370">your GitHub</text>
+      <rect x="334" y="352" width="128" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
+      <text x="348" y="370">your deploy</text>
     </g>
   </g>
 
-  <!-- RIGHT: observability panel -->
+  <!-- RIGHT: guided-flow terminal -->
   <g>
     <rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="12" fill="#0d1412" stroke="#1c2a26"/>
     <rect x="${panelX}" y="${panelY}" width="${panelW}" height="40" rx="12" fill="#0a100e"/>
@@ -103,18 +91,16 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
     <circle cx="${panelX + 22}" cy="${panelY + 20}" r="4.5" fill="#1c2a26"/>
     <circle cx="${panelX + 38}" cy="${panelY + 20}" r="4.5" fill="#1c2a26"/>
     <circle cx="${panelX + 54}" cy="${panelY + 20}" r="4.5" fill="#1c2a26"/>
-    <text x="${panelX + 76}" y="${panelY + 25}" font-family="${mono}" font-size="14" fill="#50615b">sorrel analyze</text>
+    <text x="${panelX + 76}" y="${panelY + 25}" font-family="${mono}" font-size="14" fill="#50615b">skipr — guided</text>
 
-    ${barRows}
+    <text x="${panelX + 28}" y="${linesY - 34}" font-family="${mono}" font-size="16" fill="#7d8f88">$ skipr new my-app</text>
+    ${stepLines}
 
-    <line x1="${panelX + 24}" y1="${totalY - 28}" x2="${panelX + panelW - 24}" y2="${totalY - 28}" stroke="#16221e"/>
-    <text x="${panelX + 28}" y="${totalY}" font-family="${mono}" font-size="17" fill="#d6e2dd">total context</text>
-    <rect x="${panelX + 250}" y="${totalY - 16}" width="70" height="22" rx="11" fill="#0a1410" stroke="#2a9c5e"/>
-    <text x="${panelX + 285}" y="${totalY - 1}" text-anchor="middle" font-family="${mono}" font-size="13" fill="#3ddc84">~34%</text>
-    <text x="${panelX + panelW - 24}" y="${totalY}" text-anchor="end" font-family="${mono}" font-size="19" font-weight="700" fill="#3ddc84">21,350 tok</text>
+    <line x1="${panelX + 24}" y1="${finalY - 24}" x2="${panelX + panelW - 24}" y2="${finalY - 24}" stroke="#16221e"/>
+    <text x="${panelX + 28}" y="${finalY}" font-family="${mono}" font-size="16" fill="#d6e2dd">your app is live — <tspan fill="#3ddc84" font-weight="700">and it's yours.</tspan></text>
   </g>
 </svg>`;
 
 await mkdir(outDir, { recursive: true });
-await sharp(Buffer.from(svg)).png().toFile(resolve(outDir, 'sorrel-hero.png'));
-console.log('wrote assets/sorrel-hero.png');
+await sharp(Buffer.from(svg)).png().toFile(resolve(outDir, 'skipr-hero.png'));
+console.log('wrote assets/skipr-hero.png');
