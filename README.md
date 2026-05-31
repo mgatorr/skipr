@@ -1,16 +1,8 @@
 <div align="center">
 
-```
-   ▄▄▄  ▄▄▄  ▄▄▄  ▄▄▄  ▄▄▄  ▄▄▄
-  █     █  █ █  █ █  █ █    █
-  ▀▀▀█  █  █ ██▀  ██▀  █▀▀  █
-  ▀▀▀   ▀▀▀  ▀ ▀  ▀ ▀  ▀▀▀  ▀▀▀
-   a friendly control layer for piloting Claude Code
-```
+<img src="./assets/sorrel-hero.png" alt="Sorrel — a friendly control layer for piloting Claude Code. See what your MCP servers really cost." width="880">
 
-# Sorrel
-
-**See what your MCP servers really cost.**
+<br/><br/>
 
 [![status](https://img.shields.io/badge/status-pre--launch-3ddc84?style=flat-square)](#roadmap)
 [![landing](https://img.shields.io/badge/landing-live-3ddc84?style=flat-square)](./landing)

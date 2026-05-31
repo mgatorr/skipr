@@ -15,6 +15,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "og": "node scripts/make-og.mjs",
+    "hero": "node scripts/make-hero.mjs",
     "lighthouse": "lhci autorun"
   },
   "dependencies": {
