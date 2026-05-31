@@ -1,10 +1,16 @@
 # Feature Specification: Cockpit MVP (Phase 0)
 
+> ⚠️ **SUPERSEDED (2026-05-31).** This spec describes the original "Cockpit" product (a Go + Charm
+> TUI / MCP installer with a token-cost-analyzer hero). The project was repositioned to **skipr** —
+> a friendly desktop app for non-technical founders to build real software with AI and own it. See
+> `docs/design.md` and `docs/superpowers/specs/2026-05-31-skipr-repositioning-design.md`. The MVP
+> will be re-ideated and re-specified as a new feature in Phase 2. Kept for history only.
+
 **Feature Branch**: `002-cockpit-mvp`
 
 **Created**: 2026-05-31
 
-**Status**: Draft
+**Status**: Superseded (was: Draft)
 
 **Input**: Approved design `docs/design.md` · Constitution `.specify/memory/constitution.md`
 
