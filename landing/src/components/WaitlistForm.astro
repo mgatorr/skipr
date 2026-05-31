@@ -1,0 +1,109 @@
+---
+interface Props {
+  /** Attribution tag stored with the lead (e.g. "landing", "article:<slug>"). */
+  source?: string;
+}
+const { source = 'landing' } = Astro.props;
+---
+
+<form id="waitlist-form" class="waitlist" method="POST" action="/api/waitlist" novalidate>
+  <input type="hidden" name="source" value={source} />
+
+  <!-- Honeypot: hidden from humans; bots that fill it are silently dropped. -->
+  <div class="hp" aria-hidden="true">
+    <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+  </div>
+
+  <div class="waitlist__row">
+    <label class="visually-hidden" for="email">Email address</label>
+    <input
+      id="email"
+      type="email"
+      name="email"
+      placeholder="you@example.com"
+      autocomplete="email"
+      required
+    />
+    <button class="btn" type="submit">Join the waitlist</button>
+  </div>
+
+  <!-- No-JS states: revealed via CSS :target after the endpoint's 303 redirect. -->
+  <p id="wl-success" class="status status--ok wl-state" role="status">
+    You&rsquo;re on the list — we&rsquo;ll email you at launch.
+  </p>
+  <p id="wl-invalid" class="status status--err wl-state" role="status">
+    Please enter a valid email address.
+  </p>
+  <p id="wl-error" class="status status--err wl-state" role="status">
+    Something went wrong. Please try again in a moment.
+  </p>
+
+  <!-- JS-enhanced inline status (filled by the script; no navigation). -->
+  <p id="waitlist-status" class="status" role="status" aria-live="polite"></p>
+</form>
+
+<style>
+  .waitlist__row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .waitlist__row input[type='email'] {
+    flex: 1 1 16rem;
+  }
+  /* No-JS state blocks are hidden until targeted by the redirect hash. */
+  .wl-state {
+    display: none;
+  }
+  .wl-state:target {
+    display: block;
+  }
+  @media (max-width: 480px) {
+    .waitlist__row button {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  // Progressive enhancement: without this script the native POST still works
+  // (the endpoint 303-redirects to /#wl-...). With it, we submit via fetch and
+  // render an inline state without navigation.
+  const form = document.getElementById('waitlist-form') as HTMLFormElement | null;
+  const status = document.getElementById('waitlist-status');
+
+  function setStatus(ok: boolean, message: string) {
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove('status--ok', 'status--err');
+    status.classList.add(ok ? 'status--ok' : 'status--err');
+  }
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const email = String(data.get('email') ?? '').trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setStatus(false, 'Please enter a valid email address.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(Object.fromEntries(data.entries())),
+      });
+      const body = await res.json().catch(() => ({ ok: res.ok, status: 'error' }));
+      if (body.ok) {
+        setStatus(true, "You're on the list — we'll email you at launch.");
+        form.reset();
+      } else if (body.status === 'invalid') {
+        setStatus(false, 'Please enter a valid email address.');
+      } else {
+        setStatus(false, 'Something went wrong. Please try again in a moment.');
+      }
+    } catch {
+      setStatus(false, 'Network error. Please try again.');
+    }
+  });
+</script>

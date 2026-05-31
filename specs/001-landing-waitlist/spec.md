@@ -29,11 +29,21 @@
   implementation — e.g. Buttondown / Resend Audiences / ConvertKit), with graceful
   no-JS-fallback and spam protection.
 
+### Session 2026-05-31 (kickoff decisions, finalized)
+
+- Q: Confirm the landing stack? → A: **Astro + Vercel** (confirmed).
+- Q: Waitlist provider? → A: **Resend Audiences** (owned list; same provider can send launch
+  emails). API key server-side only via env var; never committed.
+- Q: Product/brand name + domain? → A: **Sorrel** (`sorrel.dev`), chosen after research over
+  Cockpit/Helm/Conductor/Sextant for being distinctive, neutral, and free of dev-tool
+  collisions. The repo and `specs/002-cockpit-mvp` directory keep the `cockpit` working name
+  for now; the **visible brand on the landing is "Sorrel"**.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Join the waitlist (Priority: P1) 🎯 MVP
 
-A visitor lands on the page, immediately understands what Cockpit is and the pain it solves,
+A visitor lands on the page, immediately understands what Sorrel is and the pain it solves,
 and submits their email to join the waitlist; they get a clear confirmation.
 
 **Why this priority**: Collecting an interested audience is the entire point of this phase.
@@ -55,7 +65,7 @@ no duplicate/clear message.
 
 ### User Story 2 - Understand the product and its value (Priority: P1)
 
-A visitor grasps, from the page alone: what Cockpit is, the pain (MCP context bloat / setup),
+A visitor grasps, from the page alone: what Sorrel is, the pain (MCP context bloat / setup),
 the hero (token-cost analyzer), that it's coming soon, and that it's not affiliated with
 Anthropic.
 
@@ -147,5 +157,5 @@ adding a second article requires only a new content file.
   at implementation (Buttondown / Resend Audiences / ConvertKit).
 - The visual language reuses the `claude-mcp-stack` hero aesthetic for brand consistency.
 - The product (`002-cockpit-mvp`) is built after this validation phase shows demand.
-- Final product name (Cockpit vs Helm vs Conductor) and the $29 launch price are provisional
-  and may be refined before the product launch; the landing can launch with the working name.
+- Product/brand name finalized as **Sorrel** (`sorrel.dev`) for the landing; the $29 launch
+  price stays provisional and may be refined before the product launch.

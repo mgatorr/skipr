@@ -1,0 +1,50 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  publishDate: Date;
+  slug: string;
+}
+const { title, description, publishDate, slug } = Astro.props;
+const isoDate = publishDate.toISOString();
+const displayDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+---
+
+<a class="card" href={`/articles/${slug}`}>
+  <time class="card__date muted" datetime={isoDate}>{displayDate}</time>
+  <h2 class="card__title">{title}</h2>
+  <p class="card__desc muted">{description}</p>
+  <span class="card__more accent">read →</span>
+</a>
+
+<style>
+  .card {
+    display: block;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    color: var(--fg);
+  }
+  .card:hover {
+    border-color: var(--accent-dim);
+    text-decoration: none;
+  }
+  .card__date {
+    font-size: 0.8rem;
+  }
+  .card__title {
+    margin: 0.3rem 0 0.5rem;
+    font-size: 1.2rem;
+  }
+  .card__desc {
+    margin: 0 0 0.75rem;
+  }
+  .card__more {
+    font-size: 0.9rem;
+  }
+</style>

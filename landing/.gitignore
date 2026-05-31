@@ -1,0 +1,25 @@
+# build output
+dist/
+.vercel/
+.astro/
+
+# dependencies
+node_modules/
+
+# secrets — NEVER commit (Principle II)
+.env
+.env.*
+!.env.example
+
+# logs / os / editor
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# test + lighthouse artifacts
+coverage/
+test-results/
+playwright-report/
+.lighthouseci/

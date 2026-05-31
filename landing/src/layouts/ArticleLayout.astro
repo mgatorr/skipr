@@ -1,0 +1,109 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import WaitlistForm from '../components/WaitlistForm.astro';
+import Disclaimer from '../components/Disclaimer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  publishDate: Date;
+  ogImage?: string;
+  canonical?: string;
+  slug: string;
+}
+const { title, description, publishDate, ogImage, canonical, slug } = Astro.props;
+
+const siteUrl = Astro.site ?? new URL('http://localhost:4321');
+const url = new URL(`/articles/${slug}`, siteUrl).href;
+const isoDate = publishDate.toISOString();
+const displayDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  datePublished: isoDate,
+  url,
+  ...(ogImage ? { image: new URL(ogImage, siteUrl).href } : {}),
+  publisher: { '@type': 'Organization', name: 'Sorrel' },
+};
+---
+
+<BaseLayout
+  title={`${title} — Sorrel`}
+  description={description}
+  ogImage={ogImage}
+  type="article"
+  canonical={canonical}
+>
+  <article class="article">
+    <a class="back muted" href="/articles">← all articles</a>
+    <h1 class="article__title">{title}</h1>
+    <p class="article__meta muted">
+      <time datetime={isoDate}>{displayDate}</time>
+    </p>
+
+    <div class="article__body">
+      <slot />
+    </div>
+
+    <aside class="article__cta" id="waitlist">
+      <h2>Want to measure your own MCP context cost?</h2>
+      <p class="muted">
+        Sorrel is coming soon. Join the waitlist and we&rsquo;ll email you at launch.
+      </p>
+      <WaitlistForm source={`article:${slug}`} />
+      <Disclaimer />
+    </aside>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <style>
+    .article {
+      max-width: 46rem;
+    }
+    .back {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .article__title {
+      font-size: clamp(1.7rem, 5vw, 2.6rem);
+      line-height: 1.15;
+      margin: 0 0 0.5rem;
+    }
+    .article__meta {
+      margin: 0 0 2rem;
+      font-size: 0.9rem;
+    }
+    .article__body {
+      line-height: 1.75;
+    }
+    .article__body :global(h2) {
+      margin-top: 2.2rem;
+    }
+    .article__body :global(pre) {
+      background: var(--bg-inset);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    .article__cta {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-elev);
+    }
+    .article__cta h2 {
+      margin-top: 0;
+    }
+  </style>
+</BaseLayout>
