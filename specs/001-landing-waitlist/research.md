@@ -15,21 +15,26 @@ fixed before planning; the remaining items are best-practice/integration choices
   content); Next.js (heavier for a content site, against "static-first"); pure static with a 3rd-
   party form action (would either expose a provider key client-side or lose control of the list).
 
-## 2. Waitlist provider — Resend Audiences via server-side SDK
+## 2. Waitlist store — owned Supabase table (INSERT-only RLS)
 
-- **Decision**: Capture emails in an owned **Resend Audience**. The endpoint calls
-  `resend.contacts.create({ audienceId: RESEND_AUDIENCE_ID, email, unsubscribed: false })` with the
-  `resend` Node SDK. Both `RESEND_API_KEY` and `RESEND_AUDIENCE_ID` come from Vercel env vars.
-- **Rationale**: We own the list (exportable, reusable for launch email), the SDK call is trivial,
-  and the same provider can later send the launch broadcast. Server-side only → no secret exposure.
-- **Idempotency / duplicates (Edge Case + FR)**: Treat a duplicate email as success. Resend returns
-  an error when a contact already exists in the audience; the endpoint maps that specific case to a
-  200/"you're already on the list" response rather than surfacing an error (idempotent UX, SC-002).
-- **Provider-down (Edge Case)**: On a 5xx/network failure, return a friendly retry state and a
-  non-200 status so the no-JS fallback shows an error page; never silently drop the lead. (MVP does
-  not add a durable queue; failures are surfaced, not swallowed.)
-- **Alternatives considered**: Buttondown (newsletter-first; fine, but Resend doubles as our
-  transactional sender), ConvertKit/Kit (heavier automation than we need now).
+- **Decision**: Capture emails in our **own Supabase Postgres** table `public.waitlist` in a
+  project dedicated to Sorrel. The endpoint inserts with `@supabase/supabase-js` using the **anon**
+  key plus an **INSERT-only RLS policy**. `SUPABASE_URL` and `SUPABASE_ANON_KEY` come from Vercel
+  env vars (server-side).
+- **Rationale**: The list literally lives in our DB (full control, exportable, schema-flexible:
+  `source`/UTM/timestamp). No domain to verify, no per-account audience limit, isolated in its own
+  project (chosen over reusing the existing Resend account, which only has a single Audience).
+- **Why anon + INSERT-only RLS**: even if the anon key leaked it could only add rows, never read or
+  delete the list. A DB `CHECK` regex on `email` plus the endpoint's honeypot/validation guard junk.
+- **Idempotency / duplicates**: `email` is `unique`; a unique violation (`23505`) maps to a
+  200/"already on the list" success (idempotent UX, SC-002).
+- **Store-down / misconfig (Edge Case)**: on any other DB/network error — or missing credentials —
+  return a friendly retry state with a non-200 status; never a fake success, never a silent drop.
+- **Email sending is out of scope here**: Supabase doesn't send email. The launch broadcast is a
+  later step (export the list to an email provider then). This phase only captures.
+- **Alternatives considered**: Resend Audiences (already implemented, but one Audience per account
+  and the existing account is shared with another project); Buttondown / Kit (separate accounts,
+  would also need an integration rewrite).
 
 ## 3. Progressive enhancement & spam protection
 
@@ -86,8 +91,8 @@ fixed before planning; the remaining items are best-practice/integration choices
 | Unknown | Resolution |
 |---------|------------|
 | Rendering mode | Static-first; only `/api/waitlist` is on-demand |
-| Provider integration | Resend `contacts.create` with audienceId, server-side |
-| Duplicate handling | Map "already exists" to success (idempotent) |
+| Store integration | Supabase `insert` into `waitlist`, anon key + INSERT-only RLS, server-side |
+| Duplicate handling | Unique-violation (`23505`) → success (idempotent) |
 | No-JS support | Native form POST → redirect; JS enhances to inline |
 | Spam | Honeypot (pure, tested); CAPTCHA optional later |
 | OG images | Hand-made PNGs for MVP |

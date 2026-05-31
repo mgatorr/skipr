@@ -1,61 +1,66 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock the Resend SDK at the boundary so no network call happens.
-const createMock = vi.fn();
-vi.mock('resend', () => ({
-  Resend: vi.fn().mockImplementation(() => ({
-    contacts: { create: createMock },
-  })),
+// Mock supabase-js at the boundary so no network call happens.
+const insertMock = vi.fn();
+const fromMock = vi.fn(() => ({ insert: insertMock }));
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => ({ from: fromMock })),
 }));
 
 import { addToWaitlist } from '../../src/lib/waitlist';
 
-const base = { email: 'user@example.com', apiKey: 're_test', audienceId: 'aud_1' };
+const base = {
+  email: 'user@example.com',
+  url: 'https://proj.supabase.co',
+  anonKey: 'anon_test',
+};
 
 beforeEach(() => {
-  createMock.mockReset();
+  insertMock.mockReset();
+  fromMock.mockClear();
 });
 
-describe('addToWaitlist', () => {
-  it('dry-run returns created without calling Resend', async () => {
+describe('addToWaitlist (Supabase)', () => {
+  it('dry-run returns created without inserting', async () => {
     const r = await addToWaitlist({ ...base, dryRun: true });
     expect(r.status).toBe('created');
-    expect(createMock).not.toHaveBeenCalled();
+    expect(insertMock).not.toHaveBeenCalled();
   });
 
-  it('returns created on a successful Resend call with the right payload', async () => {
-    createMock.mockResolvedValue({ data: { id: 'c_1' }, error: null });
+  it('returns error (never fake success) when credentials are missing', async () => {
+    const r = await addToWaitlist({ email: base.email });
+    expect(r.status).toBe('error');
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it('inserts into the waitlist table and returns created', async () => {
+    insertMock.mockResolvedValue({ error: null });
     const r = await addToWaitlist({ ...base, source: 'landing' });
     expect(r.status).toBe('created');
-    expect(createMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        audienceId: 'aud_1',
-        email: 'user@example.com',
-        unsubscribed: false,
-      }),
-    );
+    expect(fromMock).toHaveBeenCalledWith('waitlist');
+    expect(insertMock).toHaveBeenCalledWith({ email: 'user@example.com', source: 'landing' });
   });
 
-  it('maps an "already exists" error to idempotent success', async () => {
-    createMock.mockResolvedValue({ data: null, error: { message: 'Contact already exists' } });
+  it('maps a unique-violation (23505) to idempotent success', async () => {
+    insertMock.mockResolvedValue({ error: { code: '23505', message: 'duplicate key value' } });
     const r = await addToWaitlist(base);
     expect(r.status).toBe('already');
   });
 
-  it('maps other provider errors to error', async () => {
-    createMock.mockResolvedValue({ data: null, error: { message: 'Internal server error' } });
+  it('maps other database errors to error', async () => {
+    insertMock.mockResolvedValue({ error: { code: '23502', message: 'not null violation' } });
     const r = await addToWaitlist(base);
     expect(r.status).toBe('error');
   });
 
   it('maps a thrown/network failure to error', async () => {
-    createMock.mockRejectedValue(new Error('network down'));
+    insertMock.mockRejectedValue(new Error('network down'));
     const r = await addToWaitlist(base);
     expect(r.status).toBe('error');
   });
 
   it('never returns the raw email in the result', async () => {
-    createMock.mockResolvedValue({ data: { id: 'c_1' }, error: null });
+    insertMock.mockResolvedValue({ error: null });
     const r = await addToWaitlist(base);
     expect(JSON.stringify(r)).not.toContain('user@example.com');
   });

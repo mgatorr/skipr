@@ -32,8 +32,10 @@
 ### Session 2026-05-31 (kickoff decisions, finalized)
 
 - Q: Confirm the landing stack? → A: **Astro + Vercel** (confirmed).
-- Q: Waitlist provider? → A: **Resend Audiences** (owned list; same provider can send launch
-  emails). API key server-side only via env var; never committed.
+- Q: Waitlist store? → A: **Supabase** (our own Postgres table in a dedicated project; INSERT-only
+  RLS). Chosen over Resend Audiences because the existing Resend account has a single shared
+  Audience; Supabase gives an isolated, owned list. Keys server-side only via env var; never
+  committed. Email sending (launch broadcast) is a later phase.
 - Q: Product/brand name + domain? → A: **Sorrel** (`sorrel.dev`), chosen after research over
   Cockpit/Helm/Conductor/Sextant for being distinctive, neutral, and free of dev-tool
   collisions. The repo and `specs/002-cockpit-mvp` directory keep the `cockpit` working name
@@ -154,7 +156,7 @@ adding a second article requires only a new content file.
 ## Assumptions
 
 - Stack is **Astro + Vercel** (confirm at planning); email via an owned-list provider chosen
-  at implementation (Buttondown / Resend Audiences / ConvertKit).
+  using our own **Supabase** table (INSERT-only RLS) in a dedicated project.
 - The visual language reuses the `claude-mcp-stack` hero aesthetic for brand consistency.
 - The product (`002-cockpit-mvp`) is built after this validation phase shows demand.
 - Product/brand name finalized as **Sorrel** (`sorrel.dev`) for the landing; the $29 launch

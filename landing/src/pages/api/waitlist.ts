@@ -4,7 +4,7 @@ import { isHoneypotTripped } from '../../lib/honeypot';
 import { addToWaitlist } from '../../lib/waitlist';
 import { getWaitlistEnv } from '../../lib/env';
 
-// On-demand: this is the ONLY server-rendered route. Keeps the Resend key
+// On-demand: this is the ONLY server-rendered route. Keeps the Supabase key
 // server-side and out of the client bundle (Principle II).
 export const prerender = false;
 
@@ -63,8 +63,8 @@ export const POST: APIRoute = async ({ request }) => {
   const result = await addToWaitlist({
     email: check.normalized,
     source: fields.source,
-    apiKey: env.apiKey,
-    audienceId: env.audienceId,
+    url: env.url,
+    anonKey: env.anonKey,
     dryRun: env.dryRun,
   });
 

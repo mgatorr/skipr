@@ -4,20 +4,24 @@ This feature has no in-repo database. The "model" is (a) the external waitlist l
 article content entity, and (c) the static landing content. Validation rules trace to the spec's
 Functional Requirements.
 
-## Entity: WaitlistLead (external — stored in the Resend Audience)
+## Entity: WaitlistLead (owned — row in our Supabase `waitlist` table)
 
 | Field | Type | Required | Rules |
 |-------|------|----------|-------|
-| `email` | string | yes | Trimmed, lowercased; must pass RFC-5322-pragmatic validation (`validateEmail`); max 254 chars. |
-| `source` | string | no | Optional UTM/source tag (e.g. `landing`, `article:<slug>`); used to attribute signups. |
-| `audienceId` | string | yes (server) | From `RESEND_AUDIENCE_ID` env; never client-visible. |
-| `unsubscribed` | boolean | yes | Always `false` on create. |
+| `id` | uuid | yes | `gen_random_uuid()` primary key. |
+| `email` | text | yes | Trimmed, lowercased; `validateEmail` at the endpoint + a DB `CHECK` regex; `unique`. |
+| `source` | text | no | Optional UTM/source tag (e.g. `landing`, `article:<slug>`); attributes signups. |
+| `created_at` | timestamptz | yes | `now()` default. |
 
-**State / transitions**: `new → created` (stored) | `new → already_exists` (treated as success,
-idempotent) | `new → provider_error` (friendly retry, lead not lost silently).
+**Access**: RLS enabled; an **INSERT-only** policy for the anon role. The anon key (server-side)
+can add leads but cannot read, update, or delete the list. Reading requires the service role.
 
-**Privacy**: The email is sent only to Resend over HTTPS; it is never written to the repo, logs, or
-any local store. No other PII is collected.
+**State / transitions**: `new → created` (inserted) | `new → already` (unique violation `23505`,
+treated as success, idempotent) | `new → error` (friendly retry, lead not lost silently; also when
+credentials are missing — never a fake success).
+
+**Privacy**: The email is sent only to Supabase over HTTPS and stored in our own table; it is never
+written to the repo, logs, or any client bundle. No other PII is collected.
 
 ## Entity: Article (content collection `articles`)
 

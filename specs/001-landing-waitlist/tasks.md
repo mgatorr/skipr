@@ -13,6 +13,11 @@ test-first for real logic (Principle V). Write tests first; ensure they FAIL bef
 
 **Organization**: Grouped by user story. All paths are under `landing/` unless noted.
 
+> **Update (post-implementation):** the waitlist store was switched from Resend Audiences to our
+> own **Supabase** table (`public.waitlist`, INSERT-only RLS) — see `research.md` §2. Task
+> descriptions mentioning Resend now apply to the Supabase insert; env vars are `SUPABASE_URL` /
+> `SUPABASE_ANON_KEY`. Migration: `landing/supabase/migrations/0001_waitlist.sql`.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies on incomplete tasks)

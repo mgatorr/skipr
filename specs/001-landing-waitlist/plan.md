@@ -8,24 +8,25 @@
 
 Ship a static-first marketing site for **Sorrel** (working repo name: `cockpit`) that (1) explains
 the product and its hero — a per-server MCP token-cost analyzer — in a dark "terminal" aesthetic,
-(2) captures emails into an **owned** list via **Resend Audiences**, working even with JavaScript
-disabled and protected against bots, and (3) hosts an extensible **articles** section seeded with
-one launch article, with full SEO/social metadata. Built with **Astro + Vercel**: pages and
-articles are statically prerendered for Lighthouse ≥ 95; a single on-demand endpoint
-(`/api/waitlist`) performs the server-side Resend call so no API key ever reaches the browser or
-the repo.
+(2) captures emails into an **owned** list — our own **Supabase** table with an INSERT-only RLS
+policy — working even with JavaScript disabled and protected against bots, and (3) hosts an
+extensible **articles** section seeded with one launch article, with full SEO/social metadata.
+Built with **Astro + Vercel**: pages and articles are statically prerendered for Lighthouse ≥ 95;
+a single on-demand endpoint (`/api/waitlist`) performs the server-side Supabase insert so no key
+ever reaches the browser or the repo.
 
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x on Node.js 20+
 
-**Primary Dependencies**: Astro 5 (`@astrojs/vercel`, `@astrojs/sitemap`), Resend SDK (`resend`),
-Zod (bundled with Astro content collections), Vitest + Playwright + `@lhci/cli` (dev/test)
+**Primary Dependencies**: Astro 5 (`@astrojs/vercel`, `@astrojs/sitemap`),
+`@supabase/supabase-js`, Zod (bundled with Astro content collections),
+Vitest + Playwright + `@lhci/cli` (dev/test)
 
-**Storage**: None in-repo. Leads live in the owned Resend Audience (external). Articles are
-Markdown/MDX content files under version control.
+**Storage**: Our own **Supabase** Postgres table `public.waitlist` (INSERT-only RLS). No leads in
+the repo. Articles are Markdown/MDX content files under version control.
 
-**Testing**: Vitest (unit — email validation, honeypot, Resend payload mapping), Playwright (e2e —
+**Testing**: Vitest (unit — email validation, honeypot, Supabase insert mapping), Playwright (e2e —
 form submit happy/no-JS/duplicate paths, SEO meta presence), Lighthouse CI (perf/SEO/a11y budgets)
 
 **Target Platform**: Vercel (static assets + one Node serverless function for `/api/waitlist`);
@@ -50,10 +51,10 @@ endpoint, one shared layout/theme. Designed so a new article = one new content f
 | Principle | Status | How this plan satisfies it |
 |-----------|--------|----------------------------|
 | I. Validated Pain First | ✅ PASS | The entire feature exists to validate demand and collect a launch list before building the product. |
-| II. Security & Privacy First (NON-NEGOTIABLE) | ✅ PASS | `RESEND_API_KEY` / `RESEND_AUDIENCE_ID` only via env; never logged; never committed. CI runs `gitleaks` over tree **and** history. No user secret is stored anywhere but the provider. |
+| II. Security & Privacy First (NON-NEGOTIABLE) | ✅ PASS | `SUPABASE_URL` / `SUPABASE_ANON_KEY` only via env; never logged; never committed. Anon key + INSERT-only RLS means a leaked key cannot read or delete the list. CI runs `gitleaks` over tree **and** history. |
 | III. Single Binary, Frictionless Install | ➖ N/A | Marketing site, not the Go binary. Noted; no action. |
 | IV. Open-Core Honesty | ➖ N/A | Landing is marketing only — contains no license logic or crippleware. |
-| V. Test-First for Real Logic (NON-NEGOTIABLE) | ✅ PASS | Email validation, honeypot check, and the Resend payload mapping are built test-first with Vitest (failing test → minimal code). Playwright covers the form + SEO contracts. |
+| V. Test-First for Real Logic (NON-NEGOTIABLE) | ✅ PASS | Email validation, honeypot check, and the Supabase insert mapping are built test-first with Vitest (failing test → minimal code). Playwright covers the form + SEO contracts. |
 | VI. Phase Discipline (No Premature Platform) | ✅ PASS | This is Phase −1 validation; it ships nothing of the product platform. |
 | VII. Honest, Neutral Branding | ✅ PASS | Brand = **Sorrel** (no "Claude"); a visible "not affiliated with Anthropic" disclaimer; all copy/commits in English; token-savings framed as a measured estimate. |
 
@@ -101,7 +102,7 @@ landing/                          # Astro site (this feature, isolated from the 
 │   ├── lib/
 │   │   ├── validateEmail.ts      # pure, unit-tested
 │   │   ├── honeypot.ts           # pure, unit-tested
-│   │   └── waitlist.ts           # builds Resend payload + calls SDK (boundary-tested)
+│   │   └── waitlist.ts           # Supabase insert (anon key) — boundary-tested
 │   ├── pages/
 │   │   ├── index.astro           # landing (prerendered)
 │   │   ├── articles/
@@ -120,7 +121,7 @@ landing/                          # Astro site (this feature, isolated from the 
 ```
 
 **Structure Decision**: Web application isolated under `landing/`. The site is static-first; only
-`src/pages/api/waitlist.ts` is rendered on demand (`prerender = false`) so the Resend secret stays
+`src/pages/api/waitlist.ts` is rendered on demand (`prerender = false`) so the Supabase key stays
 server-side. Articles are an Astro **content collection**, so adding an article is a single content
 file with no code change (FR-009/SC-005). The Go product (`002-cockpit-mvp`) will later live at the
 repo root without touching `landing/`.

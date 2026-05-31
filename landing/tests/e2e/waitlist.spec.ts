@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-// Runs against the preview server started with WAITLIST_DRY_RUN=1 (no real Resend call).
+// Runs against the dev server started with WAITLIST_DRY_RUN=1 (no real Supabase insert).
 
 test.describe('Waitlist — JS enhanced', () => {
   test('valid email shows an inline success state', async ({ page }) => {
