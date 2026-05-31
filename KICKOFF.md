@@ -3,7 +3,7 @@
 This repo is set up for **Spec-Driven Development with Spec Kit**. Everything is documented:
 
 - **Why / full design:** [`docs/design.md`](docs/design.md)
-- **Constitution (non-negotiable principles):** [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
+- **Constitution (non-negotiable principles):** [`docs/constitution.md`](docs/constitution.md) (canonical; Spec Kit also keeps a working copy at `.specify/memory/constitution.md`)
 - **Specs (build in this order):**
   1. [`specs/001-landing-waitlist/spec.md`](specs/001-landing-waitlist/spec.md) — **BUILD FIRST**: landing + email waitlist + one launch article (Astro + Vercel). Validate demand, collect a launch list.
   2. [`specs/002-cockpit-mvp/spec.md`](specs/002-cockpit-mvp/spec.md) — the product: free Go CLI installer + paid Charm TUI (hero = per-server MCP token-cost analyzer).
@@ -15,8 +15,8 @@ The active feature (`/.specify/feature.json`) is **001-landing-waitlist**.
 ## ▶ Paste this prompt into a NEW conversation (opened in this repo)
 
 > We're building **Cockpit** with Spec-Driven Development (Spec Kit). Start by reading
-> `docs/design.md` (the full rationale), `.specify/memory/constitution.md` (the principles),
-> and the active spec `specs/001-landing-waitlist/spec.md`. We are building **feature 001
+> `docs/design.md` (the full rationale), `docs/constitution.md` (the principles), and the
+> active spec `specs/001-landing-waitlist/spec.md`. We are building **feature 001
 > (landing + waitlist + first article) FIRST** to validate demand before the product — do NOT
 > start the Go product (`002-cockpit-mvp`) yet.
 >
