@@ -1,0 +1,26 @@
+# Secrets — NEVER commit
+.env
+.env.*
+!.env.example
+*.local
+
+# Node / Astro (landing site, added during implementation)
+node_modules/
+dist/
+.astro/
+.vercel/
+
+# Go (product, added during implementation)
+/bin/
+*.test
+*.out
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Spec Kit / agent tooling (kept locally, not published)
+.specify/
+.claude/
