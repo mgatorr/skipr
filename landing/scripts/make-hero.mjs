@@ -1,5 +1,6 @@
-// Generate the README hero banner (PNG) — skipr's guided build-and-own flow in
-// the dark terminal aesthetic. Run: node scripts/make-hero.mjs
+// Generate the README hero banner (PNG) in skipr's risograph-zine aesthetic —
+// cream paper, riso inks, rubber stamp, and the "hand-off" specimen.
+// Run: node scripts/make-hero.mjs
 import sharp from 'sharp';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -11,94 +12,95 @@ const outDir = resolve(here, '../../assets');
 const W = 1280;
 const H = 460;
 
-const panelX = 700;
-const panelY = 70;
-const panelW = 508;
-const panelH = 320;
+// Zine palette (matches the landing's oklch tokens, hand-tuned to sRGB).
+const PAPER = '#f1ead9';
+const PAPER2 = '#e8dec6';
+const INK = '#332a20';
+const INK2 = '#5d513f';
+const INK3 = '#7a6e58';
+const ORANGE = '#cf4f27';
+const ORANGE_INK = '#b1431f';
+const BLUE = '#3a5fb0';
+const ORANGE_TINT = '#efd9c9';
+const BLUE_TINT = '#d9e0f0';
 
-// single-quote font names: these go inside double-quoted XML attributes
-const sans = "Inter, 'Helvetica Neue', Arial, sans-serif";
-const mono = "'JetBrains Mono', 'SF Mono', Menlo, monospace";
+const DISP =
+  "'Bricolage Grotesque Variable','Bricolage Grotesque','Arial Black','Helvetica Neue',Arial,sans-serif";
+const READ = "'Newsreader Variable','Newsreader',Georgia,'Times New Roman',serif";
+const MONO = "'IBM Plex Mono','SFMono-Regular',Menlo,Consolas,monospace";
 
-const steps = [
-  ['Claude Code ready', '— no terminal'],
-  ['spec written from your idea', ''],
-  ['building', '— your files, your machine'],
-  ['pushed to your GitHub', ''],
-  ['deployed — Vercel + Supabase', ''],
-];
+// ---- the hand-off specimen: sealed crate → keys → your folder ----
+function specimen(x, y, s = 1) {
+  return `<g transform="translate(${x},${y}) scale(${s})">
+    <rect x="8" y="8" width="404" height="300" fill="${INK}"/>
+    <rect x="0" y="0" width="404" height="300" fill="${PAPER2}" stroke="${INK}" stroke-width="2.5"/>
+    <rect x="22" y="-11" width="216" height="22" fill="${PAPER}"/>
+    <text x="30" y="5" font-family="${MONO}" font-size="13" letter-spacing="1.5" fill="${INK3}">FIG.1 — THE HAND-OFF</text>
+    <g transform="translate(40,70)">
+      <rect width="96" height="120" fill="${ORANGE_TINT}" stroke="${ORANGE}" stroke-width="3"/>
+      <line x1="-6" y1="14" x2="102" y2="92" stroke="${ORANGE}" stroke-width="9" opacity="0.55"/>
+      <line x1="-6" y1="106" x2="102" y2="28" stroke="${ORANGE}" stroke-width="9" opacity="0.55"/>
+      <g transform="translate(34,40)">
+        <rect x="0" y="14" width="28" height="20" rx="3" fill="${ORANGE}"/>
+        <path d="M5 14 v-5 a9 9 0 0 1 18 0 v5" fill="none" stroke="${ORANGE}" stroke-width="5"/>
+      </g>
+      <text x="48" y="150" text-anchor="middle" font-family="${MONO}" font-size="12" letter-spacing="2" fill="${ORANGE_INK}">SEALED</text>
+    </g>
+    <g transform="translate(168,120)">
+      <circle cx="9" cy="9" r="9" fill="none" stroke="${INK}" stroke-width="3.5"/>
+      <path d="M18 9 H64 M56 9 V20 M64 9 V22" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/>
+      <text x="32" y="44" text-anchor="middle" font-family="${MONO}" font-size="11" letter-spacing="2" fill="${INK3}">THE KEYS</text>
+    </g>
+    <g transform="translate(266,70)">
+      <rect width="96" height="120" fill="${BLUE_TINT}" stroke="${BLUE}" stroke-width="3"/>
+      <rect x="-1" y="-9" width="50" height="14" rx="2" fill="${BLUE}"/>
+      <rect x="14" y="58" width="68" height="7" rx="3" fill="${BLUE}" opacity="0.5"/>
+      <rect x="14" y="74" width="54" height="7" rx="3" fill="${BLUE}" opacity="0.5"/>
+      <rect x="14" y="90" width="62" height="7" rx="3" fill="${BLUE}" opacity="0.5"/>
+      <text x="48" y="150" text-anchor="middle" font-family="${MONO}" font-size="12" letter-spacing="1.5" fill="${BLUE}">OWNER: YOU</text>
+    </g>
+  </g>`;
+}
 
-const linesY = panelY + 78;
-const lineGap = 38;
-const stepLines = steps
-  .map((s, i) => {
-    const y = linesY + i * lineGap;
-    const muted = s[1] ? `<tspan fill="#50615b">  ${s[1]}</tspan>` : '';
-    return `<text x="${panelX + 28}" y="${y}" font-family="${mono}" font-size="16" fill="#d6e2dd"><tspan fill="#3ddc84">✓</tspan>  ${s[0]}${muted}</text>`;
-  })
-  .join('\n    ');
-
-const finalY = linesY + steps.length * lineGap + 16;
+const chip = (x, label) =>
+  `<g transform="translate(${x},346)"><rect width="${30 + label.length * 9.5}" height="32" rx="6" fill="${PAPER2}" stroke="${INK}" stroke-width="1.5"/><text x="15" y="21" font-family="${MONO}" font-size="13" fill="${INK2}">${label}</text></g>`;
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0a0e0d"/>
-      <stop offset="1" stop-color="#070b0a"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.8" cy="0.12" r="0.75">
-      <stop offset="0" stop-color="#3ddc84" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="#3ddc84" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#b8f5d4"/>
-    </linearGradient>
-  </defs>
+  <rect width="${W}" height="${H}" fill="${PAPER}"/>
 
-  <rect width="${W}" height="${H}" fill="url(#bg)"/>
-  <rect width="${W}" height="${H}" fill="url(#glow)"/>
-  <rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" rx="18" fill="none" stroke="#16221e" stroke-width="1"/>
+  <!-- framed plate with offset shadow -->
+  <rect x="32" y="32" width="${W - 56}" height="${H - 56}" fill="${INK}"/>
+  <rect x="24" y="24" width="${W - 56}" height="${H - 56}" fill="${PAPER}" stroke="${INK}" stroke-width="2.5"/>
 
-  <!-- LEFT: brand + value prop -->
-  <g>
-    <rect x="68" y="92" width="320" height="30" rx="15" fill="none" stroke="#1c2a26"/>
-    <circle cx="88" cy="107" r="3.5" fill="#3ddc84"/>
-    <text x="102" y="112" font-family="${mono}" font-size="12.5" letter-spacing="1.4" fill="#7d8f88">FOR FOUNDERS WHO SHIP FOR REAL</text>
+  <!-- deckline -->
+  <line x1="24" y1="84" x2="${W - 32}" y2="84" stroke="${INK}" stroke-width="1.5" opacity="0.5"/>
+  <text x="64" y="67" font-family="${MONO}" font-size="14" letter-spacing="2" fill="${INK2}">EST. 2026 · INDEPENDENT SOFTWARE · A FIELD GUIDE FOR FOUNDERS</text>
+  <text x="${W - 64}" y="68" text-anchor="end" font-family="${DISP}" font-size="26" font-weight="800" letter-spacing="-1.2" fill="${INK}">skipr<tspan fill="${ORANGE}">.</tspan></text>
 
-    <text x="66" y="210" font-family="${sans}" font-size="92" font-weight="800" fill="url(#title)" letter-spacing="-2">skipr</text>
-
-    <text x="70" y="258" font-family="${sans}" font-size="26" font-weight="600" fill="#d6e2dd">Build real software with AI —</text>
-    <text x="70" y="292" font-family="${sans}" font-size="26" font-weight="600" fill="#3ddc84">and actually own it.</text>
-
-    <text x="70" y="328" font-family="${mono}" font-size="15" fill="#7d8f88">From idea to a deployed app you control. No black box.</text>
-
-    <g font-family="${mono}" font-size="13" fill="#7d8f88">
-      <rect x="70" y="352" width="116" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
-      <text x="84" y="370">your code</text>
-      <rect x="196" y="352" width="128" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
-      <text x="210" y="370">your GitHub</text>
-      <rect x="334" y="352" width="128" height="28" rx="6" fill="#0f1614" stroke="#1c2a26"/>
-      <text x="348" y="370">your deploy</text>
-    </g>
+  <!-- rubber stamp -->
+  <g transform="rotate(-3.5 64 120)">
+    <rect x="64" y="104" width="324" height="32" rx="5" fill="none" stroke="${ORANGE}" stroke-width="2.5"/>
+    <circle cx="82" cy="120" r="4.5" fill="${ORANGE}"/>
+    <text x="96" y="125" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${ORANGE_INK}">FOR FOUNDERS WHO SHIP FOR REAL</text>
   </g>
 
-  <!-- RIGHT: guided-flow terminal -->
-  <g>
-    <rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="12" fill="#0d1412" stroke="#1c2a26"/>
-    <rect x="${panelX}" y="${panelY}" width="${panelW}" height="40" rx="12" fill="#0a100e"/>
-    <rect x="${panelX}" y="${panelY + 28}" width="${panelW}" height="12" fill="#0a100e"/>
-    <circle cx="${panelX + 22}" cy="${panelY + 20}" r="4.5" fill="#1c2a26"/>
-    <circle cx="${panelX + 38}" cy="${panelY + 20}" r="4.5" fill="#1c2a26"/>
-    <circle cx="${panelX + 54}" cy="${panelY + 20}" r="4.5" fill="#1c2a26"/>
-    <text x="${panelX + 76}" y="${panelY + 25}" font-family="${mono}" font-size="14" fill="#50615b">skipr — guided</text>
+  <!-- giant wordmark -->
+  <text x="60" y="248" font-family="${DISP}" font-size="120" font-weight="800" letter-spacing="-5" fill="${ORANGE}" opacity="0.16">skipr.</text>
+  <text x="58" y="244" font-family="${DISP}" font-size="120" font-weight="800" letter-spacing="-5" fill="${INK}">skipr<tspan fill="${ORANGE}">.</tspan></text>
 
-    <text x="${panelX + 28}" y="${linesY - 34}" font-family="${mono}" font-size="16" fill="#7d8f88">$ skipr new my-app</text>
-    ${stepLines}
+  <!-- tagline -->
+  <text x="62" y="296" font-family="${DISP}" font-size="29" font-weight="700" letter-spacing="-0.8" fill="${INK}">Build <tspan fill="${ORANGE}">real</tspan> software with AI —</text>
+  <text x="62" y="332" font-family="${DISP}" font-size="29" font-weight="700" letter-spacing="-0.8" fill="${INK}">and <tspan font-family="${READ}" font-style="italic" font-weight="500">actually</tspan> own it.</text>
 
-    <line x1="${panelX + 24}" y1="${finalY - 24}" x2="${panelX + panelW - 24}" y2="${finalY - 24}" stroke="#16221e"/>
-    <text x="${panelX + 28}" y="${finalY}" font-family="${mono}" font-size="16" fill="#d6e2dd">your app is live — <tspan fill="#3ddc84" font-weight="700">and it's yours.</tspan></text>
-  </g>
+  <!-- ownership chips -->
+  ${chip(62, 'your code')}
+  ${chip(62 + 145, 'your GitHub')}
+  ${chip(62 + 145 + 162, 'your deploy')}
+
+  <!-- footer meta -->
+  <text x="62" y="412" font-family="${MONO}" font-size="15" letter-spacing="0.5" fill="${INK3}">skipr<tspan fill="${ORANGE}">.</tspan>dev · idea → spec → code → GitHub → deploy · not affiliated with Anthropic</text>
+
+  ${specimen(854, 150, 0.82)}
 </svg>`;
 
 await mkdir(outDir, { recursive: true });

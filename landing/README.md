@@ -9,32 +9,35 @@ single on-demand endpoint for the waitlist. English (primary) + Spanish (seconda
 
 - **Astro 5** (static output, built-in i18n) + `@astrojs/vercel` (one serverless endpoint) +
   `@astrojs/sitemap`
-- **Supabase** (Postgres) for the owned waitlist — INSERT-only RLS policy, server-side
+- **Neon** (Postgres, via the Vercel Marketplace) for the owned waitlist — connection string used
+  server-side only
 - **Vitest** (unit) + **Playwright** (e2e) + **Lighthouse CI** (≥ 95 perf/seo/a11y)
 
 ## Local development
 
 ```bash
 pnpm install
-cp .env.example .env   # fill SUPABASE_* for real submissions, or set WAITLIST_DRY_RUN=1
+cp .env.example .env   # fill DATABASE_URL for real submissions, or set WAITLIST_DRY_RUN=1
 pnpm dev               # http://localhost:4321
 ```
 
 ### Environment variables (never commit real values)
 
-| Var                 | Where               | Purpose                                              |
-| ------------------- | ------------------- | ---------------------------------------------------- |
-| `SUPABASE_URL`      | Vercel env (server) | Project URL, e.g. `https://<ref>.supabase.co`        |
-| `SUPABASE_ANON_KEY` | Vercel env (server) | Anon key — used server-side with INSERT-only RLS     |
-| `PUBLIC_SITE_URL`   | build               | Canonical/OG/sitemap base URL                        |
-| `WAITLIST_DRY_RUN`  | dev/test            | `1` skips the real Supabase insert (no creds needed) |
+| Var                | Where               | Purpose                                                  |
+| ------------------ | ------------------- | -------------------------------------------------------- |
+| `DATABASE_URL`     | Vercel env (server) | Neon connection string — secret, used server-side only   |
+| `PUBLIC_SITE_URL`  | build               | Canonical/OG/sitemap base URL                            |
+| `WAITLIST_DRY_RUN` | dev/test            | `1` skips the real insert and returns success (no creds) |
+
+> Vercel's Neon integration injects `DATABASE_URL` automatically; you don't set it by hand in prod.
 
 ## Database
 
-The waitlist lives in a dedicated Supabase project. Apply `supabase/migrations/0001_waitlist.sql`
-(SQL Editor or `supabase db push`). It creates `public.waitlist` (`email` unique, `source`,
-`created_at`) with RLS allowing **INSERT only** for the anon role — the anon key can add leads but
-cannot read, update, or delete the list (reading requires the service role / dashboard).
+The waitlist lives in our own **Neon** Postgres (created from the Vercel Marketplace). Apply
+`db/migrations/0001_waitlist.sql` once — via the Neon SQL Editor or `psql "$DATABASE_URL" -f
+db/migrations/0001_waitlist.sql`. It creates `waitlist` (`email` unique, `source`, `created_at`).
+Access is gated by the connection string, which is a secret used only in the server-rendered
+`/api/waitlist` endpoint — it never reaches the client.
 
 ## Scripts
 
@@ -55,8 +58,9 @@ automatically — no code change (set `draft: true` to hide it). Required frontm
 
 ## Deploy
 
-Vercel. Set the project **root directory** to `landing/`, add the `SUPABASE_*` env vars, and PRs
-get preview deploys automatically. Do **not** set `WAITLIST_DRY_RUN` in production.
+Vercel. Set the project **root directory** to `landing/`, add **Neon** from the Vercel Marketplace
+(it injects `DATABASE_URL`), and PRs get preview deploys automatically. Do **not** set
+`WAITLIST_DRY_RUN` in production.
 
-When you later want to email the list, export it from Supabase and send the broadcast from your
+When you later want to email the list, export it from Neon and send the broadcast from your
 email provider of choice — no email sending is wired into this phase.

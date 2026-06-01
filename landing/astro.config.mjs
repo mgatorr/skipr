@@ -10,6 +10,7 @@ export default defineConfig({
   site: process.env.PUBLIC_SITE_URL || 'https://skipr.dev',
   output: 'static',
   adapter: vercel(),
+  devToolbar: { enabled: false },
   // English is the primary locale (served at /, no prefix); Spanish is secondary (/es/).
   i18n: {
     defaultLocale: 'en',

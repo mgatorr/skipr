@@ -4,11 +4,11 @@
 
 <br/><br/>
 
-[![status](https://img.shields.io/badge/status-pre--launch-3ddc84?style=flat-square)](#roadmap)
-[![landing](https://img.shields.io/badge/landing-live-3ddc84?style=flat-square)](./landing)
-[![stack](https://img.shields.io/badge/landing-Astro%20%2B%20Vercel-111?style=flat-square)](./landing)
-[![product](https://img.shields.io/badge/product-desktop%20app%20(planned)-00ADD8?style=flat-square)](./docs/design.md)
-[![not affiliated](https://img.shields.io/badge/not%20affiliated%20with-Anthropic-9aa?style=flat-square)](#a-note-on-branding)
+[![status](https://img.shields.io/badge/status-pre--launch-cf4f27?style=flat-square)](#roadmap)
+[![landing](https://img.shields.io/badge/landing-live-cf4f27?style=flat-square)](./landing)
+[![stack](https://img.shields.io/badge/landing-Astro%20%2B%20Vercel-332a20?style=flat-square)](./landing)
+[![product](https://img.shields.io/badge/product-desktop%20app%20(planned)-3a5fb0?style=flat-square)](./docs/design.md)
+[![not affiliated](https://img.shields.io/badge/not%20affiliated%20with-Anthropic-8a8073?style=flat-square)](#a-note-on-branding)
 
 </div>
 
@@ -56,7 +56,7 @@ Five guided steps, no terminal required, on a stack the AI knows well:
 .
 ├── landing/                       # Astro + Vercel marketing site + waitlist (LIVE, en + es)
 │   ├── src/                       #   hero, anti-black-box, how-it-works, waitlist, articles
-│   └── supabase/migrations/       #   owned waitlist table (INSERT-only RLS)
+│   └── db/migrations/             #   owned Neon waitlist table (Vercel Marketplace)
 ├── docs/
 │   ├── design.md                  # the "why": research, audience, differentiator, vision
 │   ├── constitution.md            # non-negotiable principles (v1.1.0)
@@ -71,17 +71,18 @@ implement`, gated by the constitution.
 
 ## The landing (live)
 
-Static-first **Astro + Vercel**, dark terminal aesthetic, **English + Spanish**:
+Static-first **Astro + Vercel**, a risograph-zine aesthetic (cream paper, riso inks, hand-drawn
+marks), **English + Spanish**:
 
-- **Waitlist** in our **own Supabase** table (INSERT-only RLS) — works with **JavaScript disabled**,
-  honeypot anti-spam, idempotent.
+- **Waitlist** in our **own Neon Postgres** (Vercel Marketplace) — works with **JavaScript
+  disabled**, honeypot anti-spam, idempotent.
 - **Articles** as a content collection; full SEO/OG/sitemap.
 - **Lighthouse ≥ 95**; no secrets committed (gitleaks in CI).
 
 ```bash
 cd landing
 pnpm install
-cp .env.example .env      # SUPABASE_* or WAITLIST_DRY_RUN=1
+cp .env.example .env      # DATABASE_URL or WAITLIST_DRY_RUN=1
 pnpm dev                  # http://localhost:4321
 pnpm test && pnpm test:e2e
 ```

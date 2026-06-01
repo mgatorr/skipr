@@ -1,7 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import WaitlistForm from '../components/WaitlistForm.astro';
-import Disclaimer from '../components/Disclaimer.astro';
 
 interface Props {
   title: string;
@@ -41,26 +40,28 @@ const jsonLd = {
   type="article"
   canonical={canonical}
 >
-  <article class="article">
-    <a class="back muted" href="/articles">← all articles</a>
-    <h1 class="article__title">{title}</h1>
-    <p class="article__meta muted">
-      <time datetime={isoDate}>{displayDate}</time>
-    </p>
-
-    <div class="article__body">
-      <slot />
-    </div>
-
-    <aside class="article__cta" id="waitlist">
-      <h2>Want to build real software you own?</h2>
-      <p class="muted">
-        skipr is coming soon. Join the waitlist and we&rsquo;ll email you at launch.
+  <div class="container article-wrap">
+    <article class="article">
+      <a class="back" href="/articles">← all field notes</a>
+      <h1 class="article__title">{title}</h1>
+      <p class="article__meta">
+        <time datetime={isoDate}>{displayDate}</time>
       </p>
-      <WaitlistForm source={`article:${slug}`} />
-      <Disclaimer />
-    </aside>
-  </article>
+
+      <div class="article__body">
+        <slot />
+      </div>
+
+      <aside class="article__cta" id="waitlist">
+        <span class="plate-num">The whole point</span>
+        <h2>Want to build real software you own?</h2>
+        <p class="cta__lead">
+          skipr is coming soon. Join the waitlist and we&rsquo;ll email you at launch.
+        </p>
+        <WaitlistForm source={`article:${slug}`} formId="waitlist" />
+      </aside>
+    </article>
+  </div>
 
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
@@ -71,39 +72,69 @@ const jsonLd = {
     .back {
       display: inline-block;
       margin-bottom: 1.5rem;
-      font-size: 0.9rem;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--ink-3);
+    }
+    .back:hover {
+      color: var(--orange-ink);
+      text-decoration: none;
     }
     .article__title {
-      font-size: clamp(1.7rem, 5vw, 2.6rem);
-      line-height: 1.15;
-      margin: 0 0 0.5rem;
+      font-size: clamp(1.9rem, 5vw, 2.9rem);
+      line-height: 1.05;
+      margin: 0 0 0.6rem;
     }
     .article__meta {
-      margin: 0 0 2rem;
-      font-size: 0.9rem;
+      margin: 0 0 2.2rem;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-3);
     }
     .article__body {
       line-height: 1.75;
     }
     .article__body :global(h2) {
-      margin-top: 2.2rem;
+      font-family: var(--disp);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-top: 2.4rem;
     }
     .article__body :global(pre) {
-      background: var(--bg-inset);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      background: var(--paper-3);
+      border: 2px solid var(--rule);
       padding: 1rem;
       overflow-x: auto;
+      font-family: var(--mono);
+    }
+    .article__body :global(code) {
+      font-family: var(--mono);
+      font-size: 0.92em;
     }
     .article__cta {
-      margin-top: 3rem;
-      padding: 1.5rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--bg-elev);
+      margin-top: 3.5rem;
+      padding: 1.75rem;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 6px 6px 0 var(--orange);
+    }
+    .article__cta .plate-num {
+      display: block;
+      margin-bottom: 0.6rem;
     }
     .article__cta h2 {
-      margin-top: 0;
+      font-family: var(--disp);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.5rem;
+    }
+    .cta__lead {
+      font-family: var(--read);
+      color: var(--ink-2);
+      margin: 0 0 1.2rem;
     }
   </style>
 </BaseLayout>

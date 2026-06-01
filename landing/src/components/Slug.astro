@@ -1,0 +1,43 @@
+---
+import { useTranslations, getLocale } from '../i18n/ui';
+
+const locale = getLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+
+// One run of the slugline; rendered twice for the seamless marquee loop.
+const items = [
+  { k: 'o', label: t('slug.0') },
+  { k: 'x', label: t('slug.x0') },
+  { k: 'o', label: t('slug.1') },
+  { k: 'x', label: t('slug.x1') },
+  { k: 'o', label: t('slug.2') },
+  { k: 'x', label: t('slug.x2') },
+  { k: 'o', label: t('slug.3') },
+  { k: 'x', label: t('slug.x3') },
+];
+---
+
+<div class="slug" aria-hidden="true">
+  <div class="wrap">
+    <div class="run">
+      {
+        items.map((it) => (
+          <>
+            <b class={it.k}>{it.k === 'o' ? '✓' : '✕'}</b>
+            <b>{it.label}</b>
+          </>
+        ))
+      }
+    </div>
+    <div class="run" aria-hidden="true">
+      {
+        items.map((it) => (
+          <>
+            <b class={it.k}>{it.k === 'o' ? '✓' : '✕'}</b>
+            <b>{it.label}</b>
+          </>
+        ))
+      }
+    </div>
+  </div>
+</div>

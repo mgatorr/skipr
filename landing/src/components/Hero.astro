@@ -1,77 +1,51 @@
 ---
 import WaitlistForm from './WaitlistForm.astro';
-import Terminal from './Terminal.astro';
 import { useTranslations, getLocale } from '../i18n/ui';
 
 const locale = getLocale(Astro.currentLocale);
 const t = useTranslations(locale);
 ---
 
-<section class="hero">
-  <p class="badge">{t('hero.badge')}</p>
-  <h1 class="hero__title">
-    {t('hero.titleLead')}
-    <span class="accent">{t('hero.titleAccent')}</span>
-  </h1>
-  <p class="hero__lede">{t('hero.lede')}</p>
+<header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-left">
+      <div class="hero-kick">
+        <span class="stamp"><span class="dotpulse"></span><span>{t('hero.stamp')}</span></span>
+        <span class="vol">{t('hero.vol')}</span>
+      </div>
 
-  <div class="hero__cta" id="waitlist">
-    <WaitlistForm source="landing" />
+      <h1 class="head ghost" set:html={t('hero.h1')} />
+
+      <p class="dek" set:html={t('hero.dek')} />
+
+      <p class="hero-note marker-note">{t('hero.note')}</p>
+
+      <WaitlistForm source="landing-hero" formId="waitlist" withStates={true} />
+
+      <p class="hero-foot">{t('hero.foot')}</p>
+    </div>
+
+    <!-- specimen: the hand-off -->
+    <aside class="specimen" aria-hidden="true">
+      <span class="spec-cap">{t('spec.cap')}</span>
+      <div class="handoff">
+        <div class="crate">
+          <div class="pad"><b></b><i></i></div>
+          <div class="clab">{t('spec.crate')}</div>
+        </div>
+        <div class="mid">
+          <svg class="keyico" viewBox="0 0 54 24" aria-hidden="true">
+            <path d="M14 12 a7 7 0 1 0 0.01 0 M21 12 H50 M44 12 V18 M50 12 V19"></path>
+          </svg>
+          <small>{t('spec.key')}</small>
+        </div>
+        <div class="folder">
+          <span class="ftab"></span>
+          <span class="frow"></span><span class="frow"></span><span class="frow"></span>
+          <span class="own">{t('spec.folder')}</span>
+        </div>
+      </div>
+      <span class="spec-tag">{t('spec.tag')}</span>
+    </aside>
   </div>
-
-  <div class="hero__demo">
-    <Terminal title="skipr — guided">
-      <pre
-        class="demo"><span class="muted">$ skipr new my-app</span>
-<span class="accent">✓</span> Claude Code ready  <span class="muted">— no terminal needed</span>
-<span class="accent">✓</span> spec written from your idea
-<span class="accent">✓</span> building…  <span class="muted">your files, on your machine</span>
-<span class="accent">✓</span> pushed to <span class="muted">your</span> GitHub repo
-<span class="accent">✓</span> deployed to Vercel + Supabase
-<span class="muted">────────────────────────────────────</span>
-your app is live — <span class="accent">and it&rsquo;s yours.</span></pre>
-    </Terminal>
-  </div>
-</section>
-
-<style>
-  .hero {
-    padding-block: 1rem 2rem;
-  }
-  .badge {
-    display: inline-block;
-    color: var(--accent);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.15rem 0.7rem;
-    font-size: 0.8rem;
-    margin: 0 0 1rem;
-  }
-  .hero__title {
-    font-size: clamp(1.9rem, 6vw, 3.2rem);
-    line-height: 1.1;
-    margin: 0 0 1rem;
-    letter-spacing: -0.01em;
-  }
-  .hero__lede {
-    font-size: clamp(1rem, 2.4vw, 1.2rem);
-    color: var(--fg-muted);
-    max-width: 44rem;
-    margin: 0 0 1.75rem;
-  }
-  .hero__cta {
-    max-width: 40rem;
-    margin-bottom: 2.5rem;
-  }
-  .hero__demo {
-    display: grid;
-    gap: 0.75rem;
-  }
-  .demo {
-    margin: 0;
-    overflow-x: auto;
-    font-size: 0.85rem;
-    line-height: 1.6;
-    white-space: pre;
-  }
-</style>
+</header>

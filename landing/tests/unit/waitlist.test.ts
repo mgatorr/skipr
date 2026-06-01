@@ -1,66 +1,73 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock supabase-js at the boundary so no network call happens.
-const insertMock = vi.fn();
-const fromMock = vi.fn(() => ({ insert: insertMock }));
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({ from: fromMock })),
-}));
+// Mock the Neon driver at the boundary so no network call happens. `neon()`
+// returns a tagged-template function; we capture it as `sqlMock`. vi.hoisted
+// makes these available to the hoisted vi.mock factory.
+const { sqlMock, neonMock } = vi.hoisted(() => {
+  const sqlMock = vi.fn();
+  const neonMock = vi.fn(() => sqlMock);
+  return { sqlMock, neonMock };
+});
+vi.mock('@neondatabase/serverless', () => ({ neon: neonMock }));
 
 import { addToWaitlist } from '../../src/lib/waitlist';
 
 const base = {
   email: 'user@example.com',
-  url: 'https://proj.supabase.co',
-  anonKey: 'anon_test',
+  connectionString: 'postgresql://user:pass@ep-test.neon.tech/db?sslmode=require',
 };
 
 beforeEach(() => {
-  insertMock.mockReset();
-  fromMock.mockClear();
+  sqlMock.mockReset();
+  neonMock.mockClear();
 });
 
-describe('addToWaitlist (Supabase)', () => {
+describe('addToWaitlist (Neon)', () => {
   it('dry-run returns created without inserting', async () => {
     const r = await addToWaitlist({ ...base, dryRun: true });
     expect(r.status).toBe('created');
-    expect(insertMock).not.toHaveBeenCalled();
+    expect(sqlMock).not.toHaveBeenCalled();
+    expect(neonMock).not.toHaveBeenCalled();
   });
 
-  it('returns error (never fake success) when credentials are missing', async () => {
+  it('returns error (never fake success) when the connection string is missing', async () => {
     const r = await addToWaitlist({ email: base.email });
     expect(r.status).toBe('error');
-    expect(insertMock).not.toHaveBeenCalled();
+    expect(sqlMock).not.toHaveBeenCalled();
   });
 
   it('inserts into the waitlist table and returns created', async () => {
-    insertMock.mockResolvedValue({ error: null });
+    sqlMock.mockResolvedValue([{ id: 'uuid-1' }]);
     const r = await addToWaitlist({ ...base, source: 'landing' });
     expect(r.status).toBe('created');
-    expect(fromMock).toHaveBeenCalledWith('waitlist');
-    expect(insertMock).toHaveBeenCalledWith({ email: 'user@example.com', source: 'landing' });
+    expect(neonMock).toHaveBeenCalledWith(base.connectionString);
+    // Tagged template: sqlMock(stringsArray, ...values)
+    const [strings, ...values] = sqlMock.mock.calls[0];
+    expect(strings.join('').toLowerCase()).toMatch(/insert into\s+waitlist/);
+    expect(values).toEqual(['user@example.com', 'landing']);
   });
 
-  it('maps a unique-violation (23505) to idempotent success', async () => {
-    insertMock.mockResolvedValue({ error: { code: '23505', message: 'duplicate key value' } });
+  it('maps a conflict (0 rows returned) to idempotent success', async () => {
+    sqlMock.mockResolvedValue([]); // ON CONFLICT DO NOTHING → no row
     const r = await addToWaitlist(base);
     expect(r.status).toBe('already');
   });
 
-  it('maps other database errors to error', async () => {
-    insertMock.mockResolvedValue({ error: { code: '23502', message: 'not null violation' } });
-    const r = await addToWaitlist(base);
-    expect(r.status).toBe('error');
+  it('passes null source when none is provided', async () => {
+    sqlMock.mockResolvedValue([{ id: 'uuid-2' }]);
+    await addToWaitlist(base);
+    const [, , source] = sqlMock.mock.calls[0];
+    expect(source).toBeNull();
   });
 
   it('maps a thrown/network failure to error', async () => {
-    insertMock.mockRejectedValue(new Error('network down'));
+    sqlMock.mockRejectedValue(new Error('network down'));
     const r = await addToWaitlist(base);
     expect(r.status).toBe('error');
   });
 
   it('never returns the raw email in the result', async () => {
-    insertMock.mockResolvedValue({ error: null });
+    sqlMock.mockResolvedValue([{ id: 'uuid-3' }]);
     const r = await addToWaitlist(base);
     expect(JSON.stringify(r)).not.toContain('user@example.com');
   });

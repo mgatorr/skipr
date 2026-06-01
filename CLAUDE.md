@@ -21,7 +21,7 @@ Plan: `specs/003-skipr-repositioning/plan.md`
 
 - **Security/secrets (non-negotiable)**: never commit secrets; provider keys via env only; CI secret
   scan (gitleaks) over tree **and** history; file/config edits are backup-first.
-- **Test-first for real logic**: the waitlist logic (email validation, honeypot, Supabase insert) is
+- **Test-first for real logic**: the waitlist logic (email validation, honeypot, Neon insert) is
   built test-first (Vitest); e2e via Playwright.
 - **Frictionless & friendly**: the product audience is non-technical — no terminal, never a black box.
 - **Neutral branding & language**: brand is **skipr**; not affiliated with Anthropic; no "Claude" in

@@ -9,16 +9,19 @@ const articles = (await getCollection('articles', ({ data }) => data.draft !== t
 ---
 
 <BaseLayout
-  title="Articles — skipr"
+  title="Field notes — skipr"
   description="Notes on building real software with AI, owning your code, and going from no-code to shipped."
 >
-  <section class="articles">
-    <h1>Articles</h1>
-    <p class="muted">Notes on building real software with AI — and owning what you build.</p>
+  <section class="articles container article-wrap">
+    <span class="plate-num">Plate 03 — field notes</span>
+    <h1 class="articles__title">Field notes<span class="ink-orange">.</span></h1>
+    <p class="articles__lead">
+      Notes on building real software with AI — and owning what you build.
+    </p>
 
     {
       articles.length === 0 ? (
-        <p class="muted">No articles yet — check back soon.</p>
+        <p class="muted">No notes yet — check back soon.</p>
       ) : (
         <div class="articles__grid">
           {articles.map((a) => (
@@ -35,13 +38,28 @@ const articles = (await getCollection('articles', ({ data }) => data.draft !== t
   </section>
 
   <style>
-    .articles h1 {
-      margin-bottom: 0.25rem;
+    .plate-num {
+      display: block;
+      margin-bottom: 16px;
+    }
+    .articles__title {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      margin: 0 0 0.5rem;
+    }
+    .articles__lead {
+      font-family: var(--read);
+      font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+      color: var(--ink-2);
+      max-width: 52ch;
     }
     .articles__grid {
       display: grid;
-      gap: 1rem;
-      margin-top: 2rem;
+      gap: 1.1rem;
+      margin-top: 2.5rem;
     }
   </style>
 </BaseLayout>

@@ -1,0 +1,44 @@
+---
+import WaitlistForm from './WaitlistForm.astro';
+import { useTranslations, getLocale, localizePath } from '../i18n/ui';
+
+interface Props {
+  /** Render the foot-word + second waitlist CTA (landing only). */
+  cta?: boolean;
+}
+const { cta = false } = Astro.props;
+
+const locale = getLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const articlesHref = localizePath('/articles', locale);
+---
+
+<footer class="foot">
+  <div class="wrap">
+    {
+      cta && (
+        <div class="foot-top">
+          <div class="foot-word reveal">
+            skipr<span class="pin">.</span>
+          </div>
+          <div class="foot-right reveal d1">
+            <p set:html={t('foot.cta')} />
+            <WaitlistForm
+              source="landing-footer"
+              formId="waitlist-foot"
+              buttonLabel={t('foot.btn')}
+            />
+          </div>
+        </div>
+      )
+    }
+    <div class="colophon">
+      <p class="disclaimer">{t('foot.disc')}</p>
+      <div class="foot-meta">
+        <a href={articlesHref}>{t('foot.notes')}</a>
+        <span>{t('foot.coming')}</span>
+        <span>{t('foot.copy')}</span>
+      </div>
+    </div>
+  </div>
+</footer>

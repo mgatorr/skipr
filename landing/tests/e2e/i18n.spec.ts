@@ -17,12 +17,12 @@ test.describe('i18n (US5) — English primary, Spanish secondary', () => {
     await page.goto('/');
     await expect(page.locator('link[hreflang="es"]')).toHaveCount(1);
     await expect(page.locator('link[hreflang="en"]')).toHaveCount(1);
-    await expect(page.getByRole('link', { name: 'Español' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'ES', exact: true })).toBeVisible();
   });
 
   test('switching to Spanish lands on the Spanish home', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Español' }).click();
+    await page.getByRole('link', { name: 'ES', exact: true }).click();
     await expect(page).toHaveURL(/\/es\/?$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   });

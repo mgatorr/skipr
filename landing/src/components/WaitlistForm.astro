@@ -4,14 +4,27 @@ import { useTranslations, getLocale } from '../i18n/ui';
 interface Props {
   /** Attribution tag stored with the lead (e.g. "landing", "article:<slug>"). */
   source?: string;
+  /** DOM id / anchor target for this form (the nav CTA points at #waitlist). */
+  formId?: string;
+  /** Submit button label. Defaults to the hero CTA copy. */
+  buttonLabel?: string;
+  /**
+   * Render the shared no-JS state block (#wl-success / #wl-invalid / #wl-error).
+   * Exactly ONE form per page should set this true — the API redirects to a
+   * single `/#wl-<outcome>` hash, so the targets must be unique on the page.
+   */
+  withStates?: boolean;
 }
-const { source = 'landing' } = Astro.props;
+const { source = 'landing', formId = 'waitlist', buttonLabel, withStates = false } = Astro.props;
+
 const locale = getLocale(Astro.currentLocale);
 const t = useTranslations(locale);
+const label = buttonLabel ?? t('hero.btn');
+const emailId = `email-${formId}`;
 ---
 
 <form
-  id="waitlist-form"
+  id={formId}
   class="waitlist"
   method="POST"
   action="/api/waitlist"
@@ -27,95 +40,89 @@ const t = useTranslations(locale);
     <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
   </div>
 
-  <div class="waitlist__row">
-    <label class="visually-hidden" for="email">Email</label>
+  <div class="field">
+    <label for={emailId}>{t('hero.email.l')}</label>
     <input
-      id="email"
+      id={emailId}
       type="email"
       name="email"
-      placeholder="you@example.com"
+      placeholder={t('hero.email')}
       autocomplete="email"
+      aria-label={t('hero.email.l')}
       required
     />
-    <button class="btn" type="submit">{t('wl.button')}</button>
   </div>
-
-  <!-- No-JS states: revealed via CSS :target after the endpoint's 303 redirect. -->
-  <p id="wl-success" class="status status--ok wl-state" role="status">{t('wl.ok')}</p>
-  <p id="wl-invalid" class="status status--err wl-state" role="status">{t('wl.invalid')}</p>
-  <p id="wl-error" class="status status--err wl-state" role="status">{t('wl.error')}</p>
+  <button class="btn btn-ink" type="submit">{label}</button>
 
   <!-- JS-enhanced inline status (filled by the script; no navigation). -->
-  <p id="waitlist-status" class="status" role="status" aria-live="polite"></p>
-</form>
+  <p class="status js-status" role="status" aria-live="polite"></p>
 
-<style>
-  .waitlist__row {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
+  {
+    withStates && (
+      <>
+        {/* No-JS states: revealed via CSS :target after the endpoint's 303 redirect. */}
+        <p id="wl-success" class="status status--ok wl-state" role="status">
+          {t('wl.ok')}
+        </p>
+        <p id="wl-invalid" class="status status--err wl-state" role="status">
+          {t('wl.invalid')}
+        </p>
+        <p id="wl-error" class="status status--err wl-state" role="status">
+          {t('wl.error')}
+        </p>
+      </>
+    )
   }
-  .waitlist__row input[type='email'] {
-    flex: 1 1 16rem;
-  }
-  .wl-state {
-    display: none;
-  }
-  .wl-state:target {
-    display: block;
-  }
-  @media (max-width: 480px) {
-    .waitlist__row button {
-      width: 100%;
-    }
-  }
-</style>
+</form>
 
 <script>
   // Progressive enhancement: without this script the native POST still works
-  // (the endpoint 303-redirects to /#wl-...). With it, we submit via fetch and
-  // render an inline state without navigation. Messages come from the form's
-  // data-* attributes so they're localized server-side.
-  const form = document.getElementById('waitlist-form') as HTMLFormElement | null;
-  const status = document.getElementById('waitlist-status');
-  const msg = {
-    ok: form?.dataset.ok ?? '',
-    invalid: form?.dataset.invalid ?? '',
-    error: form?.dataset.error ?? '',
-  };
+  // (the endpoint 303-redirects to /#wl-...). With it, each waitlist form on the
+  // page submits via fetch and renders an inline state without navigation.
+  // Localized messages come from each form's data-* attributes.
+  const forms = document.querySelectorAll<HTMLFormElement>('form.waitlist');
 
-  function setStatus(ok: boolean, message: string) {
-    if (!status) return;
-    status.textContent = message;
-    status.classList.remove('status--ok', 'status--err');
-    status.classList.add(ok ? 'status--ok' : 'status--err');
-  }
+  forms.forEach((form) => {
+    const status = form.querySelector<HTMLParagraphElement>('.js-status');
+    const msg = {
+      ok: form.dataset.ok ?? '',
+      invalid: form.dataset.invalid ?? '',
+      error: form.dataset.error ?? '',
+    };
 
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(form);
-    const email = String(data.get('email') ?? '').trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setStatus(false, msg.invalid);
-      return;
+    function setStatus(ok: boolean, message: string) {
+      if (!status) return;
+      status.textContent = message;
+      status.classList.remove('status--ok', 'status--err');
+      status.classList.add(ok ? 'status--ok' : 'status--err');
     }
-    try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify(Object.fromEntries(data.entries())),
-      });
-      const body = await res.json().catch(() => ({ ok: res.ok, status: 'error' }));
-      if (body.ok) {
-        setStatus(true, msg.ok);
-        form.reset();
-      } else if (body.status === 'invalid') {
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const email = String(data.get('email') ?? '').trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         setStatus(false, msg.invalid);
-      } else {
+        return;
+      }
+      try {
+        const res = await fetch('/api/waitlist', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', accept: 'application/json' },
+          body: JSON.stringify(Object.fromEntries(data.entries())),
+        });
+        const body = await res.json().catch(() => ({ ok: res.ok, status: 'error' }));
+        if (body.ok) {
+          setStatus(true, msg.ok);
+          form.reset();
+        } else if (body.status === 'invalid') {
+          setStatus(false, msg.invalid);
+        } else {
+          setStatus(false, msg.error);
+        }
+      } catch {
         setStatus(false, msg.error);
       }
-    } catch {
-      setStatus(false, msg.error);
-    }
+    });
   });
 </script>

@@ -1,6 +1,18 @@
 ---
+// Self-hosted fonts (bundled, no render-blocking external request → Lighthouse).
+import '@fontsource-variable/bricolage-grotesque/wght.css';
+import '@fontsource-variable/newsreader/wght.css';
+import '@fontsource-variable/newsreader/wght-italic.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '@fontsource/ibm-plex-mono/600.css';
+// Preload the latin subsets that drive the LCP (display h1) and body text, so
+// the web fonts are ready before first paint — kills the font-swap CLS.
+import bricolageWoff2 from '@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url';
+import newsreaderWoff2 from '@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url';
 import '../styles/theme.css';
-import { useTranslations, getLocale, localizePath, basePath, otherLocale } from '../i18n/ui';
+import SiteFooter from '../components/SiteFooter.astro';
+import { useTranslations, getLocale, localizePath, basePath } from '../i18n/ui';
 
 interface Props {
   title: string;
@@ -11,6 +23,8 @@ interface Props {
   type?: 'website' | 'article';
   /** Optional canonical override (e.g. syndicated article). */
   canonical?: string;
+  /** Render the rich landing footer (foot-word + second waitlist CTA). */
+  footerCta?: boolean;
 }
 
 const {
@@ -19,6 +33,7 @@ const {
   ogImage = '/og/default.png',
   type = 'website',
   canonical,
+  footerCta = false,
 } = Astro.props;
 
 const locale = getLocale(Astro.currentLocale);
@@ -27,16 +42,15 @@ const t = useTranslations(locale);
 const siteUrl = Astro.site ?? new URL('http://localhost:4321');
 const canonicalURL = canonical ?? new URL(Astro.url.pathname, siteUrl).href;
 const ogImageURL = new URL(ogImage, siteUrl).href;
-const year = new Date().getFullYear();
 
-// Locale alternates. The landing home exists in both locales; the language
-// switch always points to the other locale's home (no 404), and hreflang
-// alternates are emitted only where an equivalent page exists (the home).
+// Locale alternates. The landing home exists in both locales; hreflang
+// alternates are emitted only on the home (the only fully-translated page).
 const base = basePath(Astro.url.pathname);
 const isHome = base === '/';
 const enHref = new URL('/', siteUrl).href;
 const esHref = new URL('/es/', siteUrl).href;
-const switchHref = localizePath('/', otherLocale(locale));
+
+const homeHref = localizePath('/', locale);
 ---
 
 <!doctype html>
@@ -76,63 +90,41 @@ const switchHref = localizePath('/', otherLocale(locale));
     <meta name="twitter:image" content={ogImageURL} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <link rel="preload" href={bricolageWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={newsreaderWoff2} as="font" type="font/woff2" crossorigin />
   </head>
   <body>
-    <header class="container site-header">
-      <a href={localizePath('/', locale)} class="brand">skipr<span class="accent">_</span></a>
-      <nav>
-        <a href={localizePath('/articles', locale)}>{t('nav.articles')}</a>
-        <a href={switchHref} class="locale" rel="alternate" hreflang={otherLocale(locale)}>
-          {t('locale.switch')}
-        </a>
-      </nav>
-    </header>
+    <a href="#main" class="skip-link">{t('a11y.skip')}</a>
 
-    <main class="container">
+    <!-- ===== DECKLINE ===== -->
+    <div class="deckline">
+      <div class="wrap">
+        <span class="deck-left">{t('deck.left')}</span>
+        <span class="langtog" role="group" aria-label="Language">
+          <a href="/" hreflang="en" aria-current={locale === 'en' ? 'true' : undefined}>EN</a>
+          <span>/</span>
+          <a href="/es/" hreflang="es" aria-current={locale === 'es' ? 'true' : undefined}>ES</a>
+        </span>
+      </div>
+    </div>
+
+    <!-- ===== NAV ===== -->
+    <nav class="nav">
+      <div class="wrap">
+        <a class="brand" href={homeHref} aria-label="skipr">skipr<span class="pin">.</span></a>
+        <div class="nav-links">
+          <a href={`${homeHref}#anti`}><span class="n">01</span><span>{t('nav.anti')}</span></a>
+          <a href={`${homeHref}#how`}><span class="n">02</span><span>{t('nav.how')}</span></a>
+        </div>
+        <a class="nav-cta" href={`${homeHref}#waitlist`}>{t('nav.cta')}</a>
+      </div>
+    </nav>
+
+    <main id="main">
       <slot />
     </main>
 
-    <footer class="container site-footer">
-      <p class="muted">
-        {t('disclaimer')} &ldquo;Claude&rdquo; and &ldquo;Claude Code&rdquo; are trademarks of their respective
-        owner.
-      </p>
-      <p class="muted">© {year} skipr · {t('footer.tagline')}</p>
-    </footer>
-
-    <style>
-      .site-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-block: 1.25rem;
-      }
-      .brand {
-        font-weight: 700;
-        font-size: 1.15rem;
-        color: var(--fg);
-      }
-      .brand:hover {
-        text-decoration: none;
-      }
-      nav {
-        display: flex;
-        gap: 1.1rem;
-        align-items: center;
-      }
-      .locale {
-        color: var(--fg-muted);
-        font-size: 0.9rem;
-      }
-      .site-footer {
-        margin-top: 4rem;
-        padding-block: 2rem;
-        border-top: 1px solid var(--border);
-        font-size: 0.85rem;
-      }
-      .site-footer p {
-        margin: 0.3rem 0;
-      }
-    </style>
+    <SiteFooter cta={footerCta} />
   </body>
 </html>
