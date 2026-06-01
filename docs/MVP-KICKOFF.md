@@ -74,8 +74,9 @@ is SUPERSEDED — do not reuse it; treat it as historical).
 - `docs/product-screens.md` — the product's screens.
 - `docs/superpowers/specs/2026-05-31-skipr-repositioning-design.md` — the repositioning.
 - `landing/` — reference for brand, tone, i18n and the visual system (theme + fonts).
-- Ask the owner for the **Claude Design "App Screens" mockups** (risograph-zine UI for the
-  desktop app) — they're the visual starting point and may not be committed yet.
+- `docs/design-assets/app-screens/` — **Claude Design "App Screens" mockups** (risograph-zine
+  UI for the desktop app): JSX components, `app-ui.css` design system, a runnable
+  `index.html` preview and screenshots. This is the visual starting point for the MVP.
 
 ## First steps
 

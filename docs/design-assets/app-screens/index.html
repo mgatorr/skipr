@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>skipr — Product Screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="app/app-ui.css?v=1" />
+<style>
+  html,body{ margin:0; height:100%; background:#cfc8b8; }
+  /* hide focus-mode scaling artifacts; canvas handles its own bg */
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="app/design-canvas.jsx"></script>
+<script type="text/babel" src="app/ui-kit.jsx"></script>
+<script type="text/babel" src="app/screens-onboarding.jsx"></script>
+<script type="text/babel" src="app/screens-home-plan.jsx"></script>
+<script type="text/babel" src="app/screens-build.jsx"></script>
+<script type="text/babel" src="app/screens-skills-conn-cost.jsx"></script>
+<script type="text/babel" src="app/screens-deploy-settings.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+
+function App(){
+  return (
+    <DesignCanvas>
+      <DCSection id="onboarding" title="Onboarding" subtitle="First run — connect Claude, get set up, own your repo">
+        <DCArtboard id="welcome" label="1 · Welcome + connect Claude" width={1120} height={700}><OnbWelcome /></DCArtboard>
+        <DCArtboard id="welcome-es" label="1 · Welcome · Español (secondary language)" width={1120} height={700}><OnbWelcomeES /></DCArtboard>
+        <DCArtboard id="setup" label="2 · Guided setup — installing" width={780} height={700}><OnbSetup /></DCArtboard>
+        <DCArtboard id="setup-alert" label="2 · Guided setup — action needed (state)" width={780} height={700}><OnbSetupAlert /></DCArtboard>
+        <DCArtboard id="github" label="3 · Connect GitHub" width={1120} height={700}><OnbGitHub /></DCArtboard>
+      </DCSection>
+      <DCSection id="cockpit" title="The cockpit" subtitle="Your apps, idea→plan, and the build workspace">
+        <DCArtboard id="home" label="4 · Your apps (Home)" width={1280} height={800}><HomeApps /></DCArtboard>
+        <DCArtboard id="home-empty" label="4 · Your apps · first time (empty state)" width={1280} height={800}><HomeEmpty /></DCArtboard>
+        <DCArtboard id="plan" label="5 · Idea → plan (spec-driven)" width={1280} height={800}><IdeaPlan /></DCArtboard>
+        <DCArtboard id="plan-gen" label="5 · Idea → plan · generating (state)" width={1280} height={800}><IdeaPlanGen /></DCArtboard>
+        <DCArtboard id="build" label="6 · Build workspace — changes + approve (hero)" width={1360} height={820}><BuildWorkspace /></DCArtboard>
+        <DCArtboard id="build-preview" label="6 · Build workspace — live preview (state)" width={1360} height={820}><BuildPreview /></DCArtboard>
+      </DCSection>
+      <DCSection id="tools" title="Workspace tools" subtitle="Skills, connections and cost — power with no black box">
+        <DCArtboard id="skills" label="7 · Skills — suggestions + audit" width={1280} height={800}><SkillsScreen /></DCArtboard>
+        <DCArtboard id="connections" label="8 · Connections (MCP)" width={1280} height={800}><ConnScreen /></DCArtboard>
+        <DCArtboard id="conn-connect" label="8 · Connections — guided + safe secrets (state)" width={1280} height={800}><ConnConnect /></DCArtboard>
+        <DCArtboard id="cost" label="9 · Model & cost" width={1280} height={800}><CostScreen /></DCArtboard>
+        <DCArtboard id="cost-alert" label="9 · Model & cost — budget alert (state)" width={1280} height={800}><CostAlert /></DCArtboard>
+      </DCSection>
+      <DCSection id="ship" title="Ship it" subtitle="Publish to your own accounts — then it's live, and yours">
+        <DCArtboard id="deploy" label="10 · Deploy — ready to publish" width={1280} height={800}><DeployReady /></DCArtboard>
+        <DCArtboard id="deploy-progress" label="10 · Deploy — publishing (state)" width={1280} height={800}><DeployProgress /></DCArtboard>
+        <DCArtboard id="deploy-live" label="10 · Deploy — your app is live (success)" width={1280} height={800}><DeployLive /></DCArtboard>
+        <DCArtboard id="settings" label="11 · Settings (language · theme · account)" width={1280} height={800}><SettingsScreen /></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
