@@ -1,3 +1,8 @@
+> **Paused (2026-09-04):** The marketing / Astro landing track is deferred. Product presentation
+> lives on the GitHub repo root (`README.md`, `docs/novice-guide.md`, `skills/`). Do not treat this
+> folder as the active product surface. Existing Vercel production is left alone unless Mario asks
+> to tear it down.
+
 # skipr — landing + waitlist + articles
 
 Marketing site for **skipr** (repo working name: `cockpit`). Astro + Vercel, static-first, with a

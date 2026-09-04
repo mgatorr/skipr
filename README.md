@@ -1,106 +1,110 @@
 <div align="center">
 
-<img src="./assets/skipr-hero.png" alt="skipr — build real software with AI, and actually own it." width="880">
+<img src="./assets/skipr-hero.png" alt="skipr — escape AI complexity" width="880">
 
 <br/><br/>
 
-[![status](https://img.shields.io/badge/status-pre--launch-cf4f27?style=flat-square)](#roadmap)
-[![landing](https://img.shields.io/badge/landing-live-cf4f27?style=flat-square)](./landing)
-[![stack](https://img.shields.io/badge/landing-Astro%20%2B%20Vercel-332a20?style=flat-square)](./landing)
-[![product](https://img.shields.io/badge/product-desktop%20app%20(planned)-3a5fb0?style=flat-square)](./docs/design.md)
+[![status](https://img.shields.io/badge/status-available%20now-cf4f27?style=flat-square)](#novice-path)
+[![surface](https://img.shields.io/badge/product%20surface-this%20GitHub%20repo-332a20?style=flat-square)](#what-skipr-is)
+[![skill](https://img.shields.io/badge/skill-setup--harness-3a5fb0?style=flat-square)](./skills/setup-harness/)
 [![not affiliated](https://img.shields.io/badge/not%20affiliated%20with-Anthropic-8a8073?style=flat-square)](#a-note-on-branding)
 
 </div>
 
 ---
 
-**skipr** is the friendly way for **non-technical founders to build real software with AI — and
-actually own it.** It guides you from idea to a shipped app — Claude Code, your files on your
-machine, your GitHub, your deploy — **without living in the terminal**, and **without the black box**
-of no-code tools.
+# skipr
 
-```text
-$ skipr new my-app
-✓ Claude Code ready — no terminal
-✓ spec written from your idea
-✓ building — your files, your machine
-✓ pushed to your GitHub
-✓ deployed — Vercel + Supabase
-your app is live — and it's yours.
-```
+**Escape AI complexity.** Few good tools, a harness that can say *no*, and guides by level — Claude Code first. The terminal (Ghostty or yours) is **taught, not hidden**. Rails, not 400 skills.
 
-## The problem
+> This repository **is** the product presentation for now: README + docs + the vendored `setup-harness` skill. A marketing site may return later; personal-site embedding under [mariogarridotorres.com](https://mariogarridotorres.com) is later too.
 
-No-code tools (Lovable, Base44) get you moving fast, then trap you: the **80/20 wall**, a **black
-box** you can't see into, and **lock-in**. What actually predicts success isn't how well you prompt —
-it's whether you **understand and control** what's built. skipr gives you that, without the terminal.
+## What skipr is
 
-## Not a black box
+skipr helps **creators and builders drowning in AI tooling** set up a lean path you can understand:
 
-| With skipr | No-code black boxes |
+| Piece | Role |
 |---|---|
-| The code lives on your machine | Code you can't see or move |
-| Your own GitHub repo | Locked into their platform |
-| A deploy you understand | A black-box deploy |
-| You learn and level up | You stay dependent |
+| **Terminal** | Ghostty (or Terminal.app / iTerm) — one calm place to work |
+| **Agent** | Claude Code CLI in the **project folder** |
+| **Harness** | Short `CLAUDE.md` + `checks/` that can fail ([setup-harness](./skills/setup-harness/)) |
+| **Guides** | L0/L1 usable now · L2 (Cursor, OpenCode, Hermes, …) later |
 
-## How it works
+You do **not** need another sealed AI stack or a rented no-code black box. You need a folder, a harness, and a CLI you can read.
 
-Five guided steps, no terminal required, on a stack the AI knows well:
+## Who it’s for
 
-**setup → spec → code → GitHub → deploy** &nbsp;·&nbsp; Claude Code · GitHub · Supabase · Vercel
+- Photographers / creators who already try Claude in the app and want a folder-scoped setup
+- Builders stuck in skill hoards and “Second Brain” sprawl
+- Anyone who wants **rails that can say no**, not more prompts
+
+Software-founder desktop-app tracks from earlier MVPs are parked. Start here with L0/L1.
+
+## Novice path
+
+Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · Spanish mirror: [docs/es/novice-guide.md](./docs/es/novice-guide.md)
+
+Do this in order (you do not need to be a developer):
+
+1. **Install Claude Code CLI** — the `claude` command, not only the desktop app. Confirm with `claude --version`.
+2. **Open a terminal you will actually use** — on macOS we recommend [Ghostty](https://ghostty.org); Terminal.app / iTerm are fine.
+3. **Create or open your project folder** — a trip, client job, culling session — not a giant vault of prompts:
+   ```bash
+   mkdir -p ~/Projects/viaje-lisboa
+   cd ~/Projects/viaje-lisboa
+   ```
+4. **Install and run setup-harness** — copy [`skills/setup-harness/`](./skills/setup-harness/) to `~/.claude/skills/setup-harness/`, then in the project folder:
+   ```bash
+   claude
+   # "Run setup-harness for this folder" / "Monta el harness en esta carpeta"
+   ```
+5. **Run a checker** — see *no* work:
+   ```bash
+   ./checks/naming.sh   # or brief-ready.sh / delivery.sh
+   ```
+6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail.
+
+## This grows with you
+
+- **L0 / L1 are the product today** — terminal + Claude Code + harness + these guides.
+- **L2 later** — Cursor, OpenCode, Hermes, and similar stay optional. Complexity is not the door to getting started.
+
+Levels overview lives in the [novice guide](./docs/novice-guide.md#levels-l0--l2).
 
 ## Repository layout
 
 ```text
 .
-├── landing/                       # Astro + Vercel marketing site + waitlist (LIVE, en + es)
-│   ├── src/                       #   hero, anti-black-box, how-it-works, waitlist, articles
-│   └── db/migrations/             #   owned Neon waitlist table (Vercel Marketplace)
+├── README.md                 # this carta (product surface)
 ├── docs/
-│   ├── design.md                  # the "why": research, audience, differentiator, vision
-│   ├── constitution.md            # non-negotiable principles (v1.1.0)
-│   └── superpowers/specs/         # the repositioning design doc
-└── specs/
-    ├── 001-landing-waitlist/      # the landing (built)
-    └── 003-skipr-repositioning/   # re-message + rebrand to skipr (this work)
+│   ├── novice-guide.md       # full beginner path (EN)
+│   ├── es/novice-guide.md    # short Spanish mirror
+│   ├── design.md             # historical product rationale
+│   └── constitution.md       # non-negotiable principles
+├── skills/
+│   └── setup-harness/        # vendored Claude Code skill + templates
+├── landing/                  # Astro marketing site — PAUSED (see landing/README.md)
+└── specs/                    # Spec Kit history
 ```
 
-Built with **Spec-Driven Development** (Spec Kit): every feature is `spec → plan → tasks →
-implement`, gated by the constitution.
+## Skill: setup-harness
 
-## The landing (live)
+Canonical source: **[`skills/setup-harness/SKILL.md`](./skills/setup-harness/SKILL.md)**
 
-Static-first **Astro + Vercel**, a risograph-zine aesthetic (cream paper, riso inks, hand-drawn
-marks), **English + Spanish**:
-
-- **Waitlist** in our **own Neon Postgres** (Vercel Marketplace) — works with **JavaScript
-  disabled**, honeypot anti-spam, idempotent.
-- **Articles** as a content collection; full SEO/OG/sitemap.
-- **Lighthouse ≥ 95**; no secrets committed (gitleaks in CI).
-
-```bash
-cd landing
-pnpm install
-cp .env.example .env      # DATABASE_URL or WAITLIST_DRY_RUN=1
-pnpm dev                  # http://localhost:4321
-pnpm test && pnpm test:e2e
-```
-
-See [`landing/README.md`](./landing/README.md) for details.
+Install a copy under `~/.claude/skills/setup-harness/` so Claude Code can load it. Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill.
 
 ## Roadmap
 
-- [x] Landing repositioned to skipr (message, anti-black-box, en + es)
-- [ ] Validate demand (collect signups; watch real non-technical founders)
-- [ ] MVP — guided desktop app: setup → spec → code → GitHub → deploy
-- [ ] Expand: more of the flow, cross-tool (Codex, Gemini CLI)
+- [x] Reposition promise: escape AI complexity (not “hide the terminal”)
+- [x] GitHub-first carta: README + novice guide + vendored harness
+- [ ] Install script v0 (macOS) when ready
+- [ ] L2 track docs (optional advanced tools)
+- [ ] Personal-site / skipr.dev marketing — later, not blocking L0/L1
 
 ## A note on branding
 
-**skipr is an independent project and is not affiliated with Anthropic.** "Claude" and "Claude Code"
-are trademarks of their respective owner.
+**skipr is an independent project and is not affiliated with Anthropic.** “Claude” and “Claude Code” are trademarks of their respective owner. Ghostty, GitHub, Cursor, OpenCode, and Hermes are trademarks of their respective owners.
 
 ---
 
-<div align="center"><sub>Built for founders who want to own what they build.</sub></div>
+<div align="center"><sub>Built for people who want the rails — not another sealed box.</sub></div>
