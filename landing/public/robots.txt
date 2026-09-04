@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://skipr.dev/sitemap-index.xml
+# Marketing site abandoned; product lives on GitHub.

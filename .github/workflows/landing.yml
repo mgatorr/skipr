@@ -2,22 +2,14 @@ name: landing
 
 on:
   push:
-    branches: [main, '001-landing-waitlist']
+    branches: [main]
     paths: ['landing/**', '.github/workflows/landing.yml']
   pull_request:
     paths: ['landing/**', '.github/workflows/landing.yml']
 
-defaults:
-  run:
-    working-directory: landing
-
 jobs:
   secret-scan:
-    # Principle II: secret scan over the working tree AND full git history.
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
       - uses: actions/checkout@v6
         with:
@@ -27,26 +19,15 @@ jobs:
         env:
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
 
-  build-test:
+  stub-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 10
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: landing/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm check
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
-        env:
-          WAITLIST_DRY_RUN: '1'
-      - run: pnpm build
-      - name: Lighthouse CI (>= 95 perf/seo/a11y)
-        run: pnpm lighthouse
+      - name: verify static GitHub stub
+        run: |
+          test -f landing/public/index.html
+          test -f landing/public/es/index.html
+          test -f landing/vercel.json
+          grep -q github.com/mgatorr/skipr landing/public/index.html
+          grep -q '"framework": null' landing/vercel.json
+          grep -q '"outputDirectory": "public"' landing/vercel.json
