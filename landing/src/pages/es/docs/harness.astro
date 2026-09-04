@@ -1,0 +1,102 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Harness (setup-harness) — skipr"
+  description="Qué hace setup-harness: un CLAUDE.md corto más checks que pueden fallar. Enlace a la skill en GitHub. Disponible ya para L0/L1."
+  plate="Lámina 04 — el harness"
+>
+  <h1>Harness<span class="ink-orange">.</span></h1>
+  <p class="lead">
+    El harness es cómo skipr dice <em>no</em>. Un <code>CLAUDE.md</code> corto en tu carpeta de
+    proyecto, más scripts bajo <code>checks/</code> que deben poder fallar. Menos skills, más checks.
+  </p>
+
+  <nav class="toc" aria-label="En esta página">
+    <a href="#what">Qué instala</a>
+    <a href="#how">Cómo ejecutarlo</a>
+    <a href="#source">Fuente de la skill en GitHub</a>
+    <a href="#after">Después del install</a>
+    <a href="/es/docs">← Volver a Empieza</a>
+  </nav>
+
+  <h2 id="what">Qué hace setup-harness</h2>
+  <p>Cuando ejecutas la skill en una carpeta creativa/de proyecto:</p>
+  <ul>
+    <li>Escribe un <code>CLAUDE.md</code> corto (cuerpo orientado a ≤ 40 líneas)</li>
+    <li>Crea <code>checks/</code> con al menos un script ejecutable que sale distinto de cero si falla</li>
+    <li>Opcionalmente añade como máximo dos skills <b>locales</b> bajo <code>.claude/skills/</code></li>
+    <li>Nunca copia Spec Kit, un Second Brain ni un montón de skills globales al proyecto</li>
+  </ul>
+  <p>Dominios que conoce (elige uno): viaje / cliente / culling / delivery — cada uno con su checker por defecto.</p>
+
+  <h2 id="how">Cómo ejecutarlo (principiante)</h2>
+  <ol class="steps">
+    <li>
+      <h3>Instala la skill en tu máquina</h3>
+      <p>
+        Copia <code>skills/setup-harness/</code> del repo skipr a
+        <code>~/.claude/skills/setup-harness/</code> para que Claude Code la cargue.
+      </p>
+    </li>
+    <li>
+      <h3>Entra en la carpeta del proyecto</h3>
+      <p>El harness es por carpeta. No lo ejecutes desde un vault genérico de prompts.</p>
+      <pre class="cmd">cd ~/Projects/tu-carpeta
+claude</pre>
+    </li>
+    <li>
+      <h3>Pide a Claude que ejecute la skill</h3>
+      <pre class="cmd">Monta el harness / arnés en esta carpeta
+# or: Run setup-harness for this folder</pre>
+      <p>Responde la pregunta de dominio si te la hace. Deja que escriba archivos y haga chmod a los checks.</p>
+    </li>
+    <li>
+      <h3>Prueba un check</h3>
+      <pre class="cmd">./checks/naming.sh</pre>
+      <p>Pasar o fallar con un mensaje claro — ambos sirven. Ver <code>checks/README.md</code>.</p>
+    </li>
+  </ol>
+
+  <h2 id="source">Fuente de la skill</h2>
+  <p>El texto canónico y las plantillas viven en este repositorio:</p>
+  <ul>
+    <li>
+      <a href="https://github.com/mgatorr/skipr/blob/main/skills/setup-harness/SKILL.md"
+        >SKILL.md en GitHub</a
+      >
+    </li>
+    <li>
+      <a href="https://github.com/mgatorr/skipr/tree/main/skills/setup-harness/templates"
+        >templates/</a
+      >
+    </li>
+  </ul>
+  <p class="muted">
+    Espejo en el sitio (mismo contenido): <code>landing/src/content/docs/setup-harness.md</code>.
+  </p>
+
+  <h2 id="after">Qué hacer cuando el harness está puesto</h2>
+  <ol>
+    <li>Trabaja solo en esta carpeta con Claude Code.</li>
+    <li>Antes de dar algo por hecho, ejecuta el <code>./checks/…</code> que toque.</li>
+    <li>Si el modelo se desvía, arregla el check o aprieta una línea en <code>CLAUDE.md</code> — no añadas 50 skills.</li>
+    <li>Cuando L0/L1 estén sólidos, lee <a href="/es/docs/levels">niveles</a> para L2 opcional.</li>
+  </ol>
+
+  <div class="callout grow">
+    <h2>Esto crece contigo</h2>
+    <p style="margin-bottom:0">
+      Harness + Claude Code es el camino <b>ahora</b>. Tracks de editor/agente avanzados (Cursor,
+      OpenCode, Hermes, …) son una capa de crecimiento posterior — no una puerta delante de empezar.
+    </p>
+  </div>
+
+  <div class="docs-cta">
+    <a class="btn btn-ink" href="/es/docs">Camino novato (Empieza)</a>
+    <a class="btn btn-ink" href="/es/docs/levels" style="background:var(--blue-d);box-shadow:4px 4px 0 var(--ink)"
+      >Niveles L0 → L2</a
+    >
+  </div>
+</DocsLayout>

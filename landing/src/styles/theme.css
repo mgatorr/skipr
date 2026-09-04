@@ -58,7 +58,7 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 /* Anchor targets clear the sticky nav (≈68px) when jumped to from the menu. */
-:where(#top, #anti, #how, #waitlist, .wl-state) {
+:where(#top, #anti, #how, #waitlist, #avisos, #start, #path, #next, #grow, .wl-state) {
   scroll-margin-top: 92px;
 }
 
@@ -541,6 +541,42 @@ h1.head em {
   top: -2px;
   color: var(--orange-ink);
   font-size: 18px;
+}
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  margin: 1.4rem 0 0.85rem;
+}
+.hero-secondary {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--rule);
+}
+.hero-secondary:hover {
+  color: var(--orange-ink);
+  border-bottom-color: var(--orange);
+}
+.foot-avisos {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  margin: -0.35rem 0 0.85rem;
+}
+.foot-cta-row {
+  margin-bottom: 1rem;
+}
+a.toolchip {
+  text-decoration: none;
+}
+a.toolchip:hover {
+  border-color: var(--orange);
+  color: var(--orange-ink);
 }
 .hero-foot {
   margin-top: 18px;

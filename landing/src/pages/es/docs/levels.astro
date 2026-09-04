@@ -1,0 +1,68 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Niveles L0 → L2 — skipr"
+  description="L0 y L1 son usables ya: terminal, Claude Code, harness. L2 (Cursor, OpenCode, Hermes) es un track de crecimiento honesto más adelante — complejidad opcional, no un producto de lista de espera."
+  plate="Lámina 05 — niveles"
+>
+  <h1>Niveles<span class="ink-orange">.</span></h1>
+  <p class="lead">
+    skipr está nivelado para que no te obliguen a todas las tools a la vez. Empieza en L0/L1. Añade
+    L2 solo cuando lo básico te resulte aburrido de la buena manera.
+  </p>
+
+  <h2 id="l0">L0 — Terminal + carpeta</h2>
+  <p><b>Usable ya.</b></p>
+  <ul>
+    <li>Una terminal que abres a propósito (Ghostty o la de sistema)</li>
+    <li><code>cd</code> a la carpeta del proyecto antes de hablar con el agente</li>
+    <li>No un vault genérico de “second brain” como lugar de trabajo</li>
+  </ul>
+  <p>Si puedes abrir la carpeta y lanzar <code>claude</code> ahí, ya estás en el camino.</p>
+
+  <h2 id="l1">L1 — Claude Code + harness</h2>
+  <p><b>Usable ya.</b> Esta es la superficie central del producto hoy.</p>
+  <ul>
+    <li>Claude Code CLI en la carpeta del proyecto</li>
+    <li><code>CLAUDE.md</code> corto + <code>checks/</code> de <a href="/es/docs/harness">setup-harness</a></li>
+    <li>Como mucho un par de skills locales — rieles, no acopio</li>
+  </ul>
+  <p>
+    Sigue el <a href="/es/docs">camino novato</a> hasta la primera victoria (un check que pasa o
+    falla con claridad).
+  </p>
+
+  <h2 id="l2">L2 — Tracks avanzados opcionales</h2>
+  <p>
+    <b>Crecimiento posterior — no hace falta para empezar.</b> Cuando L0 y L1 estén sólidos, puedes
+    añadir editores y agentes como <b>Cursor</b>, <b>OpenCode</b> o <b>Hermes</b>. Publicaremos guías
+    más claras para esos perfiles a medida que crezca la biblioteca.
+  </p>
+  <ul>
+    <li>La complejidad sigue siendo opcional — tú eliges qué se une al camino</li>
+    <li>L2 no es “el producto” tras una lista de espera — L0/L1 ya son el producto</li>
+    <li>Hasta que esas guías existan, quédate en Claude Code + harness; basta para ser dueño de la carpeta</li>
+  </ul>
+
+  <div class="callout grow" id="grow">
+    <h2>Esto crece contigo</h2>
+    <p>
+      Piensa en skipr como una guía de campo que engorda con el tiempo: más explicaciones, más tracks
+      avanzados, el mismo núcleo lean. Los “avisos” por email del pie son notas opcionales — nunca la
+      puerta a la documentación.
+    </p>
+    <p class="muted" style="margin-bottom:0">
+      Sin métricas inventadas. Sin “próximamente” como promesa total. Lo que puedes hacer hoy está en
+      Empieza y Harness.
+    </p>
+  </div>
+
+  <div class="docs-cta">
+    <a class="btn btn-ink" href="/es/docs">Empezar el camino novato</a>
+    <a class="btn btn-ink" href="/es/docs/harness" style="background:var(--blue-d);box-shadow:4px 4px 0 var(--ink)"
+      >Guía del harness</a
+    >
+  </div>
+</DocsLayout>

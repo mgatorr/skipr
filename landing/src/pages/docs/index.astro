@@ -1,0 +1,158 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Get started — skipr"
+  description="Novice path: install Claude Code CLI, open your project folder in Ghostty (or your terminal), run setup-harness, pass a checker, and ship your first win. Available now."
+  plate="Plate 03 — start here"
+>
+  <h1>Get started<span class="ink-orange">.</span></h1>
+  <p class="lead">
+    skipr is <b>available now</b>: a lean path of terminal + Claude Code + harness + short guides.
+    This page is for beginners. Follow the steps in order — you do not need to be a developer.
+  </p>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#path">1. The novice path (do this first)</a>
+    <a href="#next">2. What to do next</a>
+    <a href="#grow">3. This grows with you</a>
+    <a href="/docs/harness">→ Harness deep-dive</a>
+    <a href="/docs/levels">→ Levels L0 → L2</a>
+  </nav>
+
+  <h2 id="path">The novice path</h2>
+  <p>
+    Goal: open a real project folder, give Claude Code short rails, and see a check that can say
+    <em>no</em>. That is your first win.
+  </p>
+
+  <ol class="steps">
+    <li>
+      <h3>Install Claude Code CLI</h3>
+      <p>
+        You need the <b>CLI</b> (the <code>claude</code> command), not only the Claude desktop app.
+        Follow Anthropic’s current install guide for your OS, then confirm it works:
+      </p>
+      <pre class="cmd">claude --version</pre>
+      <p class="muted">
+        If the command is “not found”, the CLI is not on your PATH yet — finish the install guide
+        before continuing.
+      </p>
+    </li>
+    <li>
+      <h3>Open a terminal you will actually use</h3>
+      <p>
+        On macOS we recommend <b>Ghostty</b> (clear, fast). The built-in Terminal.app or iTerm is
+        fine too. You are not hiding the terminal — you are learning one calm place to work.
+      </p>
+      <p class="muted">
+        Ghostty: <a href="https://ghostty.org" rel="noopener noreferrer">ghostty.org</a>
+      </p>
+    </li>
+    <li>
+      <h3>Create or open your project folder</h3>
+      <p>
+        Work <b>inside the folder for this job</b> (a trip, a client delivery, a culling session) —
+        not a giant vault of prompts. Example:
+      </p>
+      <pre class="cmd">mkdir -p ~/Projects/viaje-lisboa
+cd ~/Projects/viaje-lisboa</pre>
+      <p>
+        Keep this terminal window in that folder for the rest of the steps.
+      </p>
+    </li>
+    <li>
+      <h3>Get the harness (setup-harness)</h3>
+      <p>
+        The harness is a short <code>CLAUDE.md</code> plus checks that can fail. The skill source
+        lives in this repo so you can read it on GitHub and install it into Claude Code’s skills
+        folder (or ask Claude Code to apply it from the skill once installed).
+      </p>
+      <p>
+        Skill source (readable text):
+        <a href="https://github.com/mgatorr/skipr/tree/main/skills/setup-harness"
+          >github.com/mgatorr/skipr → skills/setup-harness</a
+        >
+      </p>
+      <p>
+        Typical install location for Claude Code skills on your machine:
+        <code>~/.claude/skills/setup-harness/</code> (copy the folder from the repo, or clone and
+        link it). Then, in your project folder, start Claude Code and ask it to run the skill:
+      </p>
+      <pre class="cmd">claude
+# then, in the session:
+# "Run setup-harness for this folder" / "Monta el harness en esta carpeta"</pre>
+      <p>
+        Full explanation of what the skill writes:
+        <a href="/docs/harness">Harness guide →</a>
+      </p>
+    </li>
+    <li>
+      <h3>Run a checker (see “no” work)</h3>
+      <p>
+        After setup you should have a <code>checks/</code> directory. Run the primary script once:
+      </p>
+      <pre class="cmd">./checks/naming.sh
+# or brief-ready.sh / delivery.sh — whichever the harness installed</pre>
+      <p>
+        Green means the folder already passes. Red with a clear message is also a win — it proves
+        the rails can stop the agent. Read <code>checks/README.md</code> for how to break a check
+        on purpose, then ask Claude to fix it.
+      </p>
+    </li>
+    <li>
+      <h3>First win</h3>
+      <p>You are done with “install” when all of this is true:</p>
+      <ul>
+        <li><code>claude</code> runs in this folder</li>
+        <li>There is a short <code>CLAUDE.md</code> (about ≤ 40 lines of body)</li>
+        <li>At least one executable check under <code>checks/</code></li>
+        <li>You have run a check once and understood pass vs fail</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2 id="next">What to do next</h2>
+  <ol>
+    <li>
+      Do real work in the folder with Claude Code — naming, brief, delivery — with the harness on.
+    </li>
+    <li>
+      When a rule keeps coming up, add one line to <code>CLAUDE.md</code> or one new checker. Keep
+      both short.
+    </li>
+    <li>
+      Read <a href="/docs/levels">Levels (L0 → L2)</a> so you know what to ignore for now (Cursor,
+      OpenCode, Hermes stay optional).
+    </li>
+    <li>
+      Optional: skim the skill markdown on GitHub when you want the exact procedure the agent
+      follows.
+    </li>
+  </ol>
+
+  <div class="callout grow" id="grow">
+    <h2>This grows with you</h2>
+    <p>
+      <b>L0 and L1 are usable now</b> — terminal + Claude Code + harness + these guides. That is
+      the product today, not a waitlist gate.
+    </p>
+    <p>
+      Later we will publish clearer tracks for more advanced profiles (<b>L2</b>: Cursor, OpenCode,
+      Hermes, and similar). Complexity stays optional; you level up when L0/L1 feel solid. This is
+      an honest roadmap of growth — not an empty “coming soon” stamp on the whole product.
+    </p>
+    <p class="muted" style="margin-bottom:0">
+      Optional email updates live in the site footer if you want notes when guides expand — they
+      are not required to start.
+    </p>
+  </div>
+
+  <div class="docs-cta">
+    <a class="btn btn-ink" href="/docs/harness">Read the harness guide</a>
+    <a class="btn btn-ink" href="/docs/levels" style="background:var(--blue-d);box-shadow:4px 4px 0 var(--ink)"
+      >See levels L0 → L2</a
+    >
+  </div>
+</DocsLayout>

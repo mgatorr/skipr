@@ -1,6 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import WaitlistForm from '../components/WaitlistForm.astro';
+import { useTranslations, getLocale, localizePath } from '../i18n/ui';
 
 interface Props {
   title: string;
@@ -11,6 +11,11 @@ interface Props {
   slug: string;
 }
 const { title, description, publishDate, ogImage, canonical, slug } = Astro.props;
+
+const locale = getLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const docsHref = localizePath('/docs', locale);
+void slug; // reserved for per-article attribution if needed
 
 const siteUrl = Astro.site ?? new URL('http://localhost:4321');
 const url = new URL(`/articles/${slug}`, siteUrl).href;
@@ -52,13 +57,11 @@ const jsonLd = {
         <slot />
       </div>
 
-      <aside class="article__cta" id="waitlist">
+      <aside class="article__cta" id="start">
         <span class="plate-num">The whole point</span>
-        <h2>Want to build real software you own?</h2>
-        <p class="cta__lead">
-          skipr is coming soon. Join the waitlist and we&rsquo;ll email you at launch.
-        </p>
-        <WaitlistForm source={`article:${slug}`} formId="waitlist" />
+        <h2>{t('article.cta.h')}</h2>
+        <p class="cta__lead">{t('article.cta.lead')}</p>
+        <a class="btn btn-ink" href={docsHref}>{t('article.cta.btn')}</a>
       </aside>
     </article>
   </div>

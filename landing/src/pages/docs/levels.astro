@@ -1,0 +1,68 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Levels L0 → L2 — skipr"
+  description="L0 and L1 are usable now: terminal, Claude Code, harness. L2 (Cursor, OpenCode, Hermes) is an honest growth track later — optional complexity, not a waitlist product."
+  plate="Plate 05 — levels"
+>
+  <h1>Levels<span class="ink-orange">.</span></h1>
+  <p class="lead">
+    skipr is leveled so you are not forced into every tool at once. Start at L0/L1. Add L2 only when
+    the basics feel boring in a good way.
+  </p>
+
+  <h2 id="l0">L0 — Terminal + folder</h2>
+  <p><b>Usable now.</b></p>
+  <ul>
+    <li>A terminal you open on purpose (Ghostty or default)</li>
+    <li><code>cd</code> into the project folder before you chat with the agent</li>
+    <li>No generic “second brain” vault as the workplace</li>
+  </ul>
+  <p>If you can open the folder and run <code>claude</code> there, you are on the path.</p>
+
+  <h2 id="l1">L1 — Claude Code + harness</h2>
+  <p><b>Usable now.</b> This is the core product surface today.</p>
+  <ul>
+    <li>Claude Code CLI in the project folder</li>
+    <li>Short <code>CLAUDE.md</code> + <code>checks/</code> from <a href="/docs/harness">setup-harness</a></li>
+    <li>At most a couple of local skills — rails, not a hoard</li>
+  </ul>
+  <p>
+    Follow the <a href="/docs">novice path</a> until you have a first win (a check that passes or
+    fails clearly).
+  </p>
+
+  <h2 id="l2">L2 — Optional advanced tracks</h2>
+  <p>
+    <b>Later growth — not required to start.</b> When L0 and L1 feel solid, you may add editors and
+    agents such as <b>Cursor</b>, <b>OpenCode</b>, or <b>Hermes</b>. We will publish clearer guides
+    for those profiles as the library grows.
+  </p>
+  <ul>
+    <li>Complexity stays optional — you choose what joins the path</li>
+    <li>L2 is not a waitlist-gated “the product” — L0/L1 already are the product</li>
+    <li>Until those guides ship, stay on Claude Code + harness; that is enough to own the folder</li>
+  </ul>
+
+  <div class="callout grow" id="grow">
+    <h2>This grows with you</h2>
+    <p>
+      Think of skipr as a field guide that thickens over time: more explanations, more advanced
+      tracks, same lean core. Email “avisos” in the footer are optional notes — never the door to
+      the docs.
+    </p>
+    <p class="muted" style="margin-bottom:0">
+      No fake metrics. No “próximamente” as the whole promise. What you can do today is written in
+      Get started and Harness.
+    </p>
+  </div>
+
+  <div class="docs-cta">
+    <a class="btn btn-ink" href="/docs">Start the novice path</a>
+    <a class="btn btn-ink" href="/docs/harness" style="background:var(--blue-d);box-shadow:4px 4px 0 var(--ink)"
+      >Harness guide</a
+    >
+  </div>
+</DocsLayout>

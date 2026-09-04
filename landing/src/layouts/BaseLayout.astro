@@ -23,7 +23,7 @@ interface Props {
   type?: 'website' | 'article';
   /** Optional canonical override (e.g. syndicated article). */
   canonical?: string;
-  /** Render the rich landing footer (foot-word + second waitlist CTA). */
+  /** Render the rich landing footer (foot-word + optional updates form). */
   footerCta?: boolean;
 }
 
@@ -116,8 +116,9 @@ const homeHref = localizePath('/', locale);
         <div class="nav-links">
           <a href={`${homeHref}#anti`}><span class="n">01</span><span>{t('nav.anti')}</span></a>
           <a href={`${homeHref}#how`}><span class="n">02</span><span>{t('nav.how')}</span></a>
+          <a href={localizePath('/docs', locale)}><span class="n">03</span><span>{t('nav.docs')}</span></a>
         </div>
-        <a class="nav-cta" href={`${homeHref}#waitlist`}>{t('nav.cta')}</a>
+        <a class="nav-cta" href={localizePath('/docs', locale)}>{t('nav.cta')}</a>
       </div>
     </nav>
 

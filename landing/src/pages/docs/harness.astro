@@ -1,0 +1,109 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Harness (setup-harness) — skipr"
+  description="What setup-harness does: a short CLAUDE.md plus checks that can fail. Link to the skill source on GitHub. Available now for L0/L1."
+  plate="Plate 04 — the harness"
+>
+  <h1>Harness<span class="ink-orange">.</span></h1>
+  <p class="lead">
+    The harness is how skipr says <em>no</em>. A short <code>CLAUDE.md</code> in your project folder,
+    plus scripts under <code>checks/</code> that must be allowed to fail. Fewer skills, more checks.
+  </p>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#what">What it installs</a>
+    <a href="#how">How to run it</a>
+    <a href="#source">Skill source on GitHub</a>
+    <a href="#after">After install</a>
+    <a href="/docs">← Back to Get started</a>
+  </nav>
+
+  <h2 id="what">What setup-harness does</h2>
+  <p>When you run the skill in a creative/project folder, it:</p>
+  <ul>
+    <li>Writes a short <code>CLAUDE.md</code> (body aimed at ≤ 40 lines)</li>
+    <li>Creates <code>checks/</code> with at least one executable script that exits non-zero on failure</li>
+    <li>Optionally adds at most two <b>local</b> skills under <code>.claude/skills/</code></li>
+    <li>Never copies Spec Kit, a Second Brain, or a pile of global skills into the project</li>
+  </ul>
+  <p>Domains it knows (pick one): trip / client / culling / delivery — each maps to a default checker.</p>
+
+  <h2 id="how">How to run it (beginner)</h2>
+  <ol class="steps">
+    <li>
+      <h3>Install the skill on your machine</h3>
+      <p>
+        Copy <code>skills/setup-harness/</code> from the skipr repo into
+        <code>~/.claude/skills/setup-harness/</code> so Claude Code can load it.
+      </p>
+    </li>
+    <li>
+      <h3><code>cd</code> into the project folder</h3>
+      <p>The harness is folder-scoped. Do not run it from a generic prompt vault.</p>
+      <pre class="cmd">cd ~/Projects/your-folder
+claude</pre>
+    </li>
+    <li>
+      <h3>Ask Claude to run the skill</h3>
+      <pre class="cmd">Run setup-harness for this folder
+# or in Spanish: Monta el harness / arnés en esta carpeta</pre>
+      <p>Answer the one domain question if it asks. Then let it write files and chmod the checks.</p>
+    </li>
+    <li>
+      <h3>Smoke-test a check</h3>
+      <pre class="cmd">./checks/naming.sh</pre>
+      <p>Pass or fail with a clear message — both are useful. See <code>checks/README.md</code>.</p>
+    </li>
+  </ol>
+
+  <h2 id="source">Skill source</h2>
+  <p>
+    The canonical skill text and templates are vendored in this repository so GitHub and the site
+    stay in sync:
+  </p>
+  <ul>
+    <li>
+      <a href="https://github.com/mgatorr/skipr/blob/main/skills/setup-harness/SKILL.md"
+        >SKILL.md on GitHub</a
+      >
+      — full procedure the agent follows
+    </li>
+    <li>
+      <a href="https://github.com/mgatorr/skipr/tree/main/skills/setup-harness/templates"
+        >templates/</a
+      >
+      — <code>CLAUDE.md</code>, checks, optional local skills
+    </li>
+  </ul>
+  <p class="muted">
+    Site mirror of the skill markdown (same content): kept under
+    <code>landing/src/content/docs/setup-harness.md</code> in the repo for editors.
+  </p>
+
+  <h2 id="after">What to do after the harness is in</h2>
+  <ol>
+    <li>Work only in this folder with Claude Code.</li>
+    <li>Before calling something “done”, run the relevant <code>./checks/…</code> script.</li>
+    <li>If the model drifts, fix the check or tighten one line in <code>CLAUDE.md</code> — do not add 50 skills.</li>
+    <li>When L0/L1 feel solid, read <a href="/docs/levels">levels</a> for optional L2 tools.</li>
+  </ol>
+
+  <div class="callout grow">
+    <h2>This grows with you</h2>
+    <p style="margin-bottom:0">
+      Harness + Claude Code is the path <b>now</b>. Advanced editor/agent tracks (Cursor, OpenCode,
+      Hermes, …) are a later growth layer for people who already have L0/L1 working — not a gate in
+      front of getting started.
+    </p>
+  </div>
+
+  <div class="docs-cta">
+    <a class="btn btn-ink" href="/docs">Novice path (Get started)</a>
+    <a class="btn btn-ink" href="/docs/levels" style="background:var(--blue-d);box-shadow:4px 4px 0 var(--ink)"
+      >Levels L0 → L2</a
+    >
+  </div>
+</DocsLayout>

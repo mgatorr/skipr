@@ -1,15 +1,18 @@
 ---
-import { useTranslations, getLocale } from '../i18n/ui';
+import { useTranslations, getLocale, localizePath } from '../i18n/ui';
 
 const locale = getLocale(Astro.currentLocale);
 const t = useTranslations(locale);
+const docsHref = localizePath('/docs', locale);
+const harnessHref = localizePath('/docs/harness', locale);
+const levelsHref = localizePath('/docs/levels', locale);
 
 const plates = [
-  { n: '01', h: t('m1.h'), p: t('m1.p'), tool: t('m1.tool'), when: t('m1.when') },
-  { n: '02', h: t('m2.h'), p: t('m2.p'), tool: t('m2.tool'), when: t('m2.when') },
-  { n: '03', h: t('m3.h'), p: t('m3.p'), tool: t('m3.tool'), when: t('m3.when') },
-  { n: '04', h: t('m4.h'), p: t('m4.p'), tool: t('m4.tool'), when: t('m4.when') },
-  { n: '05', h: t('m5.h'), p: t('m5.p'), tool: t('m5.tool'), when: t('m5.when') },
+  { n: '01', h: t('m1.h'), p: t('m1.p'), tool: t('m1.tool'), when: t('m1.when'), href: `${docsHref}#path` },
+  { n: '02', h: t('m2.h'), p: t('m2.p'), tool: t('m2.tool'), when: t('m2.when'), href: `${docsHref}#path` },
+  { n: '03', h: t('m3.h'), p: t('m3.p'), tool: t('m3.tool'), when: t('m3.when'), href: harnessHref },
+  { n: '04', h: t('m4.h'), p: t('m4.p'), tool: t('m4.tool'), when: t('m4.when'), href: docsHref },
+  { n: '05', h: t('m5.h'), p: t('m5.p'), tool: t('m5.tool'), when: t('m5.when'), href: `${levelsHref}#l2` },
 ];
 
 const rows = [
@@ -37,7 +40,7 @@ const rows = [
               <p>{plate.p}</p>
             </div>
             <div class="ptool">
-              <span class="toolchip">{plate.tool}</span>
+              <a class="toolchip" href={plate.href}>{plate.tool}</a>
               <span class="when">{plate.when}</span>
             </div>
           </div>
@@ -50,6 +53,12 @@ const rows = [
       <b>Ghostty</b><span class="pipe">·</span><b>Claude Code</b><span class="pipe">·</span><b
         >harness</b
       ><span class="pipe">·</span><b>your folder</b>
+    </p>
+
+    <p class="manual-foot reveal">
+      <a href={docsHref}>{t('how.docs')}</a>
+      <span class="pipe">·</span>
+      <span>{t('how.grow')}</span>
     </p>
 
     <!-- your stack, your call -->

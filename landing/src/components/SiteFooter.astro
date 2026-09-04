@@ -3,7 +3,7 @@ import WaitlistForm from './WaitlistForm.astro';
 import { useTranslations, getLocale, localizePath } from '../i18n/ui';
 
 interface Props {
-  /** Render the foot-word + second waitlist CTA (landing only). */
+  /** Render the foot-word + optional updates form (landing only). */
   cta?: boolean;
 }
 const { cta = false } = Astro.props;
@@ -11,6 +11,7 @@ const { cta = false } = Astro.props;
 const locale = getLocale(Astro.currentLocale);
 const t = useTranslations(locale);
 const articlesHref = localizePath('/articles', locale);
+const docsHref = localizePath('/docs', locale);
 ---
 
 <footer class="foot">
@@ -21,12 +22,17 @@ const articlesHref = localizePath('/articles', locale);
           <div class="foot-word reveal">
             skipr<span class="pin">.</span>
           </div>
-          <div class="foot-right reveal d1">
+          <div class="foot-right reveal d1" id="avisos">
             <p set:html={t('foot.cta')} />
+            <p class="foot-avisos muted">{t('foot.avisos')}</p>
+            <div class="foot-cta-row">
+              <a class="btn btn-ink" href={docsHref}>{t('hero.btn')}</a>
+            </div>
             <WaitlistForm
               source="landing-footer"
-              formId="waitlist-foot"
+              formId="waitlist"
               buttonLabel={t('foot.btn')}
+              withStates={true}
             />
           </div>
         </div>
@@ -35,6 +41,7 @@ const articlesHref = localizePath('/articles', locale);
     <div class="colophon">
       <p class="disclaimer">{t('foot.disc')}</p>
       <div class="foot-meta">
+        <a href={docsHref}>{t('docs.nav.start')}</a>
         <a href={articlesHref}>{t('foot.notes')}</a>
         <span>{t('foot.coming')}</span>
         <span>{t('foot.copy')}</span>

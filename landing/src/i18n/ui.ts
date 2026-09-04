@@ -8,9 +8,10 @@ export const ui = {
     'deck.left': 'Est. 2026 · Independent software · A field guide for builders escaping AI chaos',
     'nav.anti': 'the black box',
     'nav.how': 'the method',
-    'nav.cta': 'Join the waitlist',
+    'nav.cta': 'Get started',
+    'nav.docs': 'docs',
 
-    'hero.stamp': 'Coming soon',
+    'hero.stamp': 'Available now',
     'hero.vol': 'Vol. 01 — escape AI complexity',
     'hero.h1':
       'Escape <span class="own">AI complexity</span> —<br>few tools, a harness that can say <em>no</em>.',
@@ -20,7 +21,8 @@ export const ui = {
       "You don't need another sealed AI stack. You need a folder, a harness, and a CLI you can read.",
     'hero.email.l': 'Your email',
     'hero.email': 'you@yourstartup.com',
-    'hero.btn': 'Join the waitlist',
+    'hero.btn': 'Get started',
+    'hero.secondary': 'Harness guide',
     'hero.foot': '✱ Not affiliated with Anthropic · skipr.dev',
 
     'spec.cap': 'Fig. 1 — the hand-off',
@@ -86,19 +88,19 @@ export const ui = {
       'Not a feature list — a guided route. Install lean, open the project folder, add a harness that can fail, build with Claude Code, level up when you are ready.',
     'm1.h': 'Set up',
     'm1.p':
-      'Ghostty (or the terminal you already have) plus Claude Code CLI. Guided install coming — the terminal is taught, not hidden.',
+      'Ghostty (or the terminal you already have) plus Claude Code CLI. Step-by-step in Docs — the terminal is taught, not hidden.',
     'm1.tool': 'Ghostty + Claude Code',
-    'm1.when': 'guided install',
+    'm1.when': 'docs · now',
     'm2.h': 'Open the folder',
     'm2.p':
       'Work in the project itself — not a generic vault of prompts. The folder is the product surface.',
     'm2.tool': 'your project',
-    'm2.when': 'in the repo',
+    'm2.when': 'your folder',
     'm3.h': 'Harness',
     'm3.p':
       'A short CLAUDE.md plus checks that can fail (setup-harness). Rails that say no when the model drifts.',
     'm3.tool': 'setup-harness',
-    'm3.when': 'checks can fail',
+    'm3.when': 'setup-harness',
     'm4.h': 'Build with Claude Code',
     'm4.p':
       'Claude Code on rails — not 400 skills. You ship understanding while you ship the work.',
@@ -106,10 +108,12 @@ export const ui = {
     'm4.when': 'rails, not hoards',
     'm5.h': 'Level up later',
     'm5.p':
-      'When L0 and L1 feel solid, add Cursor, OpenCode, or Hermes (L2). Complexity stays optional.',
+      'L0/L1 are usable now. When they feel solid, add Cursor, OpenCode, or Hermes (L2) — an honest growth track, not a product gate.',
     'm5.tool': 'Cursor · OpenCode · Hermes',
-    'm5.when': 'L2 when ready',
+    'm5.when': 'grows with you',
     'how.foot': 'The lean path, in your name:',
+    'how.docs': 'Full novice path in Docs →',
+    'how.grow': 'This grows with you — L2 tracks later, optional.',
 
     'stack.h': 'Your tools, <em>few and clear.</em>',
     'stack.tag': 'lean by design',
@@ -123,15 +127,22 @@ export const ui = {
     'stack.foot':
       'Level up when you are ready — and <span class="o">you</span> decide which tools join the path, by your criteria or by talking it through with Claude as you build.',
 
-    'foot.cta': 'Stop drowning in AI tools.<br>Start with a <em>lean</em> path.',
+    'foot.cta': 'Start now with Docs.<br>Optional: get <em>notes</em> when guides grow.',
     'foot.email.l': 'Your email',
     'foot.email': 'you@yourstartup.com',
-    'foot.btn': 'Join the waitlist',
+    'foot.btn': 'Get updates',
     'foot.disc':
       'skipr is an independent product and is not affiliated with, endorsed by, or sponsored by Anthropic. “Claude” and “Claude Code” are products of Anthropic. Ghostty, GitHub, Cursor, OpenCode and Hermes are trademarks of their respective owners.',
-    'foot.coming': 'Coming soon — skipr.dev',
+    'foot.coming': 'Available now — skipr.dev',
     'foot.copy': '© 2026 skipr · made for people who want the rails',
     'foot.notes': 'Field notes →',
+    'foot.avisos': 'Optional updates — not required to start.',
+    'docs.nav.start': 'Get started',
+    'docs.nav.harness': 'Harness',
+    'docs.nav.levels': 'Levels',
+    'article.cta.h': 'Ready to escape AI complexity?',
+    'article.cta.lead': 'Docs and harness are available now — start with the novice path. Optional email updates live in the footer.',
+    'article.cta.btn': 'Get started',
 
     'wl.ok': "You're on the list ✓",
     'wl.invalid': 'Please enter a valid email.',
@@ -143,9 +154,10 @@ export const ui = {
     'deck.left': 'Desde 2026 · Software independiente · Guía de campo para builders que escapan del caos de la IA',
     'nav.anti': 'la caja negra',
     'nav.how': 'el método',
-    'nav.cta': 'Únete a la lista',
+    'nav.cta': 'Empieza',
+    'nav.docs': 'docs',
 
-    'hero.stamp': 'Muy pronto',
+    'hero.stamp': 'Disponible ya',
     'hero.vol': 'Vol. 01 — escapar de la complejidad de la IA',
     'hero.h1':
       'Escapa de la <span class="own">complejidad de la IA</span> —<br>pocas tools, un harness que puede decir <em>no</em>.',
@@ -155,7 +167,8 @@ export const ui = {
       'No necesitas otro stack de IA sellado. Necesitas una carpeta, un harness y un CLI que puedas leer.',
     'hero.email.l': 'Tu email',
     'hero.email': 'tu@tustartup.com',
-    'hero.btn': 'Únete a la lista',
+    'hero.btn': 'Empieza',
+    'hero.secondary': 'Guía del harness',
     'hero.foot': '✱ No afiliado con Anthropic · skipr.dev',
 
     'spec.cap': 'Fig. 1 — la entrega',
@@ -221,19 +234,19 @@ export const ui = {
       'No una lista de funciones — una ruta guiada. Instala lean, abre la carpeta del proyecto, añade un harness que puede fallar, construye con Claude Code, sube de nivel cuando estés listo.',
     'm1.h': 'Configura',
     'm1.p':
-      'Ghostty (o la terminal que ya tengas) más Claude Code CLI. Install guiado en camino — la terminal se enseña, no se esconde.',
+      'Ghostty (o la terminal que ya tengas) más Claude Code CLI. Paso a paso en Docs — la terminal se enseña, no se esconde.',
     'm1.tool': 'Ghostty + Claude Code',
-    'm1.when': 'install guiado',
+    'm1.when': 'docs · ya',
     'm2.h': 'Abre la carpeta',
     'm2.p':
       'Trabaja en el proyecto mismo — no en un vault genérico de prompts. La carpeta es la superficie del producto.',
     'm2.tool': 'tu proyecto',
-    'm2.when': 'en el repo',
+    'm2.when': 'tu carpeta',
     'm3.h': 'Harness',
     'm3.p':
       'Un CLAUDE.md corto más checks que pueden fallar (setup-harness). Rieles que dicen no cuando el modelo se desvía.',
     'm3.tool': 'setup-harness',
-    'm3.when': 'los checks fallan',
+    'm3.when': 'setup-harness',
     'm4.h': 'Construye con Claude Code',
     'm4.p':
       'Claude Code con rieles — no 400 skills. Envías comprensión mientras envías el trabajo.',
@@ -241,10 +254,12 @@ export const ui = {
     'm4.when': 'rieles, no acopio',
     'm5.h': 'Sube de nivel después',
     'm5.p':
-      'Cuando L0 y L1 estén sólidos, añade Cursor, OpenCode o Hermes (L2). La complejidad sigue siendo opcional.',
+      'L0/L1 son usables ya. Cuando estén sólidos, añade Cursor, OpenCode o Hermes (L2) — crecimiento honesto, no una puerta al producto.',
     'm5.tool': 'Cursor · OpenCode · Hermes',
-    'm5.when': 'L2 cuando toque',
+    'm5.when': 'crece contigo',
     'how.foot': 'El camino lean, a tu nombre:',
+    'how.docs': 'Camino novato completo en Docs →',
+    'how.grow': 'Crece contigo — tracks L2 después, opcionales.',
 
     'stack.h': 'Tus tools, <em>pocas y claras.</em>',
     'stack.tag': 'lean por diseño',
@@ -258,15 +273,22 @@ export const ui = {
     'stack.foot':
       'Sube de nivel cuando estés listo — y <span class="o">tú</span> decides qué tools se unen al camino, según tus criterios o hablándolo con Claude mientras construyes.',
 
-    'foot.cta': 'Deja de ahogarte en tools de IA.<br>Empieza con un camino <em>lean</em>.',
+    'foot.cta': 'Empieza ya con Docs.<br>Opcional: recibe <em>avisos</em> cuando crezcan las guías.',
     'foot.email.l': 'Tu email',
     'foot.email': 'tu@tustartup.com',
-    'foot.btn': 'Únete a la lista',
+    'foot.btn': 'Recibir avisos',
     'foot.disc':
       'skipr es un producto independiente y no está afiliado, respaldado ni patrocinado por Anthropic. “Claude” y “Claude Code” son productos de Anthropic. Ghostty, GitHub, Cursor, OpenCode y Hermes son marcas de sus respectivos dueños.',
-    'foot.coming': 'Muy pronto — skipr.dev',
+    'foot.coming': 'Disponible ya — skipr.dev',
     'foot.copy': '© 2026 skipr · hecho para quienes quieren los rieles',
     'foot.notes': 'Apuntes de campo →',
+    'foot.avisos': 'Avisos opcionales — no hacen falta para empezar.',
+    'docs.nav.start': 'Empieza',
+    'docs.nav.harness': 'Harness',
+    'docs.nav.levels': 'Niveles',
+    'article.cta.h': '¿Listo para escapar de la complejidad de la IA?',
+    'article.cta.lead': 'Docs y harness están disponibles ya — empieza por el camino novato. El email del pie es opcional.',
+    'article.cta.btn': 'Empieza',
 
     'wl.ok': '¡Listo! Estás en la lista ✓',
     'wl.invalid': 'Introduce un email válido.',

@@ -9,7 +9,7 @@ test.describe('Articles (US4)', () => {
     await expect(page.locator('body')).not.toContainText(/how much context/i);
   });
 
-  test('the article renders with SEO + OG metadata and a waitlist CTA', async ({ page }) => {
+  test('the article renders with SEO + OG metadata and a docs CTA', async ({ page }) => {
     await page.goto(`/articles/${SLUG}`);
 
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/no-code to software/i);
@@ -20,6 +20,6 @@ test.describe('Articles (US4)', () => {
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\.png$/);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
 
-    await expect(page.getByRole('button', { name: /join the waitlist/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /get started/i })).toBeVisible();
   });
 });

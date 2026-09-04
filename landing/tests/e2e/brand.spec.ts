@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // rendered text (not raw HTML), since the dev server embeds the repo path
 // ("cockpit") in module URLs — a false positive that does not exist in the build.
 test.describe('Brand consistency', () => {
-  for (const path of ['/', '/es/', '/articles', '/articles/from-no-code-to-software-you-own']) {
+  for (const path of ['/', '/es/', '/docs', '/docs/harness', '/docs/levels', '/es/docs', '/articles', '/articles/from-no-code-to-software-you-own']) {
     test(`no residual old brand on ${path}`, async ({ page }) => {
       await page.goto(path);
       const text = (await page.locator('body').innerText()).toLowerCase();

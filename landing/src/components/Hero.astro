@@ -1,16 +1,17 @@
 ---
-import WaitlistForm from './WaitlistForm.astro';
-import { useTranslations, getLocale } from '../i18n/ui';
+import { useTranslations, getLocale, localizePath } from '../i18n/ui';
 
 const locale = getLocale(Astro.currentLocale);
 const t = useTranslations(locale);
+const docsHref = localizePath('/docs', locale);
+const harnessHref = localizePath('/docs/harness', locale);
 ---
 
 <header class="hero" id="top">
   <div class="wrap hero-grid">
     <div class="hero-left">
       <div class="hero-kick">
-        <span class="stamp"><span class="dotpulse"></span><span>{t('hero.stamp')}</span></span>
+        <span class="stamp blue"><span class="dotpulse"></span><span>{t('hero.stamp')}</span></span>
         <span class="vol">{t('hero.vol')}</span>
       </div>
 
@@ -20,7 +21,10 @@ const t = useTranslations(locale);
 
       <p class="hero-note marker-note">{t('hero.note')}</p>
 
-      <WaitlistForm source="landing-hero" formId="waitlist" withStates={true} />
+      <div class="hero-cta">
+        <a class="btn btn-ink" href={docsHref}>{t('hero.btn')}</a>
+        <a class="hero-secondary" href={harnessHref}>{t('hero.secondary')} →</a>
+      </div>
 
       <p class="hero-foot">{t('hero.foot')}</p>
     </div>
