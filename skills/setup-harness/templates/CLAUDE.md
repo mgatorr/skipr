@@ -1,14 +1,19 @@
 # {{PROJECT_NAME}}
 
-Carpeta de trabajo: **{{DOMAIN}}**. Todo el agente trabaja aquí, no en un vault genérico.
+Work folder: **{{DOMAIN}}**. The agent stays in this directory — not a generic vault.
 
-## Reglas
+## Language
 
-- No inventes EXIF, GPS, fechas, clientes ni entregables. Si falta el dato, pregunta.
-- No borres fotos ni carpetas originales. Si hace falta limpiar, propone y espera OK.
-- Antes de decir «listo», ejecuta el checker de `checks/` que toque y arregla si falla.
-- Respuestas al humano en español. Nombres de fichero en ASCII cuando se renombren.
-- Mantén este fichero corto. Si crece de más, recorta; no añadas un Second Brain.
+- Code, paths, commits, and file renames: **English / ASCII**.
+- Replies to the human: **{{LANG}}** (default `en`; set to `es` if preferred).
+- Working language line (agents read this): `Working language: {{LANG}}`
+
+## Rules
+
+- Do not invent EXIF, GPS, dates, clients, or deliverables. If data is missing, ask.
+- Do not delete original photos or folders. If cleanup is needed, propose and wait for OK.
+- Before saying “done”, run the matching checker under `checks/` and fix failures.
+- Keep this file short. If it grows, trim it — do not add a Second Brain.
 
 ## Checkers
 
@@ -18,9 +23,9 @@ Carpeta de trabajo: **{{DOMAIN}}**. Todo el agente trabaja aquí, no en un vault
 ./checks/delivery.sh      # delivery
 ```
 
-Solo aplica el que exista en esta carpeta.
+Only run checkers that exist in this folder.
 
-## Hecho significa
+## Done means
 
-El checker sale en verde **y** el humano confirma el resultado mirando ficheros
-(o la pantalla), no solo leyendo lo que el modelo afirma.
+The checker exits green **and** the human confirms by looking at files (or the screen),
+not only by reading what the model claims.
