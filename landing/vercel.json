@@ -1,6 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "astro",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm run build"
+  "framework": null,
+  "installCommand": null,
+  "buildCommand": null,
+  "outputDirectory": "public",
+  "redirects": [
+    {"source": "/docs", "destination": "https://github.com/mgatorr/skipr/blob/main/README.md", "permanent": false},
+    {"source": "/docs/:path*", "destination": "https://github.com/mgatorr/skipr/blob/main/docs/:path*", "permanent": false},
+    {"source": "/articles", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
+    {"source": "/articles/:path*", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
+    {"source": "/api/:path*", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
+    {"source": "/waitlist", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
+    {"source": "/sitemap.xml", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
+    {"source": "/sitemap-index.xml", "destination": "https://github.com/mgatorr/skipr", "permanent": false}
+  ]
 }
