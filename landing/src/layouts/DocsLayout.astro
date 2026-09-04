@@ -1,5 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import DocsGate from '../components/DocsGate.astro';
 import { useTranslations, getLocale, localizePath } from '../i18n/ui';
 
 interface Props {
@@ -26,12 +27,14 @@ const homeHref = localizePath('/', locale);
       </span>
     </nav>
 
-    {
-      plate && (
-        <span class="plate-num">{plate}</span>
-      )
-    }
-    <slot />
+    <DocsGate>
+      {
+        plate && (
+          <span class="plate-num">{plate}</span>
+        )
+      }
+      <slot />
+    </DocsGate>
   </div>
 
   <style>

@@ -76,6 +76,8 @@ const emailId = `email-${formId}`;
 </form>
 
 <script>
+  import { unlockGuide } from '../lib/guideUnlock';
+
   // Progressive enhancement: without this script the native POST still works
   // (the endpoint 303-redirects to /#wl-...). With it, each waitlist form on the
   // page submits via fetch and renders an inline state without navigation.
@@ -114,6 +116,7 @@ const emailId = `email-${formId}`;
         const body = await res.json().catch(() => ({ ok: res.ok, status: 'error' }));
         if (body.ok) {
           setStatus(true, msg.ok);
+          unlockGuide();
           form.reset();
         } else if (body.status === 'invalid') {
           setStatus(false, msg.invalid);

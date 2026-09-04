@@ -32,11 +32,18 @@ test.describe('Landing communicates skipr (US1/US2)', () => {
     await cta.scrollIntoViewIfNeeded();
   });
 
-  test('docs novice path is available now', async ({ page }) => {
+  test('docs guide is gated behind email until unlocked', async ({ page }) => {
     await page.goto('/docs');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/get started/i);
-    await expect(page.locator('body')).toContainText(/novice path/i);
-    await expect(page.locator('body')).toContainText(/grows with you/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/enter email to read the guide/i);
+    await expect(page.locator('#docs-gate')).toBeVisible();
+    await expect(page.locator('[data-docs-body]')).toBeHidden();
+
+    const form = page.locator('#docs-gate-en');
+    await form.getByLabel(/email/i).fill('docs-gate@example.com');
+    await form.getByRole('button', { name: /unlock the guide/i }).click();
+    await expect(page.locator('html')).toHaveClass(/guide-unlocked/);
+    await expect(page.locator('[data-docs-body]')).toBeVisible();
     await expect(page.locator('#path')).toBeVisible();
+    await expect(page.locator('body')).toContainText(/novice path/i);
   });
 });

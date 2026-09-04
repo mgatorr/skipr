@@ -27,8 +27,9 @@ test.describe('i18n (US5) — English primary, Spanish secondary', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   });
 
-  test('Spanish docs exist', async ({ page }) => {
+  test('Spanish docs exist and are gated', async ({ page }) => {
     await page.goto('/es/docs');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/empieza/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/pon tu email para ver la guía/i);
+    await expect(page.locator('#docs-gate')).toBeVisible();
   });
 });
