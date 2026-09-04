@@ -83,9 +83,15 @@ Levels overview lives in the [novice guide](./docs/novice-guide.md#levels-l0--l2
 │   └── constitution.md       # non-negotiable principles
 ├── skills/
 │   └── setup-harness/        # vendored Claude Code skill + templates
-├── landing/                  # Astro marketing site — PAUSED (see landing/README.md)
+├── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
 └── specs/                    # Spec Kit history
 ```
+
+## Language
+
+- **Product / docs / README:** English (canonical).
+- **Working chat with the human:** configurable — set `Working language: es` in project `CLAUDE.md`, or `SKIPR_LOCALE` / `LANG` (default `en`).
+- Details: [`docs/language.md`](./docs/language.md). Spanish novice guide: [`docs/es/novice-guide.md`](./docs/es/novice-guide.md) (secondary mirror).
 
 ## Skill: setup-harness
 
@@ -104,6 +110,11 @@ Install a copy under `~/.claude/skills/setup-harness/` so Claude Code can load i
 ## A note on branding
 
 **skipr is an independent project and is not affiliated with Anthropic.** “Claude” and “Claude Code” are trademarks of their respective owner. Ghostty, GitHub, Cursor, OpenCode, and Hermes are trademarks of their respective owners.
+
+
+## License
+
+No `LICENSE` file is in the repository yet. **Mario should pick** Apache-2.0, MIT, or another license before relying on public redistribution terms. Until then, treat the default GitHub all-rights-reserved / unclear posture as intentional — do not assume an open-source grant.
 
 ---
 

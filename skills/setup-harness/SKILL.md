@@ -15,6 +15,13 @@ and need a folder-scoped setup they can trust.
 **Core principle:** fewer skills, more checks. If the check cannot fail,
 it is not a check.
 
+## Language
+
+- **Canonical product / repo language:** English (this skill file; commits when contributing upstream).
+- **Project `CLAUDE.md` must include a short Language section:** English for code/commits/paths; replies to the human in `{{LANG}}` (default `en`, can be `es`).
+- Also write the line `Working language: {{LANG}}` so agents can detect locale (`SKIPR_LOCALE` / `LANG` are alternatives; see `docs/language.md` in the skipr repo).
+- Checker fail messages: prefer the same `{{LANG}}` the harness was installed with.
+
 ## When to use
 
 - "Monta el harness / arnés en esta carpeta"
@@ -76,14 +83,14 @@ Copy from this skill's `templates/CLAUDE.md`, then substitute:
 
 - `{{PROJECT_NAME}}` — folder basename or human title
 - `{{DOMAIN}}` — viaje | cliente | culling | delivery
-- `{{LANG}}` — default `es` (Spanish UI/notes); code-ish paths stay ASCII
+- `{{LANG}}` — working conversation language (default `en`; use `es` for Spanish). Code/paths/commits stay English ASCII
 
 Hard rules for the file you write:
 
 - **≤ 40 lines** of body (frontmatter optional; prefer none)
 - No Spec Kit, no constitution versioning, no wave/ola language
-- Must include: work only in this folder; do not invent EXIF/GPS/dates;
-  ask if the brief is missing; run `./checks/…` before claiming done
+- Must include: Language section (`Working language: {{LANG}}`); work only in this folder;
+  do not invent EXIF/GPS/dates; ask if the brief is missing; run `./checks/…` before claiming done
 
 ### 4. Create `checks/`
 
@@ -96,7 +103,7 @@ Copy the matching scripts from `templates/checks/`:
 Each script must:
 
 - Exit `0` on success, non-zero on failure
-- Print a clear Spanish message of what failed
+- Print a clear message of what failed (in `{{LANG}}`)
 - Be safe to run twice
 - Never delete user photos (read-only checks only)
 
@@ -118,18 +125,22 @@ Then tell them how to break it on purpose (README section).
 
 ### 7. Closing message (always print)
 
+Print in the human working language (`{{LANG}}`, default English):
+
 ```text
-Harness listo en: <pwd>
+Harness ready in: <pwd>
 
-1. Abre la terminal en ESTA carpeta (Ghostty / Orca / la que uses).
-2. Arranca Claude Code aquí:  claude
-3. Antes de dar algo por hecho:  ./checks/<script>.sh
-4. Para ver que el arnés funciona: rompe el checker a propósito
-   (instrucciones en checks/README.md) y pide al agente que lo arregle.
+1. Open the terminal in THIS folder (Ghostty / Orca / yours).
+2. Start Claude Code here:  claude
+3. Before claiming done:  ./checks/<script>.sh
+4. To prove the harness works: break a checker on purpose
+   (see checks/README.md) and ask the agent to fix it.
 
-No es un Second Brain. No copies 50 skills. Si necesitas otra regla,
-añádela en CLAUDE.md (sigue corto) o un checker nuevo en checks/.
+Not a Second Brain. Do not copy 50 skills. Extra rules go in
+CLAUDE.md (keep it short) or a new checker under checks/.
 ```
+
+If `{{LANG}}` is `es`, use the Spanish equivalent of the same four steps.
 
 ## Templates location
 
