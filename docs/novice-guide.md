@@ -3,11 +3,11 @@
 skipr is **available now**: a lean path of terminal + Claude Code + harness + short guides.
 This page is for beginners. Follow the steps in order — you do not need to be a developer.
 
-Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md)
+Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md). Photographers: [for-photographers.md](./for-photographers.md). Fail/pass demo: [`examples/photo-trip`](../examples/photo-trip/).
 
 ## Contents
 
-1. [The novice path](#the-novice-path) (do this first — includes optional macOS installer)
+1. [The novice path](#the-novice-path) (step 0 is a two-minute fail/pass — no Claude yet)
 2. [What to do next](#what-to-do-next)
 3. [Harness deep-dive](#harness-setup-harness)
 4. [Levels L0 → L2](#levels-l0--l2)
@@ -17,12 +17,26 @@ Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md)
 
 ## The novice path
 
-Goal: open a real project folder, give Claude Code short rails, and see a check that can say
-*no*. That is your first win.
+Goal: see a check that can say *no*, then give Claude Code short rails in a real
+project folder.
 
-### 0. Optional: macOS install script (v0)
+### 0. Two-minute fail/pass (no Claude yet)
 
-On a Mac, you can run the lean installer first. It checks Homebrew, **asks before
+Clone (or unzip) this repo, then run the sample checker. You do **not** need the
+Claude CLI for this step:
+
+```bash
+git clone https://github.com/mgatorr/skipr.git
+cd skipr/examples/photo-trip
+./checks/naming.sh
+```
+
+Red with a clear message is the win — the rails work. How to pass (move the loose
+`IMG_0042.JPG`, re-run): [photo-trip fail/pass](../examples/photo-trip/checks/README.md#fail-then-pass-the-first-win).
+
+### Optional: macOS install script (v0)
+
+On a Mac, you can run the lean installer next. It checks Homebrew, **asks before
 installing Ghostty** (or use `--with-ghostty`), copies `setup-harness` into
 `~/.claude/skills/` (with a timestamped backup if replacing), and prints official
 Claude Code install links if `claude` is missing.
@@ -35,13 +49,13 @@ cd skipr
 ./scripts/install-macos.sh
 ```
 
-Flags: `--dry-run`, `--with-ghostty`, `--with-zsh-extras`, `--force`, `--help` —
-see [`scripts/README.md`](../scripts/README.md) (the curl|bash one-liner lives there
-only, with a warning — not recommended as the novice path).
+The script is **macOS-only**. Linux/Windows: skip it — clone, copy the skill, use
+your terminal. Details: [`scripts/README.md`](../scripts/README.md) (the curl|bash
+one-liner lives there only, with a warning — not recommended as the novice path).
 
 Spanish short guide: [es/novice-guide.md](./es/novice-guide.md).
 
-If you skip the script, follow steps 1–4 manually below.
+If you skip the script, follow steps 1–6 below.
 
 ### 1. Install Claude Code CLI
 

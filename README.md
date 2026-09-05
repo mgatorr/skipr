@@ -28,24 +28,30 @@ skipr helps **creators and builders drowning in AI tooling** set up a lean path 
 | **Terminal** | Ghostty (or Terminal.app / iTerm) — one calm place to work |
 | **Agent** | Claude Code CLI in the **project folder** |
 | **Harness** | Short `CLAUDE.md` + `checks/` that can fail ([setup-harness](./skills/setup-harness/)) |
-| **Guides** | L0/L1 usable now · optional [L2 tracks](./docs/l2/) (Cursor, OpenCode, Hermes) |
+| **Guides** | L0/L1 usable now · [for photographers](./docs/for-photographers.md) · [examples](./examples/) (photo-trip first-win) · optional [L2 tracks](./docs/l2/) |
 
 You do **not** need another sealed AI stack or a rented no-code black box. You need a folder, a harness, and a CLI you can read.
 
 ## Who it’s for
 
-- Photographers / creators who already try Claude in the app and want a folder-scoped setup
+- Photographers / creators who already try Claude in the app and want a folder-scoped setup — [for photographers](./docs/for-photographers.md)
 - Builders stuck in skill hoards and “Second Brain” sprawl
-- Anyone who wants **rails that can say no**, not more prompts
+- Anyone who wants **rails that can say no**, not more prompts — start with [examples](./examples/) (photo-trip first-win)
 
 Software-founder desktop-app tracks from earlier MVPs are parked. Start here with L0/L1.
 
 ## Novice path
 
-Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · Spanish mirror: [docs/es/novice-guide.md](./docs/es/novice-guide.md)
+Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · [for photographers](./docs/for-photographers.md) · [examples](./examples/) · Spanish mirror: [docs/es/novice-guide.md](./docs/es/novice-guide.md)
 
 Do this in order (you do not need to be a developer):
 
+0. **Two-minute fail/pass (no Claude yet)** — clone this repo, then:
+   ```bash
+   cd examples/photo-trip
+   ./checks/naming.sh
+   ```
+   Red with a clear message is a win. How to pass: [`examples/photo-trip/checks/README.md`](./examples/photo-trip/checks/README.md).
 1. **Install Claude Code CLI** — the `claude` command, not only the desktop app. Confirm with `claude --version`.
 2. **Open a terminal you will actually use** — on macOS we recommend [Ghostty](https://ghostty.org); Terminal.app / iTerm are fine.
 3. **Create or open your project folder** — a trip, client job, culling session — not a giant vault of prompts:
@@ -62,7 +68,7 @@ Do this in order (you do not need to be a developer):
    ```bash
    ./checks/naming.sh   # or brief-ready.sh / delivery.sh
    ```
-6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail.
+6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail. You already saw fail/pass in step 0 on [`examples/photo-trip`](./examples/photo-trip/).
 
 ## This grows with you
 
@@ -80,6 +86,7 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 │   └── skipr-hero.png        # README hero (escape-complexity)
 ├── docs/
 │   ├── novice-guide.md       # full beginner path (EN)
+│   ├── for-photographers.md  # L0/L1 path for photographers
 │   ├── es/novice-guide.md    # short Spanish mirror
 │   ├── l2/                   # optional advanced tracks (Cursor, OpenCode, Hermes)
 │   ├── ARCHIVE.md            # map of superseded eras
@@ -88,6 +95,7 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 ├── scripts/
 │   ├── install-macos.sh      # macOS L0/L1 installer (v0)
 │   └── README.md             # script usage
+├── examples/                 # first-wins you can run (photo-trip fail/pass)
 ├── skills/
 │   └── setup-harness/        # vendored Claude Code skill + templates
 ├── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
@@ -114,7 +122,7 @@ cd skipr
 ./scripts/install-macos.sh
 ```
 
-Ghostty is opt-in (`--with-ghostty` or interactive `y/N`). Details: [`scripts/README.md`](./scripts/README.md). Full steps: [novice guide](./docs/novice-guide.md). Claude Code install: [Anthropic docs](https://code.claude.com/docs/en/install).
+Ghostty is opt-in (`--with-ghostty` or interactive `y/N`). Details: [`scripts/README.md`](./scripts/README.md). Full steps: [novice guide](./docs/novice-guide.md). Tangible fail/pass demo: [`examples/photo-trip`](./examples/photo-trip/). Claude Code install: [Anthropic docs](https://code.claude.com/docs/en/install).
 
 ## Skill: setup-harness
 
@@ -134,6 +142,8 @@ Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. C
 - [x] GitHub-first carta: README + novice guide + vendored harness
 - [x] Install script v0 (macOS) — [`scripts/install-macos.sh`](./scripts/install-macos.sh)
 - [x] L2 track docs (optional advanced tools) — [`docs/l2/`](./docs/l2/)
+- [x] Examples (photo-trip first-win) — [`examples/`](./examples/)
+- [x] Photographers guide — [`docs/for-photographers.md`](./docs/for-photographers.md)
 - [ ] Personal-site / skipr.dev marketing — later, not blocking L0/L1
 
 ## A note on branding
