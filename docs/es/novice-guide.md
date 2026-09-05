@@ -41,7 +41,13 @@ recomendado. Guía completa (EN): [../novice-guide.md](../novice-guide.md). Clau
 |---|---|---|
 | **L0** | Terminal + carpeta del proyecto | usable ya |
 | **L1** | Claude Code + harness | usable ya (núcleo) |
-| **L2** | Cursor / OpenCode / Hermes… | después, opcional |
+| **L2** | Cursor / OpenCode / Hermes… | opcional; docs en inglés |
+
+## L2 (canon en inglés)
+
+Las notas de campo L2 están en inglés (idioma canónico del producto):
+[`docs/l2/`](../l2/) — índice, Cursor, OpenCode, Hermes. L2 sigue siendo opcional;
+no es la puerta de entrada.
 
 ## Esto crece contigo
 
