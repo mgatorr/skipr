@@ -3,7 +3,7 @@
 skipr is **available now**: a lean path of terminal + Claude Code + harness + short guides.
 This page is for beginners. Follow the steps in order — you do not need to be a developer.
 
-Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md)
+Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md). Photographers: [for-photographers.md](./for-photographers.md). Fail/pass demo: [`examples/photo-trip`](../examples/photo-trip/).
 
 ## Contents
 
