@@ -43,6 +43,9 @@ usage() {
   cat <<'EOF'
 skipr macOS installer (v0)
 
+macOS-only. On Linux or Windows this script exits non-zero (including --dry-run).
+See scripts/README.md and examples/photo-trip (novice-guide step 0).
+
 Sets up the lean L0/L1 path without rewriting your shell config by force.
 
 Usage:
@@ -68,6 +71,21 @@ EOF
 
 is_macos() {
   [[ "$(uname -s)" == "Darwin" ]]
+}
+
+# macOS-only: refuse on Linux/Windows (and --dry-run). --help still works
+# because parse_args exits first.
+refuse_unless_macos() {
+  if is_macos; then
+    return 0
+  fi
+  cat <<EOF >&2
+This script is macOS-only (detected: $(uname -s)).
+
+On Linux or Windows: clone this repo, copy skills/setup-harness, and use your
+own terminal. See scripts/README.md and step 0 in examples/photo-trip.
+EOF
+  exit 1
 }
 
 command_exists() {
@@ -468,17 +486,13 @@ EOF
 
 main() {
   parse_args "$@"
+  refuse_unless_macos
 
   info "skipr macOS installer (v0)"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "Dry-run mode: no changes will be made."
   fi
   info "Spanish guide: docs/es/novice-guide.md"
-
-  if ! is_macos; then
-    warn "This script targets macOS (Darwin). Detected: $(uname -s)."
-    warn "Continue at your own risk — Ghostty/Homebrew steps may not apply."
-  fi
 
   ensure_homebrew
   ensure_ghostty

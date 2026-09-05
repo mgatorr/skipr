@@ -27,3 +27,18 @@ jobs:
       - uses: actions/checkout@v6
       - name: bash -n scripts/install-macos.sh
         run: bash -n scripts/install-macos.sh
+      - name: refuse on non-Darwin (including --dry-run)
+        run: |
+          set -e
+          if ./scripts/install-macos.sh --dry-run > /tmp/install-out.txt 2>&1; then
+            echo "expected non-zero exit on Linux" >&2
+            cat /tmp/install-out.txt
+            exit 1
+          fi
+          cat /tmp/install-out.txt
+          grep -qi 'macos-only' /tmp/install-out.txt
+          if grep -q '## Homebrew' /tmp/install-out.txt; then
+            echo "installer continued past the OS gate" >&2
+            exit 1
+          fi
+          ./scripts/install-macos.sh --help >/tmp/install-help.txt
