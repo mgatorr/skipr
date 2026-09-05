@@ -42,14 +42,23 @@ skipr installs **at most two** local skills. Extra rules go in one line of `CLAU
 
 Lisbon trip, a wedding, a cull session — each is its own directory. The agent stays there. It does not invent EXIF, dates, or deliverables. It does not delete originals.
 
-## Ten-minute first win
+## Two-minute fail/pass (no Claude yet)
+
+Clone (or unzip) this repo, then:
+
+```bash
+cd examples/photo-trip
+./checks/naming.sh
+```
+
+It fails on purpose on a loose `IMG_0042.JPG`. How to pass: [photo-trip fail/pass](../examples/photo-trip/checks/README.md#fail-then-pass-the-first-win). Sample folder: [`examples/photo-trip`](../examples/photo-trip/).
+
+## Ten-minute first win (your own folder)
 
 1. Install the [Claude Code CLI](https://code.claude.com/docs/en/install) (`claude --version`) — not only the desktop app.
 2. Copy [`skills/setup-harness/`](../skills/setup-harness/) to `~/.claude/skills/setup-harness/`.
 3. `cd` into a trip or client folder, run `claude`, ask: *Run setup-harness for this folder*.
 4. Run the checker it installed. Green or a clear red — both are a win.
-
-Worked sample: [`examples/photo-trip`](../examples/photo-trip/) — run `./checks/naming.sh` to see fail, then pass. Or use your own trip or client directory.
 
 Full beginner path: [novice-guide.md](./novice-guide.md). The skill itself: [`skills/setup-harness/SKILL.md`](../skills/setup-harness/SKILL.md).
 

@@ -46,6 +46,12 @@ Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · [for ph
 
 Do this in order (you do not need to be a developer):
 
+0. **Two-minute fail/pass (no Claude yet)** — clone this repo, then:
+   ```bash
+   cd examples/photo-trip
+   ./checks/naming.sh
+   ```
+   Red with a clear message is a win. How to pass: [`examples/photo-trip/checks/README.md`](./examples/photo-trip/checks/README.md).
 1. **Install Claude Code CLI** — the `claude` command, not only the desktop app. Confirm with `claude --version`.
 2. **Open a terminal you will actually use** — on macOS we recommend [Ghostty](https://ghostty.org); Terminal.app / iTerm are fine.
 3. **Create or open your project folder** — a trip, client job, culling session — not a giant vault of prompts:
@@ -62,9 +68,7 @@ Do this in order (you do not need to be a developer):
    ```bash
    ./checks/naming.sh   # or brief-ready.sh / delivery.sh
    ```
-6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail.
-
-Want a tangible fail/pass demo first? `cd` into [`examples/photo-trip`](./examples/photo-trip/) and run `./checks/naming.sh`.
+6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail. You already saw fail/pass in step 0 on [`examples/photo-trip`](./examples/photo-trip/).
 
 ## This grows with you
 

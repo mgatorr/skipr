@@ -2,6 +2,10 @@
 
 Helper scripts for skipr. Product messages are English; Spanish guides live under `docs/es/`.
 
+`install-macos.sh` is **macOS-only**. On Linux or Windows: clone (or unzip) this repo, copy
+`skills/setup-harness` to `~/.claude/skills/setup-harness`, and use the terminal you already
+have. First win without the installer: [`examples/photo-trip`](../examples/photo-trip/).
+
 ## install-macos.sh (v0)
 
 Beginner-friendly macOS installer for the L0/L1 path:
