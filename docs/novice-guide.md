@@ -7,7 +7,7 @@ Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md)
 
 ## Contents
 
-1. [The novice path](#the-novice-path) (do this first)
+1. [The novice path](#the-novice-path) (do this first — includes optional macOS installer)
 2. [What to do next](#what-to-do-next)
 3. [Harness deep-dive](#harness-setup-harness)
 4. [Levels L0 → L2](#levels-l0--l2)
@@ -20,6 +20,29 @@ Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md)
 Goal: open a real project folder, give Claude Code short rails, and see a check that can say
 *no*. That is your first win.
 
+### 0. Optional: macOS install script (v0)
+
+On a Mac, you can run the lean installer first. It checks Homebrew, **asks before
+installing Ghostty** (or use `--with-ghostty`), copies `setup-harness` into
+`~/.claude/skills/` (with a timestamped backup if replacing), and prints official
+Claude Code install links if `claude` is missing.
+
+**Always clone (or download a zip) first** so you can read the script:
+
+```bash
+git clone https://github.com/mgatorr/skipr.git
+cd skipr
+./scripts/install-macos.sh
+```
+
+Flags: `--dry-run`, `--with-ghostty`, `--with-zsh-extras`, `--force`, `--help` —
+see [`scripts/README.md`](../scripts/README.md) (the curl|bash one-liner lives there
+only, with a warning — not recommended as the novice path).
+
+Spanish short guide: [es/novice-guide.md](./es/novice-guide.md).
+
+If you skip the script, follow steps 1–4 manually below.
+
 ### 1. Install Claude Code CLI
 
 You need the **CLI** (the `claude` command), not only the Claude desktop app.
@@ -28,6 +51,8 @@ Follow Anthropic’s current install guide for your OS, then confirm it works:
 ```bash
 claude --version
 ```
+
+Official install: [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install)
 
 If the command is “not found”, the CLI is not on your PATH yet — finish the install guide
 before continuing.
@@ -38,6 +63,7 @@ On macOS we recommend **Ghostty** (clear, fast). The built-in Terminal.app or iT
 fine too. You are not hiding the terminal — you are learning one calm place to work.
 
 - Ghostty: [ghostty.org](https://ghostty.org)
+- Or pass `--with-ghostty` to `./scripts/install-macos.sh` (opt-in; default asks / skips)
 
 ### 3. Create or open your project folder
 
@@ -58,12 +84,15 @@ repo so you can read it on GitHub and install it into Claude Code’s skills fol
 
 Skill source: [`skills/setup-harness/`](../skills/setup-harness/)
 
-Typical install location:
+**Clone or zip the repo first**, then copy (or use the macOS installer, which backs up
+any existing skill):
 
 ```bash
-# from a clone of this repo, or after downloading the folder:
+# after: git clone https://github.com/mgatorr/skipr.git
 cp -R /path/to/skipr/skills/setup-harness ~/.claude/skills/setup-harness
 ```
+
+Claude Code CLI install (official): [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install)
 
 Then, in your project folder, start Claude Code and ask it to run the skill:
 

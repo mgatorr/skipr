@@ -29,7 +29,7 @@ Default if unset: **`en`**.
 |---|---|
 | Product docs / README / commits / PR bodies | English |
 | Code & file names in harness templates | ASCII / English |
-| Checker scripts’ user-facing fail messages | Match Working language when the harness was installed with that locale |
+| Checker scripts’ user-facing fail messages | **English default**; Spanish when Working language / SKIPR_LOCALE / LANG is \`es\` |
 | Agent replies to the human | Working language (`Working language:` / `SKIPR_LOCALE` / `LANG`) |
 
 ## setup-harness

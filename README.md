@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="./assets/skipr-hero.png" alt="skipr — escape AI complexity" width="880">
+# skipr
 
-<br/><br/>
+**Escape AI complexity** — terminal taught · Claude Code · harness that can say *no*
 
 [![status](https://img.shields.io/badge/status-available%20now-cf4f27?style=flat-square)](#novice-path)
 [![surface](https://img.shields.io/badge/product%20surface-this%20GitHub%20repo-332a20?style=flat-square)](#what-skipr-is)
@@ -12,8 +12,6 @@
 </div>
 
 ---
-
-# skipr
 
 **Escape AI complexity.** Few good tools, a harness that can say *no*, and guides by level — Claude Code first. The terminal (Ghostty or yours) is **taught, not hidden**. Rails, not 400 skills.
 
@@ -79,13 +77,21 @@ Levels overview lives in the [novice guide](./docs/novice-guide.md#levels-l0--l2
 ├── docs/
 │   ├── novice-guide.md       # full beginner path (EN)
 │   ├── es/novice-guide.md    # short Spanish mirror
-│   ├── design.md             # historical product rationale
-│   └── constitution.md       # non-negotiable principles
+│   ├── ARCHIVE.md            # map of superseded eras
+│   ├── design.md             # HISTORICAL — desktop/no-terminal era
+│   └── constitution.md       # HISTORICAL — principles (see banners)
+├── scripts/
+│   ├── install-macos.sh      # macOS L0/L1 installer (v0)
+│   └── README.md             # script usage
 ├── skills/
 │   └── setup-harness/        # vendored Claude Code skill + templates
 ├── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
 └── specs/                    # Spec Kit history
 ```
+
+## Historical docs
+
+Earlier Spec Kit / Cockpit / desktop no-terminal eras are archived — see [`docs/ARCHIVE.md`](./docs/ARCHIVE.md). Do not treat those files as current product truth.
 
 ## Language
 
@@ -93,17 +99,35 @@ Levels overview lives in the [novice guide](./docs/novice-guide.md#levels-l0--l2
 - **Working chat with the human:** configurable — set `Working language: es` in project `CLAUDE.md`, or `SKIPR_LOCALE` / `LANG` (default `en`).
 - Details: [`docs/language.md`](./docs/language.md). Spanish novice guide: [`docs/es/novice-guide.md`](./docs/es/novice-guide.md) (secondary mirror).
 
+## macOS installer (v0)
+
+Lean setup on a Mac (Homebrew guidance, **optional** Ghostty, skill copy with backup, Claude Code pointers). **Clone first**, then run the script:
+
+```bash
+git clone https://github.com/mgatorr/skipr.git
+cd skipr
+./scripts/install-macos.sh
+```
+
+Ghostty is opt-in (`--with-ghostty` or interactive `y/N`). Details: [`scripts/README.md`](./scripts/README.md). Full steps: [novice guide](./docs/novice-guide.md). Claude Code install: [Anthropic docs](https://code.claude.com/docs/en/install).
+
 ## Skill: setup-harness
 
 Canonical source: **[`skills/setup-harness/SKILL.md`](./skills/setup-harness/SKILL.md)**
 
-Install a copy under `~/.claude/skills/setup-harness/` so Claude Code can load it. Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill.
+**Clone or download a zip of this repo first**, then copy the skill (or use `./scripts/install-macos.sh`, which backs up any existing copy):
+
+```bash
+cp -R skills/setup-harness ~/.claude/skills/setup-harness
+```
+
+Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. Claude Code install: [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install).
 
 ## Roadmap
 
 - [x] Reposition promise: escape AI complexity (not “hide the terminal”)
 - [x] GitHub-first carta: README + novice guide + vendored harness
-- [ ] Install script v0 (macOS) when ready
+- [x] Install script v0 (macOS) — [`scripts/install-macos.sh`](./scripts/install-macos.sh)
 - [ ] L2 track docs (optional advanced tools)
 - [ ] Personal-site / skipr.dev marketing — later, not blocking L0/L1
 

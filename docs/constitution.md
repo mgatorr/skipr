@@ -1,3 +1,6 @@
+> **HISTORICAL / SUPERSEDED (2026-09).** The current product is **GitHub-first escape-complexity**: terminal taught + Claude Code + harness (`setup-harness`). This document describes an earlier desktop / no-terminal (or Spec Kit / Cockpit) pivot and **must not be read as current truth**. Start at the [root README](../README.md), [novice-guide.md](./novice-guide.md), and [ARCHIVE.md](./ARCHIVE.md).
+
+
 <!--
 Sync Impact Report
 - Version: 1.0.0 → 1.1.0  (repositioning: Cockpit → skipr; guidance updated across principles)
@@ -45,6 +48,8 @@ ship features we cannot tie to a pain or a sale.
   modification and never clobber unrelated content.
 
 ### III. Frictionless, Friendly Setup (NON-NEGOTIABLE)
+
+> **Superseded guidance:** “MUST NOT require the terminal” belonged to the desktop/no-terminal pivot. **Current L0 product teaches the terminal** (Ghostty or yours) with Claude Code + harness. See [ARCHIVE.md](./ARCHIVE.md) and the root README.
 
 skipr's audience is non-technical. Setup and everyday use MUST NOT require the terminal or prior
 developer knowledge. Install must be trivial on macOS, Windows, and Linux. Every flow keeps the user

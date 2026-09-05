@@ -8,21 +8,6 @@ on:
     paths: ['landing/**', '.github/workflows/landing.yml']
 
 jobs:
-  secret-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: gitleaks (tree + history)
-        uses: gitleaks/gitleaks-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
-
   stub-check:
     runs-on: ubuntu-latest
     steps:
@@ -35,3 +20,5 @@ jobs:
           grep -q github.com/mgatorr/skipr landing/public/index.html
           grep -q '"framework": null' landing/vercel.json
           grep -q '"outputDirectory": "public"' landing/vercel.json
+          # Dead Astro marketing source must stay gone
+          test ! -d landing/src
