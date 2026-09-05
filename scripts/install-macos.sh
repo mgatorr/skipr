@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 # skipr macOS installer (v0)
-# Sets up the L0/L1 path: Homebrew guidance, Ghostty, optional lean zsh extras,
+# Sets up the L0/L1 path: Homebrew guidance, optional Ghostty, optional lean zsh extras,
 # Claude Code CLI guidance, and the setup-harness skill.
 #
 # Usage:
-#   ./scripts/install-macos.sh [--help] [--dry-run] [--with-zsh-extras] [--force]
+#   ./scripts/install-macos.sh [--help] [--dry-run] [--with-ghostty] [--with-zsh-extras] [--force]
 #
-# Prefer cloning the repo and running locally. curl|bash also works (skill is
-# fetched from GitHub). Script messages are English (product canon).
+# Primary path: git clone the repo, then run this script locally.
+# curl|bash is secondary (see scripts/README.md). Script messages are English (product canon).
 
 set -euo pipefail
 
 SKIPR_REPO_URL="${SKIPR_REPO_URL:-https://github.com/mgatorr/skipr.git}"
-SKIPR_REPO_RAW="${SKIPR_REPO_RAW:-https://raw.githubusercontent.com/mgatorr/skipr/main}"
 CLAUDE_INSTALL_DOCS="https://code.claude.com/docs/en/install"
 CLAUDE_NATIVE_INSTALL='curl -fsSL https://claude.ai/install.sh | bash'
 CLAUDE_BREW_INSTALL='brew install --cask claude-code'
@@ -23,9 +22,9 @@ ZSHRC_MARK_BEGIN="# >>> skipr zsh extras (managed by scripts/install-macos.sh) >
 ZSHRC_MARK_END="# <<< skipr zsh extras <<<"
 
 DRY_RUN=0
+WITH_GHOSTTY=0
 WITH_ZSH_EXTRAS=0
 FORCE=0
-ASKED_ZSH=0
 
 info()  { printf '==> %s\n' "$*"; }
 ok()    { printf '    OK  %s\n' "$*"; }
@@ -52,17 +51,16 @@ Usage:
 Options:
   --help              Show this help
   --dry-run           Print actions; change nothing
+  --with-ghostty      Install Ghostty via Homebrew cask (otherwise ask / skip)
   --with-zsh-extras   Install lean zsh niceties (syntax-highlighting,
                       autosuggestions, fzf) and append a marked block to ~/.zshrc
   --force             Overwrite existing ~/.claude/skills/setup-harness
+                      (after a timestamped backup)
 
-Safer for beginners (recommended):
+Primary path (recommended):
   git clone https://github.com/mgatorr/skipr.git
   cd skipr
   ./scripts/install-macos.sh
-
-Also works:
-  curl -fsSL https://raw.githubusercontent.com/mgatorr/skipr/main/scripts/install-macos.sh | bash
 
 Spanish guide: docs/es/novice-guide.md
 EOF
@@ -121,6 +119,10 @@ parse_args() {
         DRY_RUN=1
         shift
         ;;
+      --with-ghostty)
+        WITH_GHOSTTY=1
+        shift
+        ;;
       --with-zsh-extras)
         WITH_ZSH_EXTRAS=1
         shift
@@ -167,16 +169,41 @@ EOF
   return 0
 }
 
+maybe_prompt_ghostty() {
+  if [[ "$WITH_GHOSTTY" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ ! -t 0 ]]; then
+    info "Skipping Ghostty install (non-interactive; pass --with-ghostty to enable)."
+    info "Install manually from ${GHOSTTY_SITE} if you want it."
+    return 1
+  fi
+  printf '\nInstall Ghostty terminal via Homebrew cask? [y/N] '
+  local ans
+  read -r ans || ans=""
+  case "$ans" in
+    y|Y|yes|YES) WITH_GHOSTTY=1; return 0 ;;
+    *)
+      info "Skipping Ghostty. Use Terminal.app / iTerm, or install from ${GHOSTTY_SITE}."
+      return 1
+      ;;
+  esac
+}
+
 ensure_ghostty() {
-  step "Ghostty (terminal)"
+  step "Ghostty (terminal, optional)"
   if ghostty_installed; then
     ok "Ghostty already installed"
     return 0
   fi
 
+  if ! maybe_prompt_ghostty; then
+    return 0
+  fi
+
   if ! command_exists brew; then
     warn "Cannot brew-install Ghostty without Homebrew."
-    info "Install Ghostty from ${GHOSTTY_SITE} (or install Homebrew and re-run)."
+    info "Install Ghostty from ${GHOSTTY_SITE} (or install Homebrew and re-run with --with-ghostty)."
     return 0
   fi
 
@@ -202,7 +229,6 @@ maybe_prompt_zsh_extras() {
     info "Skipping zsh extras (non-interactive; pass --with-zsh-extras to enable)."
     return 1
   fi
-  ASKED_ZSH=1
   printf '\nInstall optional lean zsh niceties (syntax-highlighting, autosuggestions, fzf)? [y/N] '
   local ans
   read -r ans || ans=""
@@ -314,6 +340,20 @@ ensure_claude() {
 EOF
 }
 
+backup_existing_skill() {
+  local dest="$1"
+  local stamp backup
+  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  backup="${dest}.bak.${stamp}"
+  info "Backing up existing skill → ${backup}"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '    [dry-run] mv %s %s\n' "$dest" "$backup"
+    return 0
+  fi
+  mv "$dest" "$backup"
+  ok "Backup at ${backup}"
+}
+
 copy_skill_from_dir() {
   local src="$1"
   local dest="$SKILL_DEST"
@@ -323,12 +363,17 @@ copy_skill_from_dir() {
   info "Installing setup-harness → ${dest}"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     printf '    [dry-run] mkdir -p %s\n' "$dest_parent"
-    printf '    [dry-run] rm -rf %s && cp -R %s %s\n' "$dest" "$src" "$dest"
+    if [[ -d "$dest" ]]; then
+      printf '    [dry-run] would timestamp-backup then replace %s\n' "$dest"
+    fi
+    printf '    [dry-run] cp -R %s %s\n' "$src" "$dest"
     return 0
   fi
 
   mkdir -p "$dest_parent"
-  rm -rf "$dest"
+  if [[ -e "$dest" ]]; then
+    backup_existing_skill "$dest"
+  fi
   cp -R "$src" "$dest"
   ok "setup-harness installed at ${dest}"
 }
@@ -357,18 +402,18 @@ ensure_skill() {
 
   if [[ -d "$SKILL_DEST" && "$FORCE" -ne 1 ]]; then
     if [[ -t 0 ]]; then
-      printf 'setup-harness already at %s — overwrite? [y/N] ' "$SKILL_DEST"
+      printf 'setup-harness already at %s — overwrite (with backup)? [y/N] ' "$SKILL_DEST"
       local ans
       read -r ans || ans=""
       case "$ans" in
         y|Y|yes|YES) FORCE=1 ;;
         *)
-          ok "Keeping existing skill (pass --force to overwrite)"
+          ok "Keeping existing skill (pass --force to overwrite with backup)"
           return 0
           ;;
       esac
     else
-      ok "Existing skill kept (non-interactive; pass --force to overwrite)"
+      ok "Existing skill kept (non-interactive; pass --force to overwrite with backup)"
       return 0
     fi
   fi

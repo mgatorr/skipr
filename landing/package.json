@@ -1,7 +1,7 @@
 {
   "name": "skipr-landing",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "skipr.dev domain stub",
+  "description": "skipr.dev static stub (public/ only — no Astro build)",
   "type": "module"
 }

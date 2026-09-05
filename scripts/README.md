@@ -7,12 +7,12 @@ Helper scripts for skipr. Product messages are English; Spanish guides live unde
 Beginner-friendly macOS installer for the L0/L1 path:
 
 - Checks Homebrew (prints official install instructions if missing — does not force-run it)
-- Installs Ghostty via `brew install --cask ghostty` when needed (or points to [ghostty.org](https://ghostty.org))
+- **Ghostty is opt-in** (`--with-ghostty` or interactive `y/N`; default skip in non-interactive runs)
 - Optionally adds lean zsh niceties (`zsh-syntax-highlighting`, `zsh-autosuggestions`, `fzf`) behind `--with-zsh-extras` or a yes/no prompt — appends a **marked** block to `~/.zshrc`, never rewrites the whole file
 - Detects Claude Code CLI (`claude`); if missing, prints Anthropic’s official install docs/commands
-- Copies `skills/setup-harness` → `~/.claude/skills/setup-harness` (`--force` to overwrite)
+- Copies `skills/setup-harness` → `~/.claude/skills/setup-harness` (`--force` overwrites **after a timestamped backup**)
 
-### Recommended (clone)
+### Primary path (clone — recommended)
 
 ```bash
 git clone https://github.com/mgatorr/skipr.git
@@ -20,16 +20,21 @@ cd skipr
 ./scripts/install-macos.sh
 ```
 
+Or download a zip from GitHub, unzip, then run the same script from the extracted folder.
+
 ### Flags
 
 | Flag | Meaning |
 |---|---|
 | `--help` | Usage |
 | `--dry-run` | Print actions; change nothing |
+| `--with-ghostty` | Install Ghostty via Homebrew cask (otherwise ask / skip) |
 | `--with-zsh-extras` | Install lean zsh packages + append marked `~/.zshrc` block |
-| `--force` | Overwrite existing `~/.claude/skills/setup-harness` |
+| `--force` | Overwrite existing `~/.claude/skills/setup-harness` (after timestamped backup) |
 
-### curl | bash (works, clone preferred)
+### curl | bash (secondary — use with care)
+
+> **Warning:** piping remote scripts to `bash` means you run code you have not inspected locally. Prefer the clone path above.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mgatorr/skipr/main/scripts/install-macos.sh | bash

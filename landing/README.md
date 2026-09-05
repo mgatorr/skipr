@@ -1,23 +1,21 @@
-> **Domain stub (2026-09-04):** Astro marketing site abandoned. `skipr.dev` serves a tiny
-> static page that points (and auto-redirects) to https://github.com/mgatorr/skipr.
-> Product presentation lives on the GitHub repo root (`README.md`, `docs/`, `skills/`).
+# skipr.dev — static GitHub stub
 
-# skipr.dev — GitHub stub
+**Deploy:** Vercel project root directory = `landing/`. `vercel.json` sets
+`framework: null` and `outputDirectory: public`. Only `public/` is served.
 
-Static Vercel deploy from `landing/public/`. No Astro build, no waitlist API, no Neon.
-
-## Deploy
-
-Vercel project **root directory** = `landing/`. `vercel.json` sets `framework: null` and
-`outputDirectory: public`. Old Astro sources under `src/` are leftover and unused by deploy.
-
-```bash
-# from landing/
-vercel --prod --yes
-```
+Astro waitlist/marketing source was removed (2026-09) so the repo is not
+TypeScript-heavy for a parked domain. Historical eras: [docs/ARCHIVE.md](../docs/ARCHIVE.md).
 
 ## Local preview
 
 ```bash
 npx serve public
+# or: python3 -m http.server -d public 4173
+```
+
+## Production
+
+```bash
+# from landing/
+vercel --prod --yes
 ```

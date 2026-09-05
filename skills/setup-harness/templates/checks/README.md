@@ -1,8 +1,12 @@
 # Checks
 
-Scripts que pueden fallar. Si no pueden decir «no», no sirven.
+Scripts that can fail. If they cannot say **no**, they are not checks.
 
-## Cómo usarlos
+**Default language:** English messages and BRIEF headings (`Client`, `Date`, `Deliverables`).
+Spanish messages activate when `Working language: es` / `SKIPR_LOCALE=es` / `LANG=es*`
+(legacy Spanish BRIEF headings `Cliente` / `Fecha` / `Entregables` are still accepted).
+
+## How to run
 
 ```bash
 ./checks/naming.sh
@@ -10,16 +14,15 @@ Scripts que pueden fallar. Si no pueden decir «no», no sirven.
 ./checks/delivery.sh
 ```
 
-Código de salida: `0` = ok, distinto de `0` = hay que arreglar algo.
+Exit code: `0` = ok, non-zero = fix something.
 
-## Romper a propósito (para ver que el arnés funciona)
+## Break on purpose (to see the harness work)
 
-1. **naming:** deja un fichero `IMG_0001.JPG` suelto en la raíz del proyecto
-   (o una carpeta sin fecha `YYYY-MM-DD` en el nombre) y vuelve a correr
-   `./checks/naming.sh`. Debe fallar.
-2. **brief:** borra o vacía `BRIEF.md` y corre `./checks/brief-ready.sh`.
-3. **delivery:** quita la carpeta `entregables/` o déjala vacía y corre
+1. **naming:** leave a loose `IMG_0001.JPG` at the project root (or a photo folder without a
+   `YYYY-MM-DD` prefix) and re-run `./checks/naming.sh`. It must fail.
+2. **brief:** delete or empty `BRIEF.md` and run `./checks/brief-ready.sh`.
+3. **delivery:** remove `deliverables/` (or legacy `entregables/`) or leave it empty and run
    `./checks/delivery.sh`.
 
-Luego pídele al agente en Claude Code: «el checker ha fallado, arréglalo
-sin borrar originales». Si no puede fallar el checker, el setup está mal.
+Then ask the agent in Claude Code: “the checker failed — fix it without deleting originals.”
+If the checker cannot fail, the setup is wrong.

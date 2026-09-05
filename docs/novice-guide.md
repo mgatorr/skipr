@@ -22,10 +22,12 @@ Goal: open a real project folder, give Claude Code short rails, and see a check 
 
 ### 0. Optional: macOS install script (v0)
 
-On a Mac, you can run the lean installer first. It checks Homebrew, offers Ghostty,
-copies `setup-harness` into `~/.claude/skills/`, and prints official Claude Code
-install links if `claude` is missing. Prefer the **clone** path (you can read the
-script before running it):
+On a Mac, you can run the lean installer first. It checks Homebrew, **asks before
+installing Ghostty** (or use `--with-ghostty`), copies `setup-harness` into
+`~/.claude/skills/` (with a timestamped backup if replacing), and prints official
+Claude Code install links if `claude` is missing.
+
+**Always clone (or download a zip) first** so you can read the script:
 
 ```bash
 git clone https://github.com/mgatorr/skipr.git
@@ -33,13 +35,10 @@ cd skipr
 ./scripts/install-macos.sh
 ```
 
-One-liner (works, clone is safer for beginners):
+Flags: `--dry-run`, `--with-ghostty`, `--with-zsh-extras`, `--force`, `--help` —
+see [`scripts/README.md`](../scripts/README.md) (the curl|bash one-liner lives there
+only, with a warning — not recommended as the novice path).
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/mgatorr/skipr/main/scripts/install-macos.sh | bash
-```
-
-Flags: `--dry-run`, `--with-zsh-extras`, `--force`, `--help` — see [`scripts/README.md`](../scripts/README.md).
 Spanish short guide: [es/novice-guide.md](./es/novice-guide.md).
 
 If you skip the script, follow steps 1–4 manually below.
@@ -64,7 +63,7 @@ On macOS we recommend **Ghostty** (clear, fast). The built-in Terminal.app or iT
 fine too. You are not hiding the terminal — you are learning one calm place to work.
 
 - Ghostty: [ghostty.org](https://ghostty.org)
-- Or let `./scripts/install-macos.sh` install it via Homebrew when available
+- Or pass `--with-ghostty` to `./scripts/install-macos.sh` (opt-in; default asks / skips)
 
 ### 3. Create or open your project folder
 
@@ -85,12 +84,15 @@ repo so you can read it on GitHub and install it into Claude Code’s skills fol
 
 Skill source: [`skills/setup-harness/`](../skills/setup-harness/)
 
-**Preferred:** the macOS installer copies it for you. Manual install:
+**Clone or zip the repo first**, then copy (or use the macOS installer, which backs up
+any existing skill):
 
 ```bash
-# from a clone of this repo, or after downloading the folder:
+# after: git clone https://github.com/mgatorr/skipr.git
 cp -R /path/to/skipr/skills/setup-harness ~/.claude/skills/setup-harness
 ```
+
+Claude Code CLI install (official): [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install)
 
 Then, in your project folder, start Claude Code and ask it to run the skill:
 

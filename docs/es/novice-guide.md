@@ -6,7 +6,7 @@ Espejo corto en español. Guía completa (EN): [../novice-guide.md](../novice-gu
 
 ## Instalador macOS (opcional)
 
-Preferible clonar y leer el script:
+**Clona (o descarga el zip) y lee el script** antes de ejecutarlo:
 
 ```bash
 git clone https://github.com/mgatorr/skipr.git
@@ -14,15 +14,17 @@ cd skipr
 ./scripts/install-macos.sh
 ```
 
-También: `curl -fsSL https://raw.githubusercontent.com/mgatorr/skipr/main/scripts/install-macos.sh | bash`  
-Detalle (EN): [`scripts/README.md`](../../scripts/README.md) · guía completa: [../novice-guide.md](../novice-guide.md)
+Ghostty es opt-in (`--with-ghostty` o pregunta `y/N`). El one-liner `curl|bash` solo
+aparece (con aviso) en [`scripts/README.md`](../../scripts/README.md) — no es el camino
+recomendado. Guía completa (EN): [../novice-guide.md](../novice-guide.md). Claude Code:
+[docs oficiales](https://code.claude.com/docs/en/install).
 
 ## Camino rápido
 
 1. **Instala Claude Code CLI** (`claude --version`) — no solo la app de escritorio.
 2. **Abre una terminal** que uses de verdad ([Ghostty](https://ghostty.org) en macOS, o Terminal.app / iTerm).
 3. **Entra en la carpeta del proyecto** (viaje, cliente, culling) — no un vault genérico de prompts.
-4. **Copia** [`skills/setup-harness/`](../../skills/setup-harness/) a `~/.claude/skills/setup-harness/` (o usa el instalador macOS).
+4. **Clona o descarga el zip**, luego **copia** [`skills/setup-harness/`](../../skills/setup-harness/) a `~/.claude/skills/setup-harness/` (o usa el instalador macOS, que hace backup).
 5. En esa carpeta: `claude` → *“Monta el harness en esta carpeta”*.
 6. Ejecuta un checker: `./checks/naming.sh` (verde o rojo claro = victoria).
 
