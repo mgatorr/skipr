@@ -4,31 +4,178 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>skipr — escapa de la complejidad de la IA</title>
-    <meta name="description" content="skipr: escapa de la complejidad de la IA con terminal enseñada, Claude Code y un harness que puede decir no. El producto vive en GitHub." />
+    <meta
+      name="description"
+      content="skipr: escapa de la complejidad de la IA con terminal enseñada, Claude Code y un harness que puede decir no. El producto vive en GitHub."
+    />
+    <meta name="theme-color" content="#f1ead9" />
+    <link rel="canonical" href="https://skipr.dev/es/" />
+    <link rel="alternate" hreflang="en" href="https://skipr.dev/" />
+    <link rel="alternate" hreflang="es" href="https://skipr.dev/es/" />
+    <link rel="alternate" hreflang="x-default" href="https://skipr.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="skipr" />
+    <meta property="og:locale" content="es" />
+    <meta property="og:url" content="https://skipr.dev/es/" />
+    <meta property="og:title" content="skipr — escapa de la complejidad de la IA" />
+    <meta
+      property="og:description"
+      content="Terminal enseñada, Claude Code y un harness que puede decir no. Raíles, no 400 skills. El producto vive en GitHub."
+    />
+    <meta property="og:image" content="https://skipr.dev/og/default.png" />
+    <meta property="og:image:alt" content="skipr — escapa de la complejidad de la IA. El producto vive en GitHub." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="skipr — escapa de la complejidad de la IA" />
+    <meta
+      name="twitter:description"
+      content="Terminal enseñada, Claude Code y un harness que puede decir no. El producto vive en GitHub."
+    />
+    <meta name="twitter:image" content="https://skipr.dev/og/default.png" />
+    <meta name="twitter:image:alt" content="skipr — escapa de la complejidad de la IA. El producto vive en GitHub." />
     <meta http-equiv="refresh" content="5;url=https://github.com/mgatorr/skipr" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="alternate" hreflang="en" href="/" />
     <style>
-      :root { color-scheme: light; --bg: #f1ead9; --ink: #332a20; --accent: #cf4f27; --muted: #6b5e4f; }
+      :root {
+        color-scheme: light;
+        --paper: #f1ead9;
+        --card: #f7f1e4;
+        --ink: #332a20;
+        --coral: #cf4f27;
+        --muted: #6b5e4f;
+        --rule: rgba(51, 42, 32, 0.22);
+      }
       * { box-sizing: border-box; }
-      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 2rem; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; line-height: 1.5; }
-      main { max-width: 32rem; text-align: center; }
-      h1 { margin: 0 0 0.75rem; font-size: clamp(2rem, 6vw, 2.75rem); font-weight: 700; letter-spacing: -0.03em; }
-      p { margin: 0 0 1rem; color: var(--muted); font-size: 1.05rem; }
-      a.cta { display: inline-block; margin-top: 0.5rem; padding: 0.85rem 1.4rem; border-radius: 999px; background: var(--ink); color: var(--bg); text-decoration: none; font-weight: 600; font-size: 1.05rem; }
-      a.cta:hover, a.cta:focus-visible { background: var(--accent); outline: none; }
-      .note { margin-top: 1.25rem; font-size: 0.9rem; color: var(--muted); }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+        background-color: var(--paper);
+        background-image:
+          linear-gradient(rgba(51, 42, 32, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(51, 42, 32, 0.035) 1px, transparent 1px);
+        background-size: 28px 28px;
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        line-height: 1.5;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 10px;
+        border: 1px solid var(--ink);
+        opacity: 0.28;
+        pointer-events: none;
+      }
+      .card {
+        position: relative;
+        width: min(100%, 30rem);
+        padding: 2.1rem 1.7rem 1.55rem;
+        text-align: center;
+        background: var(--card);
+        border: 1.5px solid var(--ink);
+        box-shadow: 5px 5px 0 var(--ink);
+      }
+      .kicker {
+        margin: 0 0 1.15rem;
+        font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .rails {
+        display: block;
+        width: min(100%, 13.5rem);
+        height: auto;
+        margin: 0 auto 1rem;
+      }
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: clamp(2.35rem, 8vw, 3.15rem);
+        font-weight: 750;
+        letter-spacing: -0.045em;
+        line-height: 1;
+      }
+      h1 .dot { color: var(--coral); }
+      .lead {
+        margin: 0 0 1rem;
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.15rem, 3.4vw, 1.35rem);
+        font-style: italic;
+        font-weight: 400;
+        line-height: 1.3;
+      }
+      p {
+        margin: 0 0 0.85rem;
+        color: var(--muted);
+        font-size: 1.02rem;
+      }
+      code {
+        font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 0.92em;
+      }
+      a.cta {
+        display: inline-block;
+        margin-top: 0.45rem;
+        padding: 0.8rem 1.35rem;
+        border: 1.5px solid var(--ink);
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--paper);
+        text-decoration: none;
+        font-weight: 650;
+        font-size: 1.02rem;
+        box-shadow: 3px 3px 0 var(--coral);
+      }
+      a.cta:hover,
+      a.cta:focus-visible {
+        background: var(--coral);
+        box-shadow: 3px 3px 0 var(--ink);
+        outline: none;
+      }
+      .note {
+        margin: 1.2rem 0 0;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
       .note a { color: var(--ink); }
+      .meta {
+        margin-top: 0.7rem;
+        font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
     </style>
-    <script>setTimeout(function(){window.location.replace("https://github.com/mgatorr/skipr");},5000);</script>
+    <script>
+      setTimeout(function () {
+        window.location.replace("https://github.com/mgatorr/skipr");
+      }, 5000);
+    </script>
   </head>
   <body>
-    <main>
-      <h1>skipr</h1>
-      <p>Escapa de la complejidad de la IA: terminal enseñada, Claude Code y un harness que puede decir <em>no</em> — raíles, no 400 skills.</p>
-      <p>El producto vive en GitHub (README, guía, <code>setup-harness</code>). Este dominio es un puntero corto.</p>
+    <main class="card">
+      <p class="kicker">skipr.dev · en GitHub</p>
+      <svg class="rails" viewBox="0 0 220 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M8 6 L96 22" stroke="#332a20" stroke-width="1.4" stroke-linecap="round" />
+        <path d="M22 22 L96 22" stroke="#332a20" stroke-width="1.4" stroke-linecap="round" />
+        <path d="M8 38 L96 22" stroke="#332a20" stroke-width="1.4" stroke-linecap="round" />
+        <path d="M212 6 L124 22" stroke="#332a20" stroke-width="1.4" stroke-linecap="round" />
+        <path d="M198 22 L124 22" stroke="#332a20" stroke-width="1.4" stroke-linecap="round" />
+        <path d="M212 38 L124 22" stroke="#332a20" stroke-width="1.4" stroke-linecap="round" />
+        <path d="M100 22 L120 22" stroke="#cf4f27" stroke-width="2.1" stroke-linecap="round" />
+        <path d="M113 15 L123 22 L113 29" stroke="#cf4f27" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <h1>skipr<span class="dot">.</span></h1>
+      <p class="lead">Escapa de la complejidad de la IA</p>
+      <p>Terminal enseñada, Claude Code y un harness que puede decir <em>no</em> — raíles, no 400 skills.</p>
+      <p>Este dominio es un puntero corto. La carta, la guía y <code>setup-harness</code> viven en GitHub.</p>
       <a class="cta" href="https://github.com/mgatorr/skipr">Abrir el README en GitHub</a>
       <p class="note">Redirigiendo en breve. <a href="https://github.com/mgatorr/skipr">Ir ahora</a> · <a href="/">EN</a></p>
+      <p class="meta">No afiliado a Anthropic</p>
     </main>
   </body>
 </html>

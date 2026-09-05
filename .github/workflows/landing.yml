@@ -18,6 +18,9 @@ jobs:
           test -f landing/public/es/index.html
           test -f landing/vercel.json
           grep -q github.com/mgatorr/skipr landing/public/index.html
+          grep -q github.com/mgatorr/skipr landing/public/es/index.html
+          grep -q 'og:title' landing/public/index.html
+          grep -q 'og:title' landing/public/es/index.html
           grep -q '"framework": null' landing/vercel.json
           grep -q '"outputDirectory": "public"' landing/vercel.json
           # Dead Astro marketing source must stay gone
