@@ -48,7 +48,8 @@ Do this in order (you do not need to be a developer):
 
 0. **Two-minute fail/pass (no Claude yet)** — clone this repo, then:
    ```bash
-   cd examples/photo-trip
+   git clone https://github.com/mgatorr/skipr.git
+   cd skipr/examples/photo-trip
    ./checks/naming.sh
    ```
    Red with a clear message is a win. How to pass: [`examples/photo-trip/checks/README.md`](./examples/photo-trip/checks/README.md).

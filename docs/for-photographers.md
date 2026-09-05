@@ -47,7 +47,8 @@ Lisbon trip, a wedding, a cull session — each is its own directory. The agent 
 Clone (or unzip) this repo, then:
 
 ```bash
-cd examples/photo-trip
+git clone https://github.com/mgatorr/skipr.git
+cd skipr/examples/photo-trip
 ./checks/naming.sh
 ```
 
@@ -59,6 +60,8 @@ It fails on purpose on a loose `IMG_0042.JPG`. How to pass: [photo-trip fail/pas
 2. Copy [`skills/setup-harness/`](../skills/setup-harness/) to `~/.claude/skills/setup-harness/`.
 3. `cd` into a trip or client folder, run `claude`, ask: *Run setup-harness for this folder*.
 4. Run the checker it installed. Green or a clear red — both are a win.
+
+Same files without Claude: copy `skills/setup-harness/templates/` into the trip folder, `chmod +x checks/*.sh`, and run a checker. Details: [novice-guide — manual copy](./novice-guide.md#manual-copy-no-claude-yet).
 
 Full beginner path: [novice-guide.md](./novice-guide.md). The skill itself: [`skills/setup-harness/SKILL.md`](../skills/setup-harness/SKILL.md).
 
