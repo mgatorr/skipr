@@ -114,7 +114,7 @@ Install a copy under `~/.claude/skills/setup-harness/` so Claude Code can load i
 
 ## License
 
-No `LICENSE` file is in the repository yet. **Mario should pick** Apache-2.0, MIT, or another license before relying on public redistribution terms. Until then, treat the default GitHub all-rights-reserved / unclear posture as intentional — do not assume an open-source grant.
+[MIT](./LICENSE) — Copyright (c) 2026 Mario Garrido.
 
 ---
 
