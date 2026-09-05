@@ -4,6 +4,8 @@
 
 **Escape AI complexity** — terminal taught · Claude Code · harness that can say *no*
 
+![skipr — escape AI complexity](./assets/skipr-hero.png)
+
 [![status](https://img.shields.io/badge/status-available%20now-cf4f27?style=flat-square)](#novice-path)
 [![surface](https://img.shields.io/badge/product%20surface-this%20GitHub%20repo-332a20?style=flat-square)](#what-skipr-is)
 [![skill](https://img.shields.io/badge/skill-setup--harness-3a5fb0?style=flat-square)](./skills/setup-harness/)
@@ -26,7 +28,7 @@ skipr helps **creators and builders drowning in AI tooling** set up a lean path 
 | **Terminal** | Ghostty (or Terminal.app / iTerm) — one calm place to work |
 | **Agent** | Claude Code CLI in the **project folder** |
 | **Harness** | Short `CLAUDE.md` + `checks/` that can fail ([setup-harness](./skills/setup-harness/)) |
-| **Guides** | L0/L1 usable now · L2 (Cursor, OpenCode, Hermes, …) later |
+| **Guides** | L0/L1 usable now · optional [L2 tracks](./docs/l2/) (Cursor, OpenCode, Hermes) |
 
 You do **not** need another sealed AI stack or a rented no-code black box. You need a folder, a harness, and a CLI you can read.
 
@@ -65,18 +67,21 @@ Do this in order (you do not need to be a developer):
 ## This grows with you
 
 - **L0 / L1 are the product today** — terminal + Claude Code + harness + these guides.
-- **L2 later** — Cursor, OpenCode, Hermes, and similar stay optional. Complexity is not the door to getting started.
+- **L2 is optional** — [Cursor, OpenCode, Hermes](./docs/l2/) after L0/L1 feel solid. Complexity is not the door to getting started.
 
-Levels overview lives in the [novice guide](./docs/novice-guide.md#levels-l0--l2).
+Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 field notes: [`docs/l2/`](./docs/l2/).
 
 ## Repository layout
 
 ```text
 .
 ├── README.md                 # this carta (product surface)
+├── assets/
+│   └── skipr-hero.png        # README hero (escape-complexity)
 ├── docs/
 │   ├── novice-guide.md       # full beginner path (EN)
 │   ├── es/novice-guide.md    # short Spanish mirror
+│   ├── l2/                   # optional advanced tracks (Cursor, OpenCode, Hermes)
 │   ├── ARCHIVE.md            # map of superseded eras
 │   ├── design.md             # HISTORICAL — desktop/no-terminal era
 │   └── constitution.md       # HISTORICAL — principles (see banners)
@@ -128,7 +133,7 @@ Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. C
 - [x] Reposition promise: escape AI complexity (not “hide the terminal”)
 - [x] GitHub-first carta: README + novice guide + vendored harness
 - [x] Install script v0 (macOS) — [`scripts/install-macos.sh`](./scripts/install-macos.sh)
-- [ ] L2 track docs (optional advanced tools)
+- [x] L2 track docs (optional advanced tools) — [`docs/l2/`](./docs/l2/)
 - [ ] Personal-site / skipr.dev marketing — later, not blocking L0/L1
 
 ## A note on branding

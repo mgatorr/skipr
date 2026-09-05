@@ -12,7 +12,7 @@ is **skipr**; the repo dir keeps the `cockpit` working name.
 | **skipr.dev** (`landing/`) | **GitHub redirect stub** — static page + redirects to this repo (Astro waitlist abandoned) |
 | **Personal site** | Embedding under mariogarridotorres.com is **later** — product docs live on GitHub first |
 
-**Product promise:** skipr helps creators and builders **escape AI complexity** — lean CLI + harness + Claude Code, terminal taught not hidden. L0/L1 usable now; L2 later.
+**Product promise:** skipr helps creators and builders **escape AI complexity** — lean CLI + harness + Claude Code, terminal taught not hidden. L0/L1 usable now; optional L2 tracks in `docs/l2/`.
 
 Older framing (desktop app that hides the terminal for non-technical founders / anti-Lovable) is **superseded** for the current track. Historical design docs under `docs/` and `specs/` remain for context.
 

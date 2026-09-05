@@ -130,7 +130,7 @@ You are done with “install” when all of this is true:
 
 1. Do real work in the folder with Claude Code — naming, brief, delivery — with the harness on.
 2. When a rule keeps coming up, add one line to `CLAUDE.md` or one new checker. Keep both short.
-3. Read [Levels (L0 → L2)](#levels-l0--l2) so you know what to ignore for now (Cursor, OpenCode, Hermes stay optional).
+3. Read [Levels (L0 → L2)](#levels-l0--l2) so you know what to ignore for now. Cursor, OpenCode, and Hermes stay optional — guides live in [`docs/l2/`](./l2/).
 4. Optional: skim [`skills/setup-harness/SKILL.md`](../skills/setup-harness/SKILL.md) when you want the exact procedure the agent follows.
 
 ---
@@ -168,7 +168,7 @@ Domains it knows (pick one): trip / client / culling / delivery — each maps to
 1. Work only in this folder with Claude Code.
 2. Before calling something “done”, run the relevant `./checks/…` script.
 3. If the model drifts, fix the check or tighten one line in `CLAUDE.md` — do not add 50 skills.
-4. When L0/L1 feel solid, read levels below for optional L2 tools.
+4. When L0/L1 feel solid, read [`docs/l2/`](./l2/) before adding an optional tool.
 
 ---
 
@@ -199,13 +199,17 @@ Follow the novice path until you have a first win (a check that passes or fails 
 
 ### L2 — Optional advanced tracks
 
-**Later growth — not required to start.** When L0 and L1 feel solid, you may add editors and
-agents such as **Cursor**, **OpenCode**, or **Hermes**. Clearer guides for those profiles will
-ship as the library grows.
+**Optional growth — not required to start.** When L0 and L1 feel solid, you may add
+**one** extra tool. Field notes (not a getting-started path):
+
+- [L2 index](./l2/) — when to stay on L0/L1, when a track helps
+- [Cursor](./l2/cursor.md) — IDE + PRs + cloud agents, *alongside* Claude Code
+- [OpenCode](./l2/opencode.md) — second terminal agent / other model providers
+- [Hermes](./l2/hermes.md) — occasional background agent; never the default path
 
 - Complexity stays optional — you choose what joins the path
 - L2 is optional growth — L0/L1 already are the product
-- Until those guides ship, stay on Claude Code + harness; that is enough to own the folder
+- If the basics are not yet boring, stay on Claude Code + harness; that is enough to own the folder
 
 ---
 
@@ -214,7 +218,7 @@ ship as the library grows.
 **L0 and L1 are usable now** — terminal + Claude Code + harness + these guides. That is
 the product today.
 
-Later we will publish clearer tracks for more advanced profiles (**L2**). Complexity stays
+**L2** field notes are in [`docs/l2/`](./l2/) (Cursor, OpenCode, Hermes). Complexity stays
 optional; you level up when L0/L1 feel solid. This is an honest roadmap of growth — not an empty
 “coming soon” stamp on the whole product.
 
