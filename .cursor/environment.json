@@ -1,0 +1,17 @@
+{
+  "name": "skipr",
+  "install": "node --version && pnpm --version && python3 --version",
+  "terminals": [
+    {
+      "name": "landing-stub",
+      "command": "python3 -m http.server 4321 --directory landing/public",
+      "description": "Serves the static skipr.dev GitHub-redirect stub (landing/public) at http://localhost:4321. This is the only runnable web surface; the repo is otherwise docs + skills, and the old Astro app under landing/src is abandoned."
+    }
+  ],
+  "ports": [
+    {
+      "name": "landing-stub",
+      "port": 4321
+    }
+  ]
+}
