@@ -1,3 +1,6 @@
+> **HISTORICAL / SUPERSEDED (2026-09).** The current product is **GitHub-first escape-complexity**: terminal taught + Claude Code + harness (`setup-harness`). This document describes an earlier desktop / no-terminal (or Spec Kit / Cockpit) pivot and **must not be read as current truth**. Start at the [root README](../README.md), [novice-guide.md](./novice-guide.md), and [ARCHIVE.md](./ARCHIVE.md).
+
+
 # skipr — Design & Rationale
 
 **Date:** 2026-05-31

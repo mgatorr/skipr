@@ -1,3 +1,6 @@
+> **HISTORICAL / SUPERSEDED (2026-09).** The current product is **GitHub-first escape-complexity**: terminal taught + Claude Code + harness (`setup-harness`). This document describes an earlier Cockpit / Spec Kit kickoff and **must not be read as current truth**. Start at the [root README](./README.md), [docs/novice-guide.md](./docs/novice-guide.md), and [docs/ARCHIVE.md](./docs/ARCHIVE.md).
+
+
 # Cockpit — Kickoff
 
 This repo is set up for **Spec-Driven Development with Spec Kit**. Everything is documented:
