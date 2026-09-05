@@ -177,6 +177,27 @@ Domains it knows (pick one): trip / client / culling / delivery — each maps to
 - [`SKILL.md`](../skills/setup-harness/SKILL.md) — full procedure the agent follows
 - [`templates/`](../skills/setup-harness/templates/) — `CLAUDE.md`, checks, optional local skills
 
+### Manual copy (no Claude yet)
+
+Want the rails in your trip folder before starting Claude? Copy the same
+templates the skill uses — this is not a second installer.
+
+```bash
+# after: git clone https://github.com/mgatorr/skipr.git
+# from your trip folder, e.g. ~/Projects/viaje-lisboa
+REPO=/path/to/skipr
+cp "$REPO/skills/setup-harness/templates/CLAUDE.md" ./CLAUDE.md
+# replace {{PROJECT_NAME}}, {{DOMAIN}} (viaje / trip), {{LANG}}
+mkdir -p checks
+cp "$REPO/skills/setup-harness/templates/checks/README.md" checks/
+cp "$REPO/skills/setup-harness/templates/checks/naming.sh" checks/  # trip / culling
+chmod +x checks/*.sh
+./checks/naming.sh
+```
+
+Then open `claude` when you are ready. Asking *Run setup-harness for this
+folder* is the usual path; this is the same files, by hand.
+
 ### After the harness is in
 
 1. Work only in this folder with Claude Code.

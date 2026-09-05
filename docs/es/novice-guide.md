@@ -4,9 +4,25 @@ Espejo corto en español. Guía completa (EN): [../novice-guide.md](../novice-gu
 
 **skipr** te ayuda a **escapar de la complejidad** de la IA: pocas tools, un harness que puede decir *no*, Claude Code primero. La terminal se enseña, no se esconde.
 
+## 0. Fail/pass en dos minutos (aún sin Claude)
+
+Clona (o descomprime) este repo y ejecuta el checker de ejemplo. **No** necesitas
+el CLI de Claude para este paso:
+
+```bash
+git clone https://github.com/mgatorr/skipr.git
+cd skipr/examples/photo-trip
+./checks/naming.sh
+```
+
+Rojo con un mensaje claro es la victoria — los raíles funcionan. Cómo pasar
+(mueve el `IMG_0042.JPG` suelto y vuelve a ejecutar):
+[photo-trip fail/pass](../../examples/photo-trip/checks/README.md#fail-then-pass-the-first-win).
+
 ## Instalador macOS (opcional)
 
-**Clona (o descarga el zip) y lee el script** antes de ejecutarlo:
+El script es **solo macOS** (en Linux/Windows sale con error). **Clona (o
+descarga el zip) y lee el script** antes de ejecutarlo:
 
 ```bash
 git clone https://github.com/mgatorr/skipr.git
@@ -27,6 +43,10 @@ recomendado. Guía completa (EN): [../novice-guide.md](../novice-guide.md). Clau
 4. **Clona o descarga el zip**, luego **copia** [`skills/setup-harness/`](../../skills/setup-harness/) a `~/.claude/skills/setup-harness/` (o usa el instalador macOS, que hace backup).
 5. En esa carpeta: `claude` → *“Monta el harness en esta carpeta”*.
 6. Ejecuta un checker: `./checks/naming.sh` (verde o rojo claro = victoria).
+
+Copia manual (sin Claude): plantillas en `skills/setup-harness/templates/`,
+`chmod +x checks/*.sh`. Detalle en inglés:
+[novice-guide — manual copy](../novice-guide.md#manual-copy-no-claude-yet).
 
 ## Primera victoria
 
