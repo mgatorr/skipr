@@ -46,3 +46,11 @@ For *this* repo's agent sessions with Mario: prefer Spanish in chat replies when
 - **Frictionless & friendly**: audience is non-technical creators/builders — teach the terminal, never a black box.
 - **Neutral branding**: brand is **skipr**; not affiliated with Anthropic; no "Claude" in the product name.
 - **Phase discipline**: GitHub-first carta before reopening a full marketing site or personal-site embedding.
+
+## Estado
+
+Ficha en español para el mapa de proyectos del second-brain (`./brain proyectos`). Solo eso: la verdad de producto vive arriba.
+
+- **Qué es**: Saca a creadores del lío de herramientas de IA: terminal enseñada, Claude Code y harness con checks.
+- **Estado**: El producto es este repo: L0/L1 usables (carta, guía novato, harness, ejemplo photo-trip, instalador macOS v0); skipr.dev, stub.
+- **Siguiente**: Único punto abierto del roadmap: marketing de skipr.dev y embed en mariogarridotorres.com, aplazado a propósito tras L0/L1.
