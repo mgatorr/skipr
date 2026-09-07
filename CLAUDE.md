@@ -4,6 +4,14 @@ Spec-Driven Development with Spec Kit. Read `docs/design.md` (rationale) and
 `docs/constitution.md` (non-negotiable principles, v1.1.0) before contributing. Brand shown to users
 is **skipr**; the repo dir keeps the `cockpit` working name.
 
+## Estado
+
+Ficha en español para el mapa de proyectos del second-brain (`./brain proyectos`).
+
+- **Qué es**: skipr saca a creadores del lío de herramientas de IA: terminal enseñada, Claude Code y harness con checks.
+- **Estado**: L0/L1 vivos en este repo (README carta, guía novato EN/ES, instalador macOS v0); skipr.dev es un stub.
+- **Siguiente**: documentar el track L2 (Cursor, OpenCode, Hermes); el marketing de skipr.dev va después.
+
 ## Status (2026-09-04)
 
 | Layer | Status |
