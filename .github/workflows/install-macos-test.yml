@@ -6,12 +6,14 @@ on:
       - "scripts/install-macos.sh"
       - "scripts/test-install-macos.sh"
       - "skills/**"
+      - ".github/workflows/install-macos-test.yml"
   push:
     branches: [main]
     paths:
       - "scripts/install-macos.sh"
       - "scripts/test-install-macos.sh"
       - "skills/**"
+      - ".github/workflows/install-macos-test.yml"
 
 jobs:
   installer:
