@@ -4,6 +4,7 @@
 # Scenario 4 freezes `date` so two --force runs share one second, then checks
 # no *bak* under skills, distinct backup suffixes, one name each, rules untouched.
 # Scenario 9 shims mktemp to fail and records cp destinations.
+# Scenario 10 fails only the clone-path mktemp -d and records git clone.
 set -u
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -492,6 +493,64 @@ EOF
   [ -z "$outside" ] || note "copy outside HOME ($(printf '%s' "$outside" | tr '\n' ' '))"
   grep -qx 'canary' "$work/canary" || note "file outside HOME changed"
   finish 9
+  rm -rf "$work"
+}
+
+# --- 10. clone-path mktemp -d fails: no clone, nothing written outside TMPDIR ---
+begin 10
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  tmp="$work/tmpdir"
+  gitlog="$work/git.log"
+  mkdir -p "$tmp"
+  printf 'canary\n' > "$work/canary"
+  : > "$gitlog"
+  shim10="$(mktemp -d)"
+  real_mktemp="$(command -v mktemp)"
+  real_git="$(command -v git)"
+  cat > "$shim10/mktemp" <<EOF
+#!/bin/sh
+for arg in "\$@"; do
+  case "\$arg" in
+    *skipr-install*) exit 1 ;;
+  esac
+done
+exec '$real_mktemp' "\$@"
+EOF
+  cat > "$shim10/git" <<EOF
+#!/bin/sh
+if [ "\${1:-}" = "clone" ]; then
+  printf '%s\n' clone >> "\$SKIPR_GIT_LOG"
+  exit 1
+fi
+exec '$real_git' "\$@"
+EOF
+  chmod +x "$shim10/mktemp" "$shim10/git"
+  body="$(cat "$INSTALLER")"
+  EC=0
+  (
+    cd "$work"
+    env -u GIT_DIR -u GIT_WORK_TREE \
+      HOME="$home" PATH="$shim10:$ORIG_PATH" SKIPR_REPO_URL="$REPO" \
+      TMPDIR="$tmp" SKIPR_GIT_LOG="$gitlog" \
+      bash -c "$body" bash </dev/null >"$log" 2>&1
+  ) || EC=$?
+  rm -rf "$shim10"
+  [ "$EC" -ne 0 ] || note "expected non-zero exit"
+  [ ! -s "$gitlog" ] || note "clone was attempted"
+  outside="$(find "$work" -mindepth 1 \
+    ! -path "$home" ! -path "$home/*" \
+    ! -path "$tmp" ! -path "$tmp/*" \
+    ! -path "$work/canary" ! -path "$work/log" ! -path "$work/git.log" \
+    -print)"
+  [ -z "$outside" ] || note "write outside the temp area"
+  [ ! -e /skipr ] || note "clone destination /skipr exists"
+  home_write="$(find "$home" -mindepth 1 -print | head -n 1)"
+  [ -z "$home_write" ] || note "write outside the temp area ($home_write)"
+  grep -qx 'canary' "$work/canary" || note "file outside the temp area changed"
+  finish 10
   rm -rf "$work"
 }
 
