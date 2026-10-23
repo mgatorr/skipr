@@ -155,6 +155,12 @@ if [[ -f "$note" ]]; then
   done
 fi
 
+if [[ -f .skipr/rules.md && -f CLAUDE.md ]]; then
+  if ! grep -qF '@.skipr/rules.md' CLAUDE.md; then
+    report "CLAUDE.md: missing @.skipr/rules.md"
+  fi
+fi
+
 rules=".skipr/rules.md"
 prov_re='^.+ \([^)]+, [0-9]{4}-[0-9]{2}-[0-9]{2}[^)]*\)$'
 if [[ -f "$rules" ]]; then
