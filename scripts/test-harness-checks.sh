@@ -29,26 +29,26 @@ run_case() {
 }
 
 run_case brief-en 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/en"
-run_case brief-es 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/es"
+run_case brief-spanish-alias 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/accepts-spanish-alias"
 run_case brief-title-en 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/title-en"
-run_case brief-title-es 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/title-es"
+run_case brief-title-spanish-alias 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/title-spanish-alias"
 run_case brief-title-nospace 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/title-nospace"
 run_case brief-title-h2 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/title-h2"
 run_case brief-missing-date 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/missing-date"
 # The heading word is exact: "# Client notes" and "# Clientes: Acme Studio" are not titles.
 run_case brief-loose-heading 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/loose-heading"
-run_case brief-clientes 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/clientes"
+run_case brief-rejects-client-plural 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/rejects-client-plural"
 run_case brief-not-prefix 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/not-prefix"
 
 run_case naming-en 0 "$checks/naming.sh" "$fixtures/naming/en"
-run_case naming-es 0 "$checks/naming.sh" "$fixtures/naming/es"
+run_case naming-spanish-alias 0 "$checks/naming.sh" "$fixtures/naming/accepts-spanish-alias"
 run_case naming-undated 1 "$checks/naming.sh" "$fixtures/naming/undated"
 run_case naming-loose 1 "$checks/naming.sh" "$fixtures/naming/loose"
 run_case naming-photo-trip-en 0 "$photo_naming" "$fixtures/naming/en"
-run_case naming-photo-trip-es 0 "$photo_naming" "$fixtures/naming/es"
+run_case naming-photo-trip-spanish-alias 0 "$photo_naming" "$fixtures/naming/accepts-spanish-alias"
 
 run_case delivery-en 0 "$checks/delivery.sh" "$fixtures/delivery/en"
-run_case delivery-es 0 "$checks/delivery.sh" "$fixtures/delivery/es"
+run_case delivery-spanish-alias 0 "$checks/delivery.sh" "$fixtures/delivery/accepts-spanish-alias"
 run_case delivery-camera 1 "$checks/delivery.sh" "$fixtures/delivery/camera"
 
 if [ "$fail" -eq 0 ]; then
