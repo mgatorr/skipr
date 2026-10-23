@@ -47,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Install zsh
+        run: sudo apt-get update && sudo apt-get install -y zsh
       - name: English and Spanish checker fixtures
         run: bash scripts/test-harness-checks.sh
       - name: Docs check redaction
