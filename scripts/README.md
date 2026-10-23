@@ -2,6 +2,8 @@
 
 Helper scripts for skipr. Product messages are English; Spanish guides live under `docs/es/`.
 
+`./scripts/check-docs.sh` exits non-zero when a tracked file contains a term from the banned list (`DOCS_BANNED` or a local `.docs-banned`; without either it warns and skips that scan), a capped doc is too long, or a relative Markdown link is broken.
+
 **Linux/Windows ≠ this installer.** `install-macos.sh` is macOS-only and **exits
 non-zero** on other OSes (including `--dry-run`). Clone (or unzip) this repo, copy
 `skills/setup-harness`, and use the terminal you already have. First win:

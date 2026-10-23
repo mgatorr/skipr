@@ -42,3 +42,12 @@ jobs:
             exit 1
           fi
           ./scripts/install-macos.sh --help >/tmp/install-help.txt
+
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: check docs
+        env:
+          DOCS_BANNED: ${{ secrets.DOCS_BANNED }}
+        run: ./scripts/check-docs.sh

@@ -150,7 +150,7 @@ function BuildShell({ preview }){
                     <span className="tag" style={{ fontFamily: "var(--mono)" }}>localhost · live</span>
                   </div>
                   <div style={{ padding: 14 }}>
-                    {[["Ana Ruiz","Active","b"],["Leo Park","Active","b"],["Priya Shah","Quiet 16d","o"],["Sam Cole","Active","b"]].map((m,i)=>(
+                    {[["Jane Placeholder","Active","b"],["Leo Park","Active","b"],["Priya Shah","Quiet 16d","o"],["Sam Cole","Active","b"]].map((m,i)=>(
                       <div key={i} className="between" style={{ padding: "11px 12px", border: "1.5px solid var(--rule)", borderRadius: 8, marginBottom: 9 }}>
                         <div className="row" style={{ gap: 11 }}>
                           <span className="avatar" style={{ width: 30, height: 30, fontSize: 12 }}>{m[0][0]}</span>
