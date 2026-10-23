@@ -8,4 +8,4 @@ Jane Placeholder
 
 # Entregables
 
-Diez fotos editadas.
+Ten edited photos.

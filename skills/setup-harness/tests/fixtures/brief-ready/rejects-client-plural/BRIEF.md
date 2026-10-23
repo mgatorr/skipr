@@ -6,4 +6,4 @@ Jane Placeholder
 
 # Entregables
 
-Diez fotos.
+Ten photos.
