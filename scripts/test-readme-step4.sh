@@ -41,6 +41,13 @@ fi
 if [ ! -f "$HOME/.claude/skills/setup-harness/SKILL.md" ]; then
   note "setup-harness was not installed"
 fi
+# Pasted into an interactive shell, the block must not leave set -e on.
+# Step 5's checker fails on purpose; the shell has to stay open.
+ilog="$work/interactive"
+printf '%s\n%s\n%s\n' "$block" 'false' 'echo alive' | bash --noprofile --norc -i >"$ilog" 2>"$work/interactive.err" || true
+if ! grep -qx 'alive' "$ilog"; then
+  note "interactive shell died after a failing command"
+fi
 # A missing source must fail the block, not fall through to the final cd.
 rm -rf "$HOME/.claude" "$HOME/skipr/skills"
 ec2=0
