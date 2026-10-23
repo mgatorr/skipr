@@ -38,7 +38,7 @@ for m in re.finditer(r"```bash\n(.*?)```", t, re.S):
         break
 PY
 )"
-block="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*claude[[:space:]]*$' || true)"
+block="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*claude[[:space:]]*$' | sed -E 's/^([[:space:]]*\))[[:space:]]*&&[[:space:]]*$/\1/' || true)"
 if [ -z "$block" ]; then
   note "step 4 block not found"
   say "readme step 4: FAIL"

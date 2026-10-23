@@ -75,7 +75,7 @@ Do this in order (you do not need to be a developer):
      fi &&
      cp -R skills/setup-harness ~/.claude/skills/setup-harness &&
      cd ~/Projects/lisbon-trip
-   )
+   ) &&
    claude
    ```
    Tell Claude: "Run setup-harness for this folder".
