@@ -33,6 +33,10 @@ if [[ -z "$banned_list" && -f .docs-banned ]]; then
   banned_source=".docs-banned"
 fi
 if [[ -z "${banned_list//[[:space:]]/}" ]]; then
+  if [[ "${GITHUB_ACTIONS:-}" == "true" || "${CI:-}" == "true" ]]; then
+    printf 'DOCS_BANNED secret not set\n' >&2
+    exit 1
+  fi
   printf 'warning: no banned-term list (set DOCS_BANNED or create .docs-banned); skipping the term scan\n' >&2
   banned_list=""
 fi
@@ -45,8 +49,21 @@ banned_scanner='
 use strict; use warnings;
 use Encode qw(decode FB_CROAK);
 use Unicode::Normalize qw(NFC);
+use Digest::SHA qw(sha256_hex);
 my ($file) = @ARGV;
 my (%ci, %cs); my $max = 1;
+sub phrase_hit {
+  my ($text) = @_;
+  my @w = NFC($text) =~ /(\w+)/g;
+  for my $i (0 .. $#w) {
+    for my $k (1 .. $max) {
+      last if $i + $k > @w;
+      my $g = join " ", @w[$i .. $i + $k - 1];
+      return 1 if $cs{$g} || $ci{ lc $g };
+    }
+  }
+  return 0;
+}
 for my $t (split /\r?\n/, decode("UTF-8", $ENV{DOCS_BANNED_LIST} // "")) {
   $t =~ s/^\s+|\s+$//g;
   next if $t eq "" || $t =~ /^#/;
@@ -57,6 +74,10 @@ for my $t (split /\r?\n/, decode("UTF-8", $ENV{DOCS_BANNED_LIST} // "")) {
   if ($exact) { $cs{ join " ", @w } = 1 } else { $ci{ lc join " ", @w } = 1 }
 }
 exit 0 unless %ci || %cs;
+my $label = $file;
+if (phrase_hit($file)) {
+  $label = "[path#" . substr(sha256_hex($file), 0, 12) . "]";
+}
 open my $fh, "<:raw", $file or exit 0;
 my $raw = do { local $/; <$fh> };
 close $fh;
@@ -67,16 +88,7 @@ my ($n, $hit) = (0, 0);
 binmode STDERR, ":encoding(UTF-8)";
 for my $line (split /\n/, $text, -1) {
   $n++;
-  my @w = NFC($line) =~ /(\w+)/g;
-  my $found = 0;
-  WORD: for my $i (0 .. $#w) {
-    for my $k (1 .. $max) {
-      last if $i + $k > @w;
-      my $g = join " ", @w[$i .. $i + $k - 1];
-      if ($cs{$g} || $ci{ lc $g }) { $found = 1; last WORD; }
-    }
-  }
-  if ($found) { $hit = 1; print STDERR "$file:$n: banned term found\n"; }
+  if (phrase_hit($line)) { $hit = 1; print STDERR "$label:$n: banned term found\n"; }
 }
 exit $hit;
 '
