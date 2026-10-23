@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # skipr macOS installer (v0)
 # Sets up the L0/L1 path: Homebrew guidance, optional Ghostty, optional lean zsh extras,
-# Claude Code CLI guidance, and the setup-harness skill.
+# Claude Code CLI guidance, and the setup-harness and fdd skills.
 #
 # Usage:
 #   ./scripts/install-macos.sh [--help] [--dry-run] [--with-ghostty] [--with-zsh-extras] [--force]
@@ -18,6 +18,8 @@ CLAUDE_BREW_INSTALL='brew install --cask claude-code'
 GHOSTTY_SITE="https://ghostty.org"
 HOMEBREW_INSTALL_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 SKILL_DEST="${HOME}/.claude/skills/setup-harness"
+FDD_DEST="${HOME}/.claude/skills/fdd"
+BACKUP_ROOT="${HOME}/.claude/skills-backup"
 ZSHRC_MARK_BEGIN="# >>> skipr zsh extras (managed by scripts/install-macos.sh) >>>"
 ZSHRC_MARK_END="# <<< skipr zsh extras <<<"
 
@@ -57,8 +59,9 @@ Options:
   --with-ghostty      Install Ghostty via Homebrew cask (otherwise ask / skip)
   --with-zsh-extras   Install lean zsh niceties (syntax-highlighting,
                       autosuggestions, fzf) and append a marked block to ~/.zshrc
-  --force             Overwrite existing ~/.claude/skills/setup-harness
-                      (after a timestamped backup)
+  --force             Overwrite existing setup-harness and fdd skills.
+                      Each previous copy is moved to
+                      ~/.claude/skills-backup/<name>.<unique>
 
 Primary path (recommended):
   git clone https://github.com/mgatorr/skipr.git
@@ -107,21 +110,26 @@ resolve_script_dir() {
   return 1
 }
 
-find_local_skill() {
+find_repo_root() {
   local dir root
   if dir="$(resolve_script_dir 2>/dev/null)"; then
     root="$(cd "$dir/.." && pwd)"
     if [[ -f "$root/skills/setup-harness/SKILL.md" ]]; then
-      printf '%s\n' "$root/skills/setup-harness"
+      printf '%s\n' "$root"
       return 0
     fi
   fi
   # cwd fallback (run from repo root)
   if [[ -f "./skills/setup-harness/SKILL.md" ]]; then
-    printf '%s\n' "$(pwd)/skills/setup-harness"
+    pwd
     return 0
   fi
   return 1
+}
+
+# True for a real path or a symlink, including a dangling symlink.
+skill_exists() {
+  [[ -e "$1" || -L "$1" ]]
 }
 
 parse_args() {
@@ -356,93 +364,132 @@ ensure_claude() {
 EOF
 }
 
-backup_existing_skill() {
-  local dest="$1"
-  local stamp backup
-  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-  backup="${dest}.bak.${stamp}"
-  info "Backing up existing skill → ${backup}"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf '    [dry-run] mv %s %s\n' "$dest" "$backup"
+# 0 = install or replace. 1 = keep the skill that is already there.
+should_replace_skill() {
+  local dest="$1" label="$2" ans
+  if ! skill_exists "$dest"; then
     return 0
   fi
-  mv "$dest" "$backup"
-  ok "Backup at ${backup}"
+  if [[ "$FORCE" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ -t 0 ]]; then
+    printf '%s already at %s — overwrite (with backup)? [y/N] ' "$label" "$dest"
+    read -r ans || ans=""
+    case "$ans" in
+      y|Y|yes|YES) return 0 ;;
+    esac
+  fi
+  ok "Keeping existing ${label} (pass --force to overwrite with backup)"
+  return 1
 }
 
-copy_skill_from_dir() {
-  local src="$1"
-  local dest="$SKILL_DEST"
-  local dest_parent
-  dest_parent="$(dirname "$dest")"
-
-  info "Installing setup-harness → ${dest}"
+# Copy into a temp dir beside dest, then swap. A failure removes the temp dir
+# and, if the previous skill was already moved aside, moves that backup back.
+install_one_skill() {
+  local label="$1" src="$2" dest="$3"
+  local parent staging backup=""
+  if [[ ! -d "$src" ]]; then
+    warn "No ${label} source at ${src}"
+    return 1
+  fi
+  if ! should_replace_skill "$dest" "$label"; then
+    return 0
+  fi
+  parent="$(dirname "$dest")"
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf '    [dry-run] mkdir -p %s\n' "$dest_parent"
-    if [[ -d "$dest" ]]; then
-      printf '    [dry-run] would timestamp-backup then replace %s\n' "$dest"
+    printf '    [dry-run] mkdir -p %s\n' "$parent"
+    printf '    [dry-run] copy %s to a temp dir next to %s, then swap\n' "$src" "$dest"
+    if skill_exists "$dest"; then
+      printf '    [dry-run] mv %s %s/%s.<unique>\n' "$dest" "$BACKUP_ROOT" "$label"
     fi
-    printf '    [dry-run] cp -R %s %s\n' "$src" "$dest"
     return 0
   fi
 
-  mkdir -p "$dest_parent"
-  if [[ -e "$dest" ]]; then
-    backup_existing_skill "$dest"
+  mkdir -p "$parent"
+  staging="$(mktemp -d "${parent}/.${label}.staging.XXXXXX")"
+  if ! cp -R "${src}/." "${staging}/"; then
+    rm -rf "$staging"
+    warn "Copy of ${label} failed; left the existing skill unchanged"
+    return 1
   fi
-  cp -R "$src" "$dest"
-  ok "setup-harness installed at ${dest}"
+  if skill_exists "$dest"; then
+    mkdir -p "$BACKUP_ROOT"
+    backup="$(mktemp "${BACKUP_ROOT}/${label}.XXXXXX")"
+    rm -f "$backup"
+    if ! mv "$dest" "$backup"; then
+      rm -rf "$staging"
+      warn "Could not move ${dest} aside (backup path ${backup})"
+      return 1
+    fi
+    info "Backup at ${backup}"
+  fi
+  if ! mv "$staging" "$dest"; then
+    rm -rf "$staging"
+    if [[ -n "$backup" ]] && skill_exists "$backup"; then
+      if mv "$backup" "$dest"; then
+        warn "Swap of ${label} failed; restored the previous skill (backup was ${backup})"
+      else
+        warn "Swap of ${label} failed; backup left at ${backup}"
+      fi
+    else
+      warn "Swap of ${label} failed"
+    fi
+    return 1
+  fi
+  ok "${label} installed at ${dest}"
+}
+
+install_skills_from_root() {
+  local root="$1"
+  install_one_skill setup-harness "$root/skills/setup-harness" "$SKILL_DEST" || return 1
+  if [[ -f "$root/skills/fdd/SKILL.md" ]]; then
+    install_one_skill fdd "$root/skills/fdd" "$FDD_DEST" || return 1
+  else
+    warn "skills/fdd not in this tree; skipped."
+  fi
 }
 
 fetch_skill_via_clone() {
   local tmp
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf '    [dry-run] git clone --depth 1 %s <tmpdir> && copy skills/setup-harness\n' "$SKIPR_REPO_URL"
+    printf '    [dry-run] git clone --depth 1 %s <tmpdir> && copy skills\n' "$SKIPR_REPO_URL"
     return 0
   fi
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/skipr-install.XXXXXX")"
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
-  info "Cloning skipr (shallow) to fetch setup-harness…"
-  git clone --depth 1 "$SKIPR_REPO_URL" "$tmp/skipr"
+  info "Cloning skipr (shallow) to fetch skills…"
+  if ! git clone --depth 1 "$SKIPR_REPO_URL" "$tmp/skipr"; then
+    warn "Clone failed."
+    return 1
+  fi
   if [[ ! -f "$tmp/skipr/skills/setup-harness/SKILL.md" ]]; then
     warn "Clone succeeded but skills/setup-harness is missing."
     return 1
   fi
-  copy_skill_from_dir "$tmp/skipr/skills/setup-harness"
+  install_skills_from_root "$tmp/skipr"
 }
 
 ensure_skill() {
-  step "setup-harness skill"
-  local src=""
+  step "skills"
+  local root=""
 
-  if [[ -d "$SKILL_DEST" && "$FORCE" -ne 1 ]]; then
-    if [[ -t 0 ]]; then
-      printf 'setup-harness already at %s — overwrite (with backup)? [y/N] ' "$SKILL_DEST"
-      local ans
-      read -r ans || ans=""
-      case "$ans" in
-        y|Y|yes|YES) FORCE=1 ;;
-        *)
-          ok "Keeping existing skill (pass --force to overwrite with backup)"
-          return 0
-          ;;
-      esac
-    else
-      ok "Existing skill kept (non-interactive; pass --force to overwrite with backup)"
-      return 0
-    fi
-  fi
-
-  if src="$(find_local_skill)"; then
-    ok "Using local skill source: $src"
-    copy_skill_from_dir "$src"
+  if root="$(find_repo_root)"; then
+    ok "Using local skill source: $root/skills"
+    install_skills_from_root "$root" || return 1
     return 0
   fi
 
-  info "No local skills/setup-harness found (curl|bash or outside clone)."
+  # No local checkout. Skip the clone when both skills are already kept.
+  if [[ "$FORCE" -ne 1 ]] && skill_exists "$SKILL_DEST" && skill_exists "$FDD_DEST"; then
+    ok "Existing skills kept (non-interactive; pass --force to overwrite with backup)"
+    return 0
+  fi
+
+  info "No local skills found (curl|bash or outside clone)."
   if command_exists git; then
-    fetch_skill_via_clone
+    fetch_skill_via_clone || return 1
   else
     warn "git not found; cannot fetch skill automatically."
     cat <<EOF
@@ -457,6 +504,13 @@ ensure_skill() {
         mv ~/.claude/skills/setup-harness "\$bak"
       fi
       cp -R skipr/skills/setup-harness ~/.claude/skills/setup-harness
+      if [ -e ~/.claude/skills/fdd ]; then
+        mkdir -p ~/.claude/skills-backup
+        bak="\$(mktemp ~/.claude/skills-backup/fdd.XXXXXX)"
+        rm "\$bak"
+        mv ~/.claude/skills/fdd "\$bak"
+      fi
+      cp -R skipr/skills/fdd ~/.claude/skills/fdd
 EOF
     return 1
   fi
