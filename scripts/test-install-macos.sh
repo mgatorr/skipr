@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Scenarios for scripts/install-macos.sh.
 # On Linux, uname -s is shimmed to Darwin so the macOS-only script can run.
-# Scenario 4 freezes `date` so two --force runs share one second.
+# Scenario 4 freezes `date` so two --force runs share one second, then checks
+# no *bak* under skills, distinct backup suffixes, one name each, rules untouched.
 set -u
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -199,6 +200,13 @@ begin 4
   work="$(new_home)"
   home="$work/home dir"
   log="$work/log"
+  proj="$home/Projects/keep"
+  rules="$proj/.skipr/rules.md"
+  mkdir -p "$proj/.skipr"
+  printf '%s\n' '- keep this rule (qa, 2026-01-01, own)' > "$rules"
+  cp "$rules" "$work/rules.md.orig"
+  saved_pwd="$(pwd)"
+  cd "$proj"
   run_inst "$log" "$home"
   [ "$EC" -eq 0 ] || note "first exit $EC"
   snap="$work/snap"
@@ -223,22 +231,51 @@ EOF
   ec2="$EC"
   ORIG_PATH="$saved_path"
   rm -rf "$dateshim"
+  cd "$saved_pwd"
   [ "$ec1" -eq 0 ] || note "first --force exit $ec1"
   [ "$ec2" -eq 0 ] || note "second --force exit $ec2"
+  cmp -s "$work/rules.md.orig" "$rules" || note "project .skipr/rules.md changed"
+  skills="$home/.claude/skills"
+  nbak="$(find "$skills" -name '*bak*' 2>/dev/null | wc -l | tr -d ' ')"
+  [ "$nbak" = "0" ] || note "bak entries under skills=$nbak want 0"
   broot="$home/.claude/skills-backup"
   nsetup=0
   nfdd=0
+  : > "$work/suffixes"
   if [ -d "$broot" ]; then
     nsetup="$(find "$broot" -mindepth 1 -maxdepth 1 -type d -name 'setup-harness.*' | wc -l | tr -d ' ')"
     nfdd="$(find "$broot" -mindepth 1 -maxdepth 1 -type d -name 'fdd.*' | wc -l | tr -d ' ')"
+    find "$broot" -mindepth 1 -maxdepth 1 -exec basename {} \; > "$work/backup-names"
+    while IFS= read -r base; do
+      case "$base" in
+        *.*) printf '%s\n' "${base#*.}" ;;
+        *) printf '%s\n' "$base" ;;
+      esac
+    done < "$work/backup-names" >> "$work/suffixes"
   fi
   [ "$nsetup" = "2" ] || note "setup-harness backups=$nsetup want 2"
   [ "$nfdd" = "2" ] || note "fdd backups=$nfdd want 2"
+  nsuf="$(grep -c . "$work/suffixes" || true)"
+  nuniq="$(sort "$work/suffixes" | uniq | grep -c . || true)"
+  [ "$nsuf" = "4" ] && [ "$nuniq" = "4" ] || note "backup suffixes not distinct ($nuniq unique of $nsuf)"
   nested="$(find "$home/.claude" \( -path '*/setup-harness.*/setup-harness/SKILL.md' -o -path '*/fdd.*/fdd/SKILL.md' \) -print 2>/dev/null | head -n 1)"
   [ -z "$nested" ] || note "nested backup at $nested"
   # names must differ
   names="$(find "$broot" -mindepth 1 -maxdepth 1 -type d -name 'setup-harness.*' -exec basename {} \; 2>/dev/null | sort | uniq | wc -l | tr -d ' ')"
   [ "$names" = "2" ] || note "setup-harness backup names not distinct ($names)"
+  : > "$work/skill-names"
+  if [ -d "$skills" ]; then
+    find "$skills" -name SKILL.md | sort > "$work/skill-files"
+    while IFS= read -r skillf; do
+      awk 'NR==1 && $0 != "---" { exit } NR>1 && $0 == "---" { exit } NR>1 && /^name:/ { sub(/^name:[ \t]*/, ""); gsub(/["\047]/, ""); print; exit }' "$skillf"
+    done < "$work/skill-files" >> "$work/skill-names"
+  fi
+  nfdd_name="$(grep -cx 'fdd' "$work/skill-names" || true)"
+  nsetup_name="$(grep -cx 'setup-harness' "$work/skill-names" || true)"
+  dups="$(sort "$work/skill-names" | uniq -d | tr '\n' ' ')"
+  [ "$nfdd_name" = "1" ] || note "fdd name count=$nfdd_name want 1"
+  [ "$nsetup_name" = "1" ] || note "setup-harness name count=$nsetup_name want 1"
+  [ -z "${dups% }" ] || note "duplicate skill names: ${dups% }"
   no_backup_under_skills "$home" || true
   finish 4
   rm -rf "$work"
