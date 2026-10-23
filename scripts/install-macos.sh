@@ -20,6 +20,9 @@ HOMEBREW_INSTALL_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/in
 SKILL_DEST="${HOME}/.claude/skills/setup-harness"
 FDD_DEST="${HOME}/.claude/skills/fdd"
 BACKUP_ROOT="${HOME}/.claude/skills-backup"
+# Staging dir created beside the skill. Cleared on failure so a signal cannot
+# leave .<name>.staging.* under ~/.claude/skills.
+SKIPR_STAGING=""
 ZSHRC_MARK_BEGIN="# >>> skipr zsh extras (managed by scripts/install-macos.sh) >>>"
 ZSHRC_MARK_END="# <<< skipr zsh extras <<<"
 
@@ -384,8 +387,17 @@ should_replace_skill() {
   return 1
 }
 
+drop_staging_dir() {
+  if [[ -n "${SKIPR_STAGING}" && -d "${SKIPR_STAGING}" ]]; then
+    rm -rf "${SKIPR_STAGING}"
+  fi
+  SKIPR_STAGING=""
+}
+
 # Copy into a temp dir beside dest, then swap. A failure removes the temp dir
 # and, if the previous skill was already moved aside, moves that backup back.
+# Callers use `|| return`, which turns off set -e for this function, so each
+# mkdir / mktemp / rm is checked on its own.
 install_one_skill() {
   local label="$1" src="$2" dest="$3"
   local parent staging backup=""
@@ -406,26 +418,63 @@ install_one_skill() {
     return 0
   fi
 
-  mkdir -p "$parent"
-  staging="$(mktemp -d "${parent}/.${label}.staging.XXXXXX")"
+  mkdir -p "$parent" || return 1
+  staging="$(mktemp -d "${parent}/.${label}.staging.XXXXXX")" || return 1
+  case "$staging" in
+    "$parent"/."$label".staging.*) ;;
+    *)
+      warn "Could not create a temp dir next to ${dest}"
+      return 1
+      ;;
+  esac
+  if [[ ! -d "$staging" ]]; then
+    warn "Could not create a temp dir next to ${dest}"
+    return 1
+  fi
+  SKIPR_STAGING="$staging"
   if ! cp -R "${src}/." "${staging}/"; then
-    rm -rf "$staging"
+    drop_staging_dir
     warn "Copy of ${label} failed; left the existing skill unchanged"
     return 1
   fi
   if skill_exists "$dest"; then
-    mkdir -p "$BACKUP_ROOT"
-    backup="$(mktemp "${BACKUP_ROOT}/${label}.XXXXXX")"
-    rm -f "$backup"
+    if ! mkdir -p "$BACKUP_ROOT"; then
+      drop_staging_dir
+      warn "Could not create ${BACKUP_ROOT}"
+      return 1
+    fi
+    backup="$(mktemp "${BACKUP_ROOT}/${label}.XXXXXX")" || {
+      drop_staging_dir
+      warn "Could not create a backup path for ${label}"
+      return 1
+    }
+    case "$backup" in
+      "$BACKUP_ROOT"/"$label".*) ;;
+      *)
+        drop_staging_dir
+        warn "Could not create a backup path for ${label}"
+        return 1
+        ;;
+    esac
+    if [[ ! -e "$backup" ]]; then
+      drop_staging_dir
+      warn "Could not create a backup path for ${label}"
+      return 1
+    fi
+    if ! rm -f "$backup"; then
+      drop_staging_dir
+      warn "Could not prepare backup path ${backup}"
+      return 1
+    fi
     if ! mv "$dest" "$backup"; then
-      rm -rf "$staging"
+      drop_staging_dir
       warn "Could not move ${dest} aside (backup path ${backup})"
       return 1
     fi
     info "Backup at ${backup}"
   fi
   if ! mv "$staging" "$dest"; then
-    rm -rf "$staging"
+    drop_staging_dir
     if [[ -n "$backup" ]] && skill_exists "$backup"; then
       if mv "$backup" "$dest"; then
         warn "Swap of ${label} failed; restored the previous skill (backup was ${backup})"
@@ -437,6 +486,7 @@ install_one_skill() {
     fi
     return 1
   fi
+  SKIPR_STAGING=""
   ok "${label} installed at ${dest}"
 }
 
@@ -542,6 +592,9 @@ EOF
 }
 
 main() {
+  trap 'drop_staging_dir; exit 130' INT
+  trap 'drop_staging_dir; exit 143' TERM
+  trap 'status=$?; if [[ "$status" -ne 0 ]]; then drop_staging_dir; fi; exit "$status"' EXIT
   parse_args "$@"
   refuse_unless_macos
 
