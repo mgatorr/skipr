@@ -1,9 +1,11 @@
 ---
 name: fdd
-description: Use when building with Fast Driven Development — explore, a short note, vertical slices, a check that can fail, and a preview to review the build. Default protocol for Claude Code.
+description: Use when building with Fast Driven Development — explore, a short note, vertical slices, a check that can fail, and a preview to review the build. Default protocol for Claude Code. Fast Driven Development, not Feature-Driven Development.
 ---
 
 # FDD · Fast Driven Development
+
+FDD here means Fast Driven Development. It is not Feature-Driven Development.
 
 Default way of working for one person who builds with agents. It replaces the spec, plan, and tasks chain. It is not a document generator.
 

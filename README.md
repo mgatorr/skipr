@@ -2,7 +2,7 @@
 
 # skipr
 
-**Escape AI complexity** — terminal taught · Claude Code · harness that can say *no*
+**Escape AI complexity** — terminal taught · Claude Code · harness that can say *no* · FDD · Fast Driven Development
 
 ![skipr — escape AI complexity](./assets/skipr-hero.png)
 
@@ -10,6 +10,7 @@
 [![surface](https://img.shields.io/badge/product%20surface-this%20GitHub%20repo-332a20?style=flat-square)](#what-skipr-is)
 [![skill](https://img.shields.io/badge/skill-setup--harness-3a5fb0?style=flat-square)](./skills/setup-harness/)
 [![not affiliated](https://img.shields.io/badge/not%20affiliated%20with-Anthropic-8a8073?style=flat-square)](#a-note-on-branding)
+[![method](https://img.shields.io/badge/method-FDD%20%C2%B7%20Fast%20Driven%20Development-3a5fb0?style=flat-square)](#fdd--fast-driven-development)
 
 </div>
 
@@ -28,6 +29,7 @@ skipr helps **creators and builders drowning in AI tooling** set up a lean path 
 | **Terminal** | Ghostty (or Terminal.app / iTerm) — one calm place to work |
 | **Agent** | Claude Code CLI in the **project folder** |
 | **Harness** | Short `CLAUDE.md` + `checks/` that can fail ([setup-harness](./skills/setup-harness/)) |
+| **Method** | [FDD · Fast Driven Development](#fdd--fast-driven-development): a short note, small slices, a check that can fail, and your review before anything counts as done |
 | **Guides** | L0/L1 usable now · [for photographers](./docs/for-photographers.md) · [examples](./examples/) (photo-trip first-win) · optional [L2 tracks](./docs/l2/) |
 
 You do **not** need another sealed AI stack or a rented no-code black box. You need a folder, a harness, and a CLI you can read.
@@ -71,6 +73,44 @@ Do this in order (you do not need to be a developer):
    ```
 6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail. You already saw fail/pass in step 0 on [`examples/photo-trip`](./examples/photo-trip/).
 
+## FDD · Fast Driven Development
+
+Once the harness works, FDD is how you build with it. Ask for an outcome, close the open questions in a short note, build in small slices, and review the result before it counts as done. There is no spec, plan and tasks chain, and FDD doesn't generate documents.
+
+> **Not Feature-Driven Development.** In skipr, FDD always means **Fast Driven Development**. Feature-Driven Development is an older, unrelated method with the same initials. skipr isn't based on it and isn't linked to it.
+
+### The flow
+
+1. **Ask for an outcome** in one or two sentences, not a document.
+2. **The agent explores first.** It reads the code, your `rules` and the `logbook` before it asks you anything.
+3. **It sizes the job.** One step: it does it and runs the check. Two or more: it opens a short note.
+4. **One question at a time**, and only about decisions it can't work out on its own. The note stays under 60 lines.
+5. **Small slices.** For each one, it writes a check that fails, makes it pass and makes a small commit.
+6. **Someone else tries to break it.** A different agent reproduces the result. Opinions don't count as a review.
+7. **Review room.** You look at a preview of the build, then approve it or leave comments. A comment sends the work back to slices.
+8. **Close.** The note becomes a logbook entry, any new rule is added, and the note is deleted.
+
+Done means a check that can fail has passed and you've approved the build.
+
+### Two layers of memory
+
+| Layer | Where | When the agent reads it |
+|---|---|---|
+| `rules` | `.skipr/rules.md` | Every session. `CLAUDE.md` imports it with `@.skipr/rules.md`. 40 lines max: one rule per line, each with where it came from. |
+| `logbook` | `.skipr/logbook/` | Only when needed. The agent searches it, starting at `INDEX.md`. One entry per finished feature. |
+
+Every comment you leave in the review room is either a one-off fix or becomes one line in `rules`. If the same correction comes back, the rule gets rewritten or turned into a check, so you don't correct the same thing twice. It's all plain text in git, with no memory server, database or embeddings.
+
+### Use it
+
+Copy the skill:
+
+```bash
+cp -R skills/fdd ~/.claude/skills/fdd
+```
+
+Then start `.skipr/rules.md` in your project from [`skills/fdd/templates/rules.md`](./skills/fdd/templates/rules.md) and add `@.skipr/rules.md` to the project's `CLAUDE.md`. The templates for the note and the logbook are in the same folder. Full protocol: [`skills/fdd/SKILL.md`](./skills/fdd/SKILL.md).
+
 ## This grows with you
 
 - **L0 / L1 are the product today** — terminal + Claude Code + harness + these guides.
@@ -83,6 +123,10 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 ```text
 .
 ├── README.md                 # this product surface
+├── CLAUDE.md                 # short harness; imports .skipr/rules.md
+├── .skipr/                   # skipr's own FDD memory
+│   ├── rules.md              # rules: loaded every session
+│   └── logbook/              # logbook: searched when needed (INDEX.md + one entry per feature)
 ├── assets/
 │   └── skipr-hero.png        # README hero (escape-complexity)
 ├── docs/
@@ -95,7 +139,8 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 │   └── README.md             # script usage
 ├── examples/                 # first-wins you can run (photo-trip fail/pass)
 ├── skills/
-│   └── setup-harness/        # vendored Claude Code skill + templates
+│   ├── setup-harness/        # vendored Claude Code skill + templates
+│   └── fdd/                  # FDD · Fast Driven Development skill + templates (note, rules, logbook)
 └── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
 ```
 
@@ -142,6 +187,7 @@ Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. C
 - [x] L2 track docs (optional advanced tools) — [`docs/l2/`](./docs/l2/)
 - [x] Examples (photo-trip first-win) — [`examples/`](./examples/)
 - [x] Photographers guide — [`docs/for-photographers.md`](./docs/for-photographers.md)
+- [x] FDD · Fast Driven Development: skill, `rules` and `logbook` — [`skills/fdd/`](./skills/fdd/)
 - [ ] Personal-site / skipr.dev marketing — later, not blocking L0/L1
 
 ## A note on branding
