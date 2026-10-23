@@ -106,8 +106,8 @@ Every comment you leave in the review room is either a one-off fix or becomes on
 Copy the skill:
 
 ```bash
-mkdir -p ~/.claude/skills
-cp -R skills/fdd ~/.claude/skills/fdd
+mkdir -p ~/.claude/skills/fdd
+cp -R skills/fdd/. ~/.claude/skills/fdd/
 ```
 
 Then start `.skipr/rules.md` in your project from [`skills/fdd/templates/rules.md`](./skills/fdd/templates/rules.md) and add `@.skipr/rules.md` to the project's `CLAUDE.md`. The templates for the note and the logbook are in the same folder. Full protocol: [`skills/fdd/SKILL.md`](./skills/fdd/SKILL.md).
