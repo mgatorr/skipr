@@ -146,6 +146,15 @@ check_cap "skills/fdd/SKILL.md" 100
 check_cap "skills/fdd/templates/note.md" 60
 check_cap ".skipr/rules.md" 40
 
+note="skills/fdd/templates/note.md"
+if [[ -f "$note" ]]; then
+  for heading in "Goal" "Why" "Questions closed" "Out of scope" "Slices" "Checks" "Evidence" "Next"; do
+    if ! grep -qE "^#{1,6} ${heading}$" "$note"; then
+      report "$note: missing heading ${heading}"
+    fi
+  done
+fi
+
 if (( fail == 0 )); then
   printf 'docs check ok\n'
   exit 0
