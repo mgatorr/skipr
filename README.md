@@ -77,12 +77,13 @@ Do this in order (you do not need to be a developer):
      cd ~/Projects/lisbon-trip
    )
    claude
-   # "Run setup-harness for this folder"
    ```
+   Tell Claude: "Run setup-harness for this folder".
 5. **Run a checker** — see *no* work:
    ```bash
-   ./checks/naming.sh   # or brief-ready.sh / delivery.sh
+   ./checks/naming.sh
    ```
+   Or run `./checks/brief-ready.sh` or `./checks/delivery.sh`.
 6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail. You already saw fail/pass in step 0 on [`examples/photo-trip`](./examples/photo-trip/).
 
 ## This grows with you
