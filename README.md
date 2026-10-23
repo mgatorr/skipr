@@ -60,21 +60,22 @@ Do this in order (you do not need to be a developer):
    mkdir -p ~/Projects/lisbon-trip
    cd ~/Projects/lisbon-trip
    ```
-4. **Install and run setup-harness** — from the `~/skipr` clone, first install only (an existing copy is moved aside, then replaced). Then start Claude in the project folder:
+4. **Install and run setup-harness** — from the `~/skipr` clone, first install only (an existing copy is moved aside, then replaced). The parentheses run in their own shell, so a later failed checker does not close the terminal. Then start Claude in the project folder:
    ```bash
-   set -e
-   if [ ! -d skills/setup-harness ]; then
-     cd ~/skipr
-   fi
-   mkdir -p ~/.claude/skills
-   if [ -e ~/.claude/skills/setup-harness ]; then
-     mkdir -p ~/.claude/skills-backup
-     bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
-     rm "$bak"
-     mv ~/.claude/skills/setup-harness "$bak"
-   fi
-   cp -R skills/setup-harness ~/.claude/skills/setup-harness
-   cd ~/Projects/lisbon-trip
+   (
+     if [ ! -d skills/setup-harness ]; then
+       cd ~/skipr || exit 1
+     fi
+     mkdir -p ~/.claude/skills &&
+     if [ -e ~/.claude/skills/setup-harness ]; then
+       mkdir -p ~/.claude/skills-backup &&
+       bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)" &&
+       rm "$bak" &&
+       mv ~/.claude/skills/setup-harness "$bak"
+     fi &&
+     cp -R skills/setup-harness ~/.claude/skills/setup-harness &&
+     cd ~/Projects/lisbon-trip
+   )
    claude
    # "Run setup-harness for this folder"
    ```
