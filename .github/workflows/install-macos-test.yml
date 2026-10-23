@@ -1,0 +1,22 @@
+name: install-macos-test
+
+on:
+  pull_request:
+    paths:
+      - "scripts/install-macos.sh"
+      - "scripts/test-install-macos.sh"
+      - "skills/**"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/install-macos.sh"
+      - "scripts/test-install-macos.sh"
+      - "skills/**"
+
+jobs:
+  installer:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run installer scenarios
+        run: bash scripts/test-install-macos.sh
