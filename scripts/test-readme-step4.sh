@@ -4,7 +4,26 @@
 set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-trap 'export HOME=/home/ubuntu' EXIT
+saved_home="${HOME-}"
+work="$(mktemp -d)" || work=""
+if [ -z "$work" ] || [ ! -d "$work" ]; then
+  printf '%s\n' "FAIL temporary HOME was not created"
+  printf '%s\n' "readme step 4: FAIL"
+  exit 1
+fi
+cleanup() {
+  status=$?
+  if [ -n "${work:-}" ] && [ -d "$work" ]; then
+    rm -rf "$work"
+  fi
+  if [ -n "${saved_home:-}" ]; then
+    export HOME="$saved_home"
+  else
+    unset HOME
+  fi
+  exit "$status"
+}
+trap cleanup EXIT
 fail=0
 say() { printf '%s\n' "$*"; }
 note() { say "FAIL $*"; fail=1; }
@@ -26,8 +45,7 @@ if [ -z "$block" ]; then
   exit 1
 fi
 
-work="$(mktemp -d)"
-export HOME="$work/home"
+export HOME="$work"
 mkdir -p "$HOME/skipr/skills" "$HOME/Projects/lisbon-trip"
 cp -R "$root/skills/setup-harness" "$HOME/skipr/skills/setup-harness"
 ec=0
@@ -58,10 +76,6 @@ ec2=0
 if [ "$ec2" -eq 0 ]; then
   note "missing source still exited 0"
 fi
-rm -rf "$work"
-unset HOME
-export HOME=/home/ubuntu
-
 if [ "$fail" -eq 0 ]; then
   say "readme step 4: PASS"
   exit 0
