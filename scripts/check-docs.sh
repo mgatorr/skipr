@@ -182,10 +182,12 @@ fi
 rules=".skipr/rules.md"
 prov_re='^.+ \([^)]+, [0-9]{4}-[0-9]{2}-[0-9]{2}[^)]*\)$'
 if [[ -f "$rules" ]]; then
+  prov_n=0
   while IFS= read -r line || [[ -n "$line" ]]; do
+    prov_n=$((prov_n + 1))
     [[ "$line" == "- "* ]] || continue
     if ! [[ "$line" =~ $prov_re ]]; then
-      report "$rules: rule line missing provenance: $line"
+      report "$rules:$prov_n: rule line missing provenance"
     fi
   done < "$rules"
 fi
