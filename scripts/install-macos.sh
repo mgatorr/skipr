@@ -449,7 +449,8 @@ ensure_skill() {
     Clone the repo and re-run, or copy manually:
 
       git clone ${SKIPR_REPO_URL}
-      cp -R skipr/skills/setup-harness ~/.claude/skills/setup-harness
+      mkdir -p ~/.claude/skills/setup-harness
+      cp -R skipr/skills/setup-harness/. ~/.claude/skills/setup-harness/
 EOF
     return 1
   fi

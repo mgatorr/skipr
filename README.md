@@ -128,7 +128,8 @@ Canonical source: **[`skills/setup-harness/SKILL.md`](./skills/setup-harness/SKI
 **Clone or download a zip of this repo first**, then copy the skill (or use `./scripts/install-macos.sh`, which backs up any existing copy):
 
 ```bash
-cp -R skills/setup-harness ~/.claude/skills/setup-harness
+mkdir -p ~/.claude/skills/setup-harness
+cp -R skills/setup-harness/. ~/.claude/skills/setup-harness/
 ```
 
 Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. Claude Code install: [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install).

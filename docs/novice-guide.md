@@ -101,7 +101,8 @@ any existing skill):
 
 ```bash
 # after: git clone https://github.com/mgatorr/skipr.git
-cp -R /path/to/skipr/skills/setup-harness ~/.claude/skills/setup-harness
+mkdir -p ~/.claude/skills/setup-harness
+cp -R /path/to/skipr/skills/setup-harness/. ~/.claude/skills/setup-harness/
 ```
 
 Claude Code CLI install (official): [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install)
