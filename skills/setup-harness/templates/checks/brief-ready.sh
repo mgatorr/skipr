@@ -14,7 +14,8 @@ fi
 for pair in "Client|Cliente" "Date|Fecha" "Deliverables|Entregables"; do
   en="${pair%%|*}"
   es="${pair##*|}"
-  if ! grep -qiE "^#+[[:space:]]*(${en}|${es})[[:space:]]*$" BRIEF.md; then
+  # Prefix match, as on main: the heading may be a title (`# Client: Acme Studio`).
+  if ! grep -qiE "^#+[[:space:]]*(${en}|${es})" BRIEF.md; then
     echo "✗ BRIEF.md is missing heading «${en}» or «${es}»"
     fail=1
   fi
