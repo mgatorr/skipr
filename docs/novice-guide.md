@@ -37,8 +37,9 @@ Red with a clear message is the win — the rails work. How to pass (move the lo
 ### Optional: macOS install script (v0)
 
 On a Mac, you can run the lean installer next. It checks Homebrew, **asks before
-installing Ghostty** (or use `--with-ghostty`), copies `setup-harness` into
-`~/.claude/skills/` (with a timestamped backup if replacing), and prints official
+installing Ghostty** (or use `--with-ghostty`), copies `setup-harness` and `fdd`
+into `~/.claude/skills/` (a previous copy moves to
+`~/.claude/skills-backup/<name>.<unique>`), and prints official
 Claude Code install links if `claude` is missing.
 
 **Always clone (or download a zip) first** so you can read the script:
