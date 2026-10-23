@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Fail when tracked files break the docs limits.
 set -euo pipefail
+# xtrace would print the term list and any matching line. Keep it off.
+set +x
 
 if locale -a 2>/dev/null | grep -qx 'C.utf8'; then
   export LC_ALL=C.utf8
@@ -36,7 +38,8 @@ if [[ -z "${banned_list//[[:space:]]/}" ]]; then
 fi
 export DOCS_BANNED_LIST="$banned_list"
 
-# Prints file:line:text for each hit and exits 1 if there is one.
+# Prints file:line and a generic hit message. Does not print the line or the term.
+# Exits 1 if there is a hit.
 # Files that are not valid UTF-8 text (binary) are skipped.
 banned_scanner='
 use strict; use warnings;
@@ -73,7 +76,7 @@ for my $line (split /\n/, $text, -1) {
       if ($cs{$g} || $ci{ lc $g }) { $found = 1; last WORD; }
     }
   }
-  if ($found) { $hit = 1; print STDERR "$file:$n:$line\n"; }
+  if ($found) { $hit = 1; print STDERR "$file:$n: banned term found\n"; }
 }
 exit $hit;
 '
