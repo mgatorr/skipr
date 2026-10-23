@@ -30,8 +30,12 @@ run_case() {
 
 run_case brief-en 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/en"
 run_case brief-es 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/es"
+run_case brief-title-en 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/title-en"
+run_case brief-title-es 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/title-es"
 run_case brief-missing-date 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/missing-date"
-run_case brief-loose-heading 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/loose-heading"
+# main matched a heading prefix, so "# Client notes" passes; "# Notes for the client" does not.
+run_case brief-loose-heading 0 "$checks/brief-ready.sh" "$fixtures/brief-ready/loose-heading"
+run_case brief-not-prefix 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/not-prefix"
 
 run_case naming-en 0 "$checks/naming.sh" "$fixtures/naming/en"
 run_case naming-es 0 "$checks/naming.sh" "$fixtures/naming/es"
