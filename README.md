@@ -110,7 +110,14 @@ mkdir -p ~/.claude/skills/fdd
 cp -R skills/fdd/. ~/.claude/skills/fdd/
 ```
 
-Then start `.skipr/rules.md` in your project from [`skills/fdd/templates/rules.md`](./skills/fdd/templates/rules.md) and add `@.skipr/rules.md` to the project's `CLAUDE.md`. The templates for the note and the logbook are in the same folder. Full protocol: [`skills/fdd/SKILL.md`](./skills/fdd/SKILL.md).
+`CLAUDE.md` is created by setup-harness first. Then start `.skipr/rules.md` in your project from [`skills/fdd/templates/rules.md`](./skills/fdd/templates/rules.md) and add `@.skipr/rules.md` to the project's `CLAUDE.md`.
+
+```bash
+mkdir -p .skipr
+cp ~/.claude/skills/fdd/templates/rules.md .skipr/rules.md
+```
+
+Replace or delete the `<rule>` line. It is a placeholder. The templates for the note and the logbook are in the same folder. Full protocol: [`skills/fdd/SKILL.md`](./skills/fdd/SKILL.md).
 
 ## This grows with you
 
