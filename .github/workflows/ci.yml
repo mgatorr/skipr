@@ -53,6 +53,8 @@ jobs:
         run: bash scripts/test-check-docs.sh
       - name: README step 4
         run: bash scripts/test-readme-step4.sh
+      - name: README blocks in interactive zsh
+        run: bash scripts/test-readme-zsh.sh
 
   docs-check:
     runs-on: ubuntu-latest
