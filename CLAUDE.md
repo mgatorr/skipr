@@ -7,11 +7,7 @@ Lean path: terminal taught (not hidden) + Claude Code CLI + `setup-harness`
 Start at the [root README](./README.md), [docs/novice-guide.md](./docs/novice-guide.md),
 and [`examples/photo-trip`](./examples/photo-trip/) (step 0 fail/pass, no Claude yet).
 Vendored skill: [`skills/setup-harness/`](./skills/setup-harness/).
-
-`docs/design.md` and `docs/constitution.md` are **historical / superseded**.
-They describe earlier desktop / no-terminal / Spec Kit / waitlist eras. Do
-**not** treat them as current product truth — see [docs/ARCHIVE.md](./docs/ARCHIVE.md)
-and the banners at the top of those files.
+Older eras are on the tag `era-spec-kit`. See [docs/ARCHIVE.md](./docs/ARCHIVE.md).
 
 Brand shown to users is **skipr**; the repo dir keeps the `cockpit` working name.
 

@@ -90,22 +90,19 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 │   ├── for-photographers.md  # L0/L1 path for photographers
 │   ├── es/novice-guide.md    # short Spanish mirror
 │   ├── l2/                   # optional advanced tracks (Cursor, OpenCode, Hermes)
-│   ├── ARCHIVE.md            # map of superseded eras
-│   ├── design.md             # HISTORICAL — desktop/no-terminal era
-│   └── constitution.md       # HISTORICAL — principles (see banners)
+│   └── ARCHIVE.md            # pointer to tag era-spec-kit
 ├── scripts/
 │   ├── install-macos.sh      # macOS L0/L1 installer (v0)
 │   └── README.md             # script usage
 ├── examples/                 # first-wins you can run (photo-trip fail/pass)
 ├── skills/
 │   └── setup-harness/        # vendored Claude Code skill + templates
-├── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
-└── specs/                    # Spec Kit history
+└── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
 ```
 
 ## Historical docs
 
-Earlier Spec Kit / Cockpit / desktop no-terminal eras are archived — see [`docs/ARCHIVE.md`](./docs/ARCHIVE.md). Do not treat those files as current product truth.
+Earlier eras are on the tag `era-spec-kit`. See [`docs/ARCHIVE.md`](./docs/ARCHIVE.md). Do not treat that history as the current product.
 
 ## Language
 
