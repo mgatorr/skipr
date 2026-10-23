@@ -43,6 +43,13 @@ jobs:
           fi
           ./scripts/install-macos.sh --help >/tmp/install-help.txt
 
+  harness-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: English and Spanish checker fixtures
+        run: bash scripts/test-harness-checks.sh
+
   docs-check:
     runs-on: ubuntu-latest
     steps:

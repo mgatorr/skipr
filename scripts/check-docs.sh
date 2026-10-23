@@ -42,8 +42,8 @@ if [[ -z "${banned_list//[[:space:]]/}" ]]; then
 fi
 export DOCS_BANNED_LIST="$banned_list"
 
-# Prints file:line and a generic hit message. Does not print the line or the term.
-# Exits 1 if there is a hit.
+# A content hit prints file:line, or [path#<sha>] when the path also matches.
+# A path-only hit prints [path#<sha>] and nothing else. Never prints the term.
 # Files that are not valid UTF-8 text (binary) are skipped.
 banned_scanner='
 use strict; use warnings;
@@ -74,22 +74,28 @@ for my $t (split /\r?\n/, decode("UTF-8", $ENV{DOCS_BANNED_LIST} // "")) {
   if ($exact) { $cs{ join " ", @w } = 1 } else { $ci{ lc join " ", @w } = 1 }
 }
 exit 0 unless %ci || %cs;
+my $path_hit = phrase_hit($file);
 my $label = $file;
-if (phrase_hit($file)) {
+if ($path_hit) {
   $label = "[path#" . substr(sha256_hex($file), 0, 12) . "]";
 }
-open my $fh, "<:raw", $file or exit 0;
+sub path_only {
+  print STDERR "$label\n" if $path_hit;
+  exit($path_hit ? 1 : 0);
+}
+open my $fh, "<:raw", $file or path_only();
 my $raw = do { local $/; <$fh> };
 close $fh;
-exit 0 if $raw =~ /\x00/;
+path_only() if $raw =~ /\x00/;
 my $text = eval { decode("UTF-8", $raw, FB_CROAK) };
-exit 0 unless defined $text;
+path_only() unless defined $text;
 my ($n, $hit) = (0, 0);
 binmode STDERR, ":encoding(UTF-8)";
 for my $line (split /\n/, $text, -1) {
   $n++;
   if (phrase_hit($line)) { $hit = 1; print STDERR "$label:$n: banned term found\n"; }
 }
+if ($path_hit && !$hit) { print STDERR "$label\n"; $hit = 1; }
 exit $hit;
 '
 

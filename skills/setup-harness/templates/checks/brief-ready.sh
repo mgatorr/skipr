@@ -7,13 +7,15 @@ fail=0
 
 if [[ ! -f BRIEF.md ]]; then
   echo "✗ Missing BRIEF.md at project root"
-  echo "  Create one with: Client, Date, Deliverables, tone/use."
+  echo "  Create one with: Client or Cliente, Date or Fecha, Deliverables or Entregables, tone/use."
   exit 1
 fi
 
-for heading in "Client" "Date" "Deliverables"; do
-  if ! grep -qiE "^#+[[:space:]]*${heading}[[:space:]]*$" BRIEF.md; then
-    echo "✗ BRIEF.md is missing heading «${heading}»"
+for pair in "Client|Cliente" "Date|Fecha" "Deliverables|Entregables"; do
+  en="${pair%%|*}"
+  es="${pair##*|}"
+  if ! grep -qiE "^#+[[:space:]]*(${en}|${es})[[:space:]]*$" BRIEF.md; then
+    echo "✗ BRIEF.md is missing heading «${en}» or «${es}»"
     fail=1
   fi
 done

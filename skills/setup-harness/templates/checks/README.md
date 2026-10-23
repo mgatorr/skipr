@@ -2,7 +2,7 @@
 
 Scripts that can fail. If they cannot say **no**, they are not checks.
 
-Messages and BRIEF headings are English (`Client`, `Date`, `Deliverables`).
+Messages stay English. BRIEF headings accept English (`Client`, `Date`, `Deliverables`) or Spanish (`Cliente`, `Fecha`, `Entregables`). `deliverables/` and `entregables/` are both accepted.
 
 ## How to run
 
