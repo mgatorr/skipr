@@ -55,6 +55,8 @@ jobs:
         run: bash scripts/test-readme-step4.sh
       - name: README blocks in interactive zsh
         run: bash scripts/test-readme-zsh.sh
+      - name: README starts claude only after the clone
+        run: bash scripts/test-readme-claude.sh
 
   docs-check:
     runs-on: ubuntu-latest
