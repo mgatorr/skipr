@@ -48,8 +48,8 @@ Do this in order (you do not need to be a developer):
 
 0. **Two-minute fail/pass (no Claude yet)** — clone this repo, then:
    ```bash
-   git clone https://github.com/mgatorr/skipr.git
-   cd skipr/examples/photo-trip
+   git clone https://github.com/mgatorr/skipr.git ~/skipr
+   cd ~/skipr/examples/photo-trip
    ./checks/naming.sh
    ```
    Red with a clear message is a win. How to pass: [`examples/photo-trip/checks/README.md`](./examples/photo-trip/checks/README.md).
@@ -60,8 +60,12 @@ Do this in order (you do not need to be a developer):
    mkdir -p ~/Projects/lisbon-trip
    cd ~/Projects/lisbon-trip
    ```
-4. **Install and run setup-harness** — from this repo, first install only (an existing copy is moved aside, then replaced). Then start Claude in the project folder:
+4. **Install and run setup-harness** — from the `~/skipr` clone, first install only (an existing copy is moved aside, then replaced). Then start Claude in the project folder:
    ```bash
+   set -e
+   if [ ! -d skills/setup-harness ]; then
+     cd ~/skipr
+   fi
    mkdir -p ~/.claude/skills
    if [ -e ~/.claude/skills/setup-harness ]; then
      mkdir -p ~/.claude/skills-backup
