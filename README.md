@@ -106,6 +106,7 @@ Every comment you leave in the review room is either a one-off fix or becomes on
 Copy the skill:
 
 ```bash
+mkdir -p ~/.claude/skills
 cp -R skills/fdd ~/.claude/skills/fdd
 ```
 
