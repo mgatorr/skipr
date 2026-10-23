@@ -3,7 +3,7 @@
 skipr is **available now**: a lean path of terminal + Claude Code + harness + short guides.
 This page is for beginners. Follow the steps in order — you do not need to be a developer.
 
-Spanish short mirror: [es/novice-guide.md](./es/novice-guide.md). Photographers: [for-photographers.md](./for-photographers.md). Fail/pass demo: [`examples/photo-trip`](../examples/photo-trip/).
+Photographers: [for-photographers.md](./for-photographers.md). Fail/pass demo: [`examples/photo-trip`](../examples/photo-trip/).
 
 ## Contents
 
@@ -53,8 +53,6 @@ The script is **macOS-only**. Linux/Windows: skip it — clone, copy the skill, 
 your terminal. Details: [`scripts/README.md`](../scripts/README.md) (the curl|bash
 one-liner lives there only, with a warning — not recommended as the novice path).
 
-Spanish short guide: [es/novice-guide.md](./es/novice-guide.md).
-
 If you skip the script, follow steps 1–6 below.
 
 ### 1. Install Claude Code CLI
@@ -85,8 +83,8 @@ Work **inside the folder for this job** (a trip, a client delivery, a culling se
 not a giant vault of prompts. Example:
 
 ```bash
-mkdir -p ~/Projects/viaje-lisboa
-cd ~/Projects/viaje-lisboa
+mkdir -p ~/Projects/lisbon-trip
+cd ~/Projects/lisbon-trip
 ```
 
 Keep this terminal window in that folder for the rest of the steps.
@@ -113,7 +111,7 @@ Then, in your project folder, start Claude Code and ask it to run the skill:
 ```bash
 claude
 # then, in the session:
-# "Run setup-harness for this folder" / "Monta el harness en esta carpeta"
+# "Run setup-harness for this folder"
 ```
 
 ### 5. Run a checker (see “no” work)
@@ -169,7 +167,7 @@ Domains it knows (pick one): trip / client / culling / delivery — each maps to
 
 1. Install the skill on your machine (`~/.claude/skills/setup-harness/`).
 2. `cd` into the project folder — the harness is folder-scoped.
-3. Ask Claude: `Run setup-harness for this folder` (or Spanish: `Monta el harness / arnés en esta carpeta`).
+3. Ask Claude: `Run setup-harness for this folder`.
 4. Smoke-test: `./checks/naming.sh` (pass or fail with a clear message — both are useful).
 
 ### Skill source
@@ -184,10 +182,10 @@ templates the skill uses — this is not a second installer.
 
 ```bash
 # after: git clone https://github.com/mgatorr/skipr.git
-# from your trip folder, e.g. ~/Projects/viaje-lisboa
+# from your trip folder, e.g. ~/Projects/lisbon-trip
 REPO=/path/to/skipr
 cp "$REPO/skills/setup-harness/templates/CLAUDE.md" ./CLAUDE.md
-# replace {{PROJECT_NAME}}, {{DOMAIN}} (viaje / trip), {{LANG}}
+# replace {{PROJECT_NAME}}, {{DOMAIN}} (trip / client / culling / delivery), {{LANG}}
 mkdir -p checks
 cp "$REPO/skills/setup-harness/templates/checks/README.md" checks/
 cp "$REPO/skills/setup-harness/templates/checks/naming.sh" checks/  # trip / culling

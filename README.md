@@ -42,7 +42,7 @@ Software-founder desktop-app tracks from earlier MVPs are parked. Start here wit
 
 ## Novice path
 
-Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · [for photographers](./docs/for-photographers.md) · [examples](./examples/) · Spanish mirror: [docs/es/novice-guide.md](./docs/es/novice-guide.md)
+Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · [for photographers](./docs/for-photographers.md) · [examples](./examples/)
 
 Do this in order (you do not need to be a developer):
 
@@ -57,13 +57,13 @@ Do this in order (you do not need to be a developer):
 2. **Open a terminal you will actually use** — on macOS we recommend [Ghostty](https://ghostty.org); Terminal.app / iTerm are fine.
 3. **Create or open your project folder** — a trip, client job, culling session — not a giant vault of prompts:
    ```bash
-   mkdir -p ~/Projects/viaje-lisboa
-   cd ~/Projects/viaje-lisboa
+   mkdir -p ~/Projects/lisbon-trip
+   cd ~/Projects/lisbon-trip
    ```
 4. **Install and run setup-harness** — copy [`skills/setup-harness/`](./skills/setup-harness/) to `~/.claude/skills/setup-harness/`, then in the project folder:
    ```bash
    claude
-   # "Run setup-harness for this folder" / "Monta el harness en esta carpeta"
+   # "Run setup-harness for this folder"
    ```
 5. **Run a checker** — see *no* work:
    ```bash
@@ -82,13 +82,12 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 
 ```text
 .
-├── README.md                 # this carta (product surface)
+├── README.md                 # this product surface
 ├── assets/
 │   └── skipr-hero.png        # README hero (escape-complexity)
 ├── docs/
-│   ├── novice-guide.md       # full beginner path (EN)
+│   ├── novice-guide.md       # full beginner path
 │   ├── for-photographers.md  # L0/L1 path for photographers
-│   ├── es/novice-guide.md    # short Spanish mirror
 │   ├── l2/                   # optional advanced tracks (Cursor, OpenCode, Hermes)
 │   └── ARCHIVE.md            # pointer to tag era-spec-kit
 ├── scripts/
@@ -108,7 +107,7 @@ Earlier eras are on the tag `era-spec-kit`. See [`docs/ARCHIVE.md`](./docs/ARCHI
 
 - **Product / docs / README:** English (canonical).
 - **Working chat with the human:** configurable — set `Working language: es` in project `CLAUDE.md`, or `SKIPR_LOCALE` / `LANG` (default `en`).
-- Details: [`docs/language.md`](./docs/language.md). Spanish novice guide: [`docs/es/novice-guide.md`](./docs/es/novice-guide.md) (secondary mirror).
+- Details: [`docs/language.md`](./docs/language.md). Product files stay English. Replies to the human may follow `Working language`.
 
 ## macOS installer (v0)
 
@@ -137,7 +136,7 @@ Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. C
 ## Roadmap
 
 - [x] Reposition promise: escape AI complexity (not “hide the terminal”)
-- [x] GitHub-first carta: README + novice guide + vendored harness
+- [x] GitHub-first product surface: README + novice guide + vendored harness
 - [x] Install script v0 (macOS) — [`scripts/install-macos.sh`](./scripts/install-macos.sh)
 - [x] L2 track docs (optional advanced tools) — [`docs/l2/`](./docs/l2/)
 - [x] Examples (photo-trip first-win) — [`examples/`](./examples/)

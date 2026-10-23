@@ -15,7 +15,7 @@ Brand shown to users is **skipr**; the repo dir keeps the `cockpit` working name
 
 | Layer | Status |
 |---|---|
-| **Product surface** | **This GitHub repo** — README (carta) + `docs/novice-guide.md` + vendored `skills/setup-harness/` + `examples/photo-trip` |
+| **Product surface** | **This GitHub repo** — README + `docs/novice-guide.md` + vendored `skills/setup-harness/` + `examples/photo-trip` |
 | **skipr.dev** (`landing/`) | **GitHub redirect stub** — static `landing/public/` only (Astro waitlist source removed) |
 | **Personal site** | Embedding under mariogarridotorres.com is **later** — product docs live on GitHub first |
 
@@ -23,15 +23,15 @@ Brand shown to users is **skipr**; the repo dir keeps the `cockpit` working name
 
 Older framing (desktop app that hides the terminal for non-technical founders / anti-Lovable) is **superseded** for the current track.
 
-Merged: **#2** GitHub carta, **#3** domain stub. Active follow-up: public readiness / language policy.
+Merged: **#2** GitHub product surface, **#3** domain stub. Active follow-up: public readiness.
 
 ## Language
 
-- **Canonical product language = English** (README, docs, skills, commits, PR bodies).
-- **Working conversation language** with the human is configurable: set `Working language: es` (or `en`, …) in a project `CLAUDE.md`, or `SKIPR_LOCALE` / `LANG`. Default **`en`**.
-- Full policy: [`docs/language.md`](./docs/language.md). Spanish novice guide stays secondary under `docs/es/`.
+- **Canonical product language = English** (README, docs, skills, commits, PR bodies, file names).
+- **Working conversation language** with the human is configurable: set `Working language:` in a project `CLAUDE.md`, or `SKIPR_LOCALE` / `LANG`. Default **`en`**.
+- Full policy: [`docs/language.md`](./docs/language.md).
 
-For *this* repo's agent sessions with Mario: prefer Spanish in chat replies when he writes in Spanish; keep commits and repo artifacts in English.
+For this repo, match the human's language in chat when they write in another language. Keep commits and repo artifacts in English.
 
 ## Guardrails (current track)
 
@@ -41,12 +41,4 @@ For *this* repo's agent sessions with Mario: prefer Spanish in chat replies when
   work. The Astro waitlist under `landing/src` is gone; the static stub does not require `pnm test`.
 - **Frictionless & friendly**: audience is non-technical creators/builders — teach the terminal, never a black box.
 - **Neutral branding**: brand is **skipr**; not affiliated with Anthropic; no "Claude" in the product name.
-- **Phase discipline**: GitHub-first carta before reopening a full marketing site or personal-site embedding.
-
-## Estado
-
-Ficha en español para el mapa de proyectos del second-brain (`./brain proyectos`). Solo eso: la verdad de producto vive arriba.
-
-- **Qué es**: Saca a creadores del lío de herramientas de IA: terminal enseñada, Claude Code y harness con checks.
-- **Estado**: El producto es este repo: L0/L1 usables (carta, guía novato, harness, ejemplo photo-trip, instalador macOS v0); skipr.dev, stub.
-- **Siguiente**: Único punto abierto del roadmap: marketing de skipr.dev y embed en mariogarridotorres.com, aplazado a propósito tras L0/L1.
+- **Phase discipline**: GitHub-first product surface before reopening a full marketing site or personal-site embedding.

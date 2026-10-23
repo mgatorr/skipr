@@ -1,9 +1,9 @@
 ---
-name: naming-viaje
+name: naming-trip
 description: Use when renaming trip photo folders or files in this project — date-prefixed folders YYYY-MM-DD, no loose IMG_/DSC_ at root; never delete originals.
 ---
 
-# Naming viaje
+# Trip naming
 
 ## Conventions
 

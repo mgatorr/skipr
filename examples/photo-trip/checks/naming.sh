@@ -17,7 +17,7 @@ done < <(find . -maxdepth 1 -type f \( \
 while IFS= read -r -d '' d; do
   base=$(basename "$d")
   case "$base" in
-    .|.claude|checks|entregables|deliverables|selects|rejects|raw|jpg|jpeg|preview|edits) continue ;;
+    .|.claude|checks|deliverables|selects|rejects|raw|jpg|jpeg|preview|edits) continue ;;
   esac
   if ! [[ "$base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
     if find "$d" -maxdepth 2 -type f \( \

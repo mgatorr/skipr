@@ -64,8 +64,6 @@ Primary path (recommended):
   git clone https://github.com/mgatorr/skipr.git
   cd skipr
   ./scripts/install-macos.sh
-
-Spanish guide: docs/es/novice-guide.md
 EOF
 }
 
@@ -469,13 +467,11 @@ print_next_steps() {
 
   3. In the session, run the harness:
        "Run setup-harness for this folder"
-       (Spanish: "Monta el harness en esta carpeta")
 
   4. Smoke-test a checker:
        ./checks/naming.sh
 
   Full guide: docs/novice-guide.md
-  Spanish one-liner guide: docs/es/novice-guide.md
 EOF
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "Dry-run complete — no changes were made."
@@ -492,8 +488,6 @@ main() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "Dry-run mode: no changes will be made."
   fi
-  info "Spanish guide: docs/es/novice-guide.md"
-
   ensure_homebrew
   ensure_ghostty
   ensure_zsh_extras

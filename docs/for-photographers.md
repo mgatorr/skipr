@@ -2,7 +2,7 @@
 
 You already try Claude in the app. skipr is the next step: **a real folder, short rails, and a check that can say no.** Not 400 skills. Not a Second Brain vault.
 
-English is the product language. One-line Spanish pointer: [es/for-photographers.md](./es/for-photographers.md).
+English is the product language.
 
 ## The harness (the promise)
 
@@ -21,7 +21,7 @@ The Claude **app** is a chat. skipr uses **Claude Code** in a terminal, opened *
 - Work in the trip / client / culling folder — not a generic notes vault hoping the agent finds the photos.
 
 ```bash
-cd ~/Projects/viaje-lisboa
+cd ~/Projects/lisbon-trip
 claude
 ```
 
@@ -33,7 +33,7 @@ skipr installs **at most two** local skills. Extra rules go in one line of `CLAU
 
 | Job | Default check |
 |---|---|
-| Trip (`viaje`) | `./checks/naming.sh` |
+| Trip | `./checks/naming.sh` |
 | Client | `./checks/brief-ready.sh` |
 | Culling | `./checks/naming.sh` |
 | Delivery | `./checks/delivery.sh` |

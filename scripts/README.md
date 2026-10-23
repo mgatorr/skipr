@@ -1,6 +1,6 @@
 # scripts/
 
-Helper scripts for skipr. Product messages are English; Spanish guides live under `docs/es/`.
+Helper scripts for skipr. Product messages are English.
 
 `./scripts/check-docs.sh` exits non-zero when a tracked file contains a term from the banned list (`DOCS_BANNED` or a local `.docs-banned`; without either it warns and skips that scan), a capped doc is too long, or a relative Markdown link is broken.
 
@@ -59,4 +59,4 @@ claude
 # "Run setup-harness for this folder"
 ```
 
-See [docs/novice-guide.md](../docs/novice-guide.md) · Spanish: [docs/es/novice-guide.md](../docs/es/novice-guide.md).
+See [docs/novice-guide.md](../docs/novice-guide.md).

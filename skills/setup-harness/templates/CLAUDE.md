@@ -18,8 +18,8 @@ Work folder: **{{DOMAIN}}**. The agent stays in this directory — not a generic
 ## Checkers
 
 ```bash
-./checks/naming.sh        # viaje / culling
-./checks/brief-ready.sh   # cliente
+./checks/naming.sh        # trip / culling
+./checks/brief-ready.sh   # client
 ./checks/delivery.sh      # delivery
 ```
 
