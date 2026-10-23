@@ -3,6 +3,7 @@
 # On Linux, uname -s is shimmed to Darwin so the macOS-only script can run.
 # Scenario 4 freezes `date` so two --force runs share one second, then checks
 # no *bak* under skills, distinct backup suffixes, one name each, rules untouched.
+# Scenario 9 shims mktemp to fail and records cp destinations.
 set -u
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -430,6 +431,67 @@ begin 8
   [ -z "$left" ] || note "temp clone not removed ($left)"
   no_backup_under_skills "$home" || true
   finish 8
+  rm -rf "$work"
+}
+
+# --- 9. mktemp failure: no copy outside HOME, original skill stays ---
+begin 9
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  seed_skill "$REPO/skills/setup-harness" "$home/.claude/skills/setup-harness"
+  seed_skill "$REPO/skills/fdd" "$home/.claude/skills/fdd"
+  snap_s="$work/snap-setup"
+  snap_f="$work/snap-fdd"
+  cp -R "$home/.claude/skills/setup-harness" "$snap_s"
+  cp -R "$home/.claude/skills/fdd" "$snap_f"
+  printf 'canary\n' > "$work/canary"
+  cplog="$work/cp.log"
+  : > "$cplog"
+  shim9="$(mktemp -d)"
+  real_cp="$(command -v cp)"
+  cat > "$shim9/mktemp" <<'EOF'
+#!/bin/sh
+exit 1
+EOF
+  cat > "$shim9/cp" <<EOF
+#!/bin/sh
+dest=""
+for arg in "\$@"; do
+  case "\$arg" in
+    --) ;;
+    -*) ;;
+    *) dest=\$arg ;;
+  esac
+done
+printf '%s\n' "\$dest" >> "\$SKIPR_CP_LOG"
+case "\$dest" in
+  "\$HOME"/*) exec '$real_cp' "\$@" ;;
+esac
+exit 1
+EOF
+  chmod +x "$shim9/mktemp" "$shim9/cp"
+  EC=0
+  env -u GIT_DIR -u GIT_WORK_TREE \
+    HOME="$home" PATH="$shim9:$ORIG_PATH" SKIPR_REPO_URL="$REPO" SKIPR_CP_LOG="$cplog" \
+    bash "$INSTALLER" --force </dev/null >"$log" 2>&1 || EC=$?
+  rm -rf "$shim9"
+  [ "$EC" -ne 0 ] || note "expected non-zero exit"
+  if [ -d "$home/.claude/skills/setup-harness" ]; then
+    diff -rq "$snap_s" "$home/.claude/skills/setup-harness" >/dev/null || note "setup-harness changed"
+  else
+    note "setup-harness missing"
+  fi
+  if [ -d "$home/.claude/skills/fdd" ]; then
+    diff -rq "$snap_f" "$home/.claude/skills/fdd" >/dev/null || note "fdd changed"
+  else
+    note "fdd missing"
+  fi
+  outside="$(grep -v "^${home}/" "$cplog" 2>/dev/null || true)"
+  [ -z "$outside" ] || note "copy outside HOME ($(printf '%s' "$outside" | tr '\n' ' '))"
+  grep -qx 'canary' "$work/canary" || note "file outside HOME changed"
+  finish 9
   rm -rf "$work"
 }
 
