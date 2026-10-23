@@ -506,7 +506,10 @@ fetch_skill_via_clone() {
     printf '    [dry-run] git clone --depth 1 %s <tmpdir> && copy skills\n' "$SKIPR_REPO_URL"
     return 0
   fi
-  tmp="$(mktemp -d "${TMPDIR:-/tmp}/skipr-install.XXXXXX")"
+  if ! tmp="$(mktemp -d "${TMPDIR:-/tmp}/skipr-install.XXXXXX")" || [[ -z "$tmp" || ! -d "$tmp" ]]; then
+    warn "Could not create a temporary directory."
+    return 1
+  fi
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   info "Cloning skipr (shallow) to fetch skills…"
