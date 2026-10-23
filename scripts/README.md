@@ -6,7 +6,7 @@ Helper scripts for skipr. Product messages are English.
 
 **Linux/Windows ≠ this installer.** `install-macos.sh` is macOS-only and **exits
 non-zero** on other OSes (including `--dry-run`). Clone (or unzip) this repo, copy
-`skills/setup-harness` and `skills/fdd`, and use the terminal you already have. First win:
+`skills/setup-harness`, and use the terminal you already have. First win:
 [`examples/photo-trip`](../examples/photo-trip/) (novice-guide step 0). See also
 [docs/novice-guide.md](../docs/novice-guide.md).
 
@@ -18,7 +18,7 @@ Beginner-friendly macOS installer for the L0/L1 path:
 - **Ghostty is opt-in** (`--with-ghostty` or interactive `y/N`; default skip in non-interactive runs)
 - Optionally adds lean zsh niceties (`zsh-syntax-highlighting`, `zsh-autosuggestions`, `fzf`) behind `--with-zsh-extras` or a yes/no prompt — appends a **marked** block to `~/.zshrc`, never rewrites the whole file
 - Detects Claude Code CLI (`claude`); if missing, prints Anthropic’s official install docs/commands
-- Copies `skills/setup-harness` and `skills/fdd` into `~/.claude/skills/` (`--force` overwrites **after a timestamped backup**)
+- Copies `skills/setup-harness` → `~/.claude/skills/setup-harness` (`--force` overwrites **after a timestamped backup**)
 
 ### Primary path (clone — recommended)
 
@@ -38,7 +38,7 @@ Or download a zip from GitHub, unzip, then run the same script from the extracte
 | `--dry-run` | Print actions; change nothing |
 | `--with-ghostty` | Install Ghostty via Homebrew cask (otherwise ask / skip) |
 | `--with-zsh-extras` | Install lean zsh packages + append marked `~/.zshrc` block |
-| `--force` | Overwrite existing `~/.claude/skills/setup-harness` and `~/.claude/skills/fdd` (after timestamped backup) |
+| `--force` | Overwrite existing `~/.claude/skills/setup-harness` (after timestamped backup) |
 
 ### curl | bash (secondary — use with care)
 

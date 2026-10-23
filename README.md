@@ -112,7 +112,7 @@ Every comment you leave in the review room is either a one-off fix or becomes on
 
 ### Use it
 
-Copy the skill (or use `./scripts/install-macos.sh`, which copies it too). First install only. Moving the old folder aside drops files the new copy no longer has; copying into the existing folder would leave them:
+Copy the skill. First install only. Moving the old folder aside drops files the new copy no longer has; copying into the existing folder would leave them:
 
 ```bash
 mkdir -p ~/.claude/skills
