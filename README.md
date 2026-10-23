@@ -103,7 +103,7 @@ Every comment you leave in the review room is either a one-off fix or becomes on
 
 ### Use it
 
-Copy the skill:
+Copy the skill (or use `./scripts/install-macos.sh`, which copies it too):
 
 ```bash
 mkdir -p ~/.claude/skills/fdd

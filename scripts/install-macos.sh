@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # skipr macOS installer (v0)
 # Sets up the L0/L1 path: Homebrew guidance, optional Ghostty, optional lean zsh extras,
-# Claude Code CLI guidance, and the setup-harness skill.
+# Claude Code CLI guidance, and the setup-harness and fdd skills.
 #
 # Usage:
 #   ./scripts/install-macos.sh [--help] [--dry-run] [--with-ghostty] [--with-zsh-extras] [--force]
@@ -58,7 +58,7 @@ Options:
   --with-zsh-extras   Install lean zsh niceties (syntax-highlighting,
                       autosuggestions, fzf) and append a marked block to ~/.zshrc
   --force             Overwrite existing ~/.claude/skills/setup-harness
-                      (after a timestamped backup)
+                      and ~/.claude/skills/fdd (after a timestamped backup)
 
 Primary path (recommended):
   git clone https://github.com/mgatorr/skipr.git
@@ -80,8 +80,8 @@ refuse_unless_macos() {
   cat <<EOF >&2
 This script is macOS-only (detected: $(uname -s)).
 
-On Linux or Windows: clone this repo, copy skills/setup-harness, and use your
-own terminal. See scripts/README.md and step 0 in examples/photo-trip.
+On Linux or Windows: clone this repo, copy skills/setup-harness and skills/fdd,
+and use your own terminal. See scripts/README.md and step 0 in examples/photo-trip.
 EOF
   exit 1
 }
@@ -107,18 +107,18 @@ resolve_script_dir() {
   return 1
 }
 
-find_local_skill() {
+find_repo_root() {
   local dir root
   if dir="$(resolve_script_dir 2>/dev/null)"; then
     root="$(cd "$dir/.." && pwd)"
     if [[ -f "$root/skills/setup-harness/SKILL.md" ]]; then
-      printf '%s\n' "$root/skills/setup-harness"
+      printf '%s\n' "$root"
       return 0
     fi
   fi
   # cwd fallback (run from repo root)
   if [[ -f "./skills/setup-harness/SKILL.md" ]]; then
-    printf '%s\n' "$(pwd)/skills/setup-harness"
+    printf '%s\n' "$(pwd)"
     return 0
   fi
   return 1
@@ -372,11 +372,12 @@ backup_existing_skill() {
 
 copy_skill_from_dir() {
   local src="$1"
-  local dest="$SKILL_DEST"
+  local dest="$2"
+  local label="$3"
   local dest_parent
   dest_parent="$(dirname "$dest")"
 
-  info "Installing setup-harness → ${dest}"
+  info "Installing ${label} → ${dest}"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     printf '    [dry-run] mkdir -p %s\n' "$dest_parent"
     if [[ -d "$dest" ]]; then
@@ -391,52 +392,77 @@ copy_skill_from_dir() {
     backup_existing_skill "$dest"
   fi
   cp -R "$src" "$dest"
-  ok "setup-harness installed at ${dest}"
+  ok "${label} installed at ${dest}"
+}
+
+# Install when missing, or when --force / the user confirms. Otherwise keep it.
+should_replace_skill() {
+  local dest="$1"
+  local label="$2"
+  local ans
+  if [[ ! -d "$dest" || "$FORCE" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ -t 0 ]]; then
+    printf '%s already at %s — overwrite (with backup)? [y/N] ' "$label" "$dest"
+    read -r ans || ans=""
+    case "$ans" in
+      y|Y|yes|YES) return 0 ;;
+      *)
+        ok "Keeping existing ${label} (pass --force to overwrite with backup)"
+        return 1
+        ;;
+    esac
+  fi
+  ok "Existing ${label} kept (non-interactive; pass --force to overwrite with backup)"
+  return 1
+}
+
+install_one_skill() {
+  local label="$1"
+  local src="$2"
+  local dest="$3"
+  [[ -f "$src/SKILL.md" ]] || return 0
+  if should_replace_skill "$dest" "$label"; then
+    copy_skill_from_dir "$src" "$dest" "$label"
+  fi
+}
+
+install_skills_from_root() {
+  local root="$1"
+  install_one_skill setup-harness "$root/skills/setup-harness" "$SKILL_DEST"
+  if [[ -f "$root/skills/fdd/SKILL.md" ]]; then
+    install_one_skill fdd "$root/skills/fdd" "${HOME}/.claude/skills/fdd"
+  else
+    warn "skills/fdd not in this tree; skipped."
+  fi
 }
 
 fetch_skill_via_clone() {
   local tmp
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf '    [dry-run] git clone --depth 1 %s <tmpdir> && copy skills/setup-harness\n' "$SKIPR_REPO_URL"
+    printf '    [dry-run] git clone --depth 1 %s <tmpdir> && copy skills/setup-harness and skills/fdd\n' "$SKIPR_REPO_URL"
     return 0
   fi
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/skipr-install.XXXXXX")"
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
-  info "Cloning skipr (shallow) to fetch setup-harness…"
+  info "Cloning skipr (shallow) to fetch skills…"
   git clone --depth 1 "$SKIPR_REPO_URL" "$tmp/skipr"
   if [[ ! -f "$tmp/skipr/skills/setup-harness/SKILL.md" ]]; then
     warn "Clone succeeded but skills/setup-harness is missing."
     return 1
   fi
-  copy_skill_from_dir "$tmp/skipr/skills/setup-harness"
+  install_skills_from_root "$tmp/skipr"
 }
 
 ensure_skill() {
-  step "setup-harness skill"
-  local src=""
+  step "skills"
+  local root=""
 
-  if [[ -d "$SKILL_DEST" && "$FORCE" -ne 1 ]]; then
-    if [[ -t 0 ]]; then
-      printf 'setup-harness already at %s — overwrite (with backup)? [y/N] ' "$SKILL_DEST"
-      local ans
-      read -r ans || ans=""
-      case "$ans" in
-        y|Y|yes|YES) FORCE=1 ;;
-        *)
-          ok "Keeping existing skill (pass --force to overwrite with backup)"
-          return 0
-          ;;
-      esac
-    else
-      ok "Existing skill kept (non-interactive; pass --force to overwrite with backup)"
-      return 0
-    fi
-  fi
-
-  if src="$(find_local_skill)"; then
-    ok "Using local skill source: $src"
-    copy_skill_from_dir "$src"
+  if root="$(find_repo_root)"; then
+    ok "Using local skill source: $root/skills"
+    install_skills_from_root "$root"
     return 0
   fi
 
@@ -451,6 +477,8 @@ ensure_skill() {
       git clone ${SKIPR_REPO_URL}
       mkdir -p ~/.claude/skills/setup-harness
       cp -R skipr/skills/setup-harness/. ~/.claude/skills/setup-harness/
+      mkdir -p ~/.claude/skills/fdd
+      cp -R skipr/skills/fdd/. ~/.claude/skills/fdd/
 EOF
     return 1
   fi
