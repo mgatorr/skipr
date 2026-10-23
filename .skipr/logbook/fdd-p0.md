@@ -28,5 +28,6 @@ None yet. This change has not been approved in a preview.
 
 ## Links
 - Tag `era-spec-kit` (`52e0e40`)
-- PRs: draft cleanup, then draft method stacked on it
+- PR: https://github.com/mgatorr/skipr/pull/18 (cleanup)
+- PR: https://github.com/mgatorr/skipr/pull/19 (method, stacked on the cleanup branch)
 - Preview: none yet
