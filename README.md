@@ -112,18 +112,24 @@ Every comment you leave in the review room is either a one-off fix or becomes on
 
 ### Use it
 
-Copy the skill (or use `./scripts/install-macos.sh`, which copies it too):
+Copy the skill (or use `./scripts/install-macos.sh`, which copies it too). First install only. Moving the old folder aside drops files the new copy no longer has; copying into the existing folder would leave them:
 
 ```bash
-mkdir -p ~/.claude/skills/fdd
-cp -R skills/fdd/. ~/.claude/skills/fdd/
+mkdir -p ~/.claude/skills
+if [ -e ~/.claude/skills/fdd ]; then
+  mkdir -p ~/.claude/skills-backup
+  bak="$(mktemp ~/.claude/skills-backup/fdd.XXXXXX)"
+  rm "$bak"
+  mv ~/.claude/skills/fdd "$bak"
+fi
+cp -R skills/fdd ~/.claude/skills/fdd
 ```
 
-`CLAUDE.md` is created by setup-harness first. Then start `.skipr/rules.md` in your project from [`skills/fdd/templates/rules.md`](./skills/fdd/templates/rules.md) and add `@.skipr/rules.md` to the project's `CLAUDE.md`.
+`CLAUDE.md` is created by setup-harness first. Then start `.skipr/rules.md` in your project from [`skills/fdd/templates/rules.md`](./skills/fdd/templates/rules.md) and add `@.skipr/rules.md` to the project's `CLAUDE.md`. This creates `.skipr/rules.md` only when it is missing.
 
 ```bash
 mkdir -p .skipr
-cp ~/.claude/skills/fdd/templates/rules.md .skipr/rules.md
+[ -e .skipr/rules.md ] || cp ~/.claude/skills/fdd/templates/rules.md .skipr/rules.md
 ```
 
 Replace or delete the `<rule>` line. It is a placeholder. The templates for the note and the logbook are in the same folder. Full protocol: [`skills/fdd/SKILL.md`](./skills/fdd/SKILL.md).
