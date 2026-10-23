@@ -49,6 +49,12 @@ jobs:
       - uses: actions/checkout@v6
       - name: English and Spanish checker fixtures
         run: bash scripts/test-harness-checks.sh
+      - name: Docs check redaction
+        run: bash scripts/test-check-docs.sh
+      - name: Provenance lines stay redacted
+        run: bash scripts/test-check-docs-provenance.sh
+      - name: README step 4
+        run: bash scripts/test-readme-step4.sh
 
   docs-check:
     runs-on: ubuntu-latest

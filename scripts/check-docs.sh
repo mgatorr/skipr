@@ -16,8 +16,52 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
 fail=0
+
+# Print a path or other string. If it contains a banned term (case-insensitive
+# substring, separators ignored), print only [path#<12 hex sha256>].
+label_for() {
+  local text="$1"
+  if [[ -z "${DOCS_BANNED_LIST:-}" ]]; then
+    printf '%s' "$text"
+    return 0
+  fi
+  perl -e '
+use strict; use warnings;
+use Encode qw(decode);
+use Unicode::Normalize qw(NFC);
+use Digest::SHA qw(sha256_hex);
+my ($text) = @ARGV;
+sub squash {
+  my ($s) = @_;
+  $s = lc NFC($s);
+  $s =~ s/[^a-z0-9_]+//g;
+  return $s;
+}
+my @needles;
+for my $t (split /\r?\n/, decode("UTF-8", $ENV{DOCS_BANNED_LIST} // "")) {
+  $t =~ s/^\s+|\s+$//g;
+  next if $t eq "" || $t =~ /^#/;
+  $t =~ s/^=//;
+  my $n = squash($t);
+  push @needles, $n if $n ne "";
+}
+my $hay = squash($text // "");
+my $hit = 0;
+if ($hay ne "") {
+  for my $n (@needles) {
+    if (index($hay, $n) >= 0) { $hit = 1; last; }
+  }
+}
+if ($hit) {
+  print "[path#" . substr(sha256_hex($text), 0, 12) . "]";
+} else {
+  print $text;
+}
+' -- "$text"
+}
+
 report() {
-  printf '%s\n' "$*" >&2
+  printf '%s\n' "$(label_for "$*")" >&2
   fail=1
 }
 
@@ -25,7 +69,8 @@ report() {
 # empty, from the gitignored file .docs-banned at the repo root. Format: one
 # term per line; blank lines and lines starting with # are ignored. A term may
 # be several words. A line starting with = is matched in exact case;
-# every other term is matched case-insensitively. Matching is on whole words.
+# every other term is matched case-insensitively. Content matching is whole
+# words. Path and link-target matching is a case-insensitive substring.
 banned_list="${DOCS_BANNED:-}"
 banned_source="DOCS_BANNED"
 if [[ -z "$banned_list" && -f .docs-banned ]]; then
@@ -42,16 +87,32 @@ if [[ -z "${banned_list//[[:space:]]/}" ]]; then
 fi
 export DOCS_BANNED_LIST="$banned_list"
 
-# A content hit prints file:line, or [path#<sha>] when the path also matches.
-# A path-only hit prints [path#<sha>] and nothing else. Never prints the term.
-# Files that are not valid UTF-8 text (binary) are skipped.
+# A content hit prints file:line, or [path#<sha>] when the path contains a term.
+# Path matching is a case-insensitive substring with separators ignored.
+# Content matching stays whole-word. A path-only hit prints [path#<sha>] only.
+# Files that are not valid UTF-8 text (binary) are skipped. Never prints the term.
 banned_scanner='
 use strict; use warnings;
 use Encode qw(decode FB_CROAK);
 use Unicode::Normalize qw(NFC);
 use Digest::SHA qw(sha256_hex);
 my ($file) = @ARGV;
-my (%ci, %cs); my $max = 1;
+my (%ci, %cs, @path_needles); my $max = 1;
+sub squash {
+  my ($s) = @_;
+  $s = lc NFC($s);
+  $s =~ s/[^a-z0-9_]+//g;
+  return $s;
+}
+sub path_has_term {
+  my ($text) = @_;
+  my $hay = squash($text);
+  return 0 if $hay eq "";
+  for my $n (@path_needles) {
+    return 1 if index($hay, $n) >= 0;
+  }
+  return 0;
+}
 sub phrase_hit {
   my ($text) = @_;
   my @w = NFC($text) =~ /(\w+)/g;
@@ -68,13 +129,15 @@ for my $t (split /\r?\n/, decode("UTF-8", $ENV{DOCS_BANNED_LIST} // "")) {
   $t =~ s/^\s+|\s+$//g;
   next if $t eq "" || $t =~ /^#/;
   my $exact = $t =~ s/^=//;
+  my $needle = squash($t);
+  push @path_needles, $needle if $needle ne "";
   my @w = NFC($t) =~ /(\w+)/g;
   next unless @w;
   $max = @w if @w > $max;
   if ($exact) { $cs{ join " ", @w } = 1 } else { $ci{ lc join " ", @w } = 1 }
 }
 exit 0 unless %ci || %cs;
-my $path_hit = phrase_hit($file);
+my $path_hit = path_has_term($file);
 my $label = $file;
 if ($path_hit) {
   $label = "[path#" . substr(sha256_hex($file), 0, 12) . "]";
@@ -108,8 +171,9 @@ scan_banned() {
 }
 
 scan_links() {
-  local f="$1" dir lineno match path target
+  local f="$1" dir lineno match path target flabel tlabel
   dir=$(dirname -- "$f")
+  flabel="$(label_for "$f")"
   while IFS=: read -r lineno match; do
     [[ -n "${match:-}" ]] || continue
     path=${match#](}
@@ -118,12 +182,13 @@ scan_links() {
     path=${path#<}
     path=${path%>}
     if [[ -z "$path" ]]; then
-      report "$f:$lineno: empty relative link"
+      report "$flabel:$lineno: empty relative link"
       continue
     fi
     target="$dir/$path"
     if [[ ! -e "$target" ]]; then
-      report "$f:$lineno: missing $path"
+      tlabel="$(label_for "$path")"
+      report "$flabel:$lineno: missing $tlabel"
     fi
   done < <(grep -n -o -E '\]\(\.\.?/[^)[:space:]]+' -- "$f" || true)
 }
@@ -134,7 +199,7 @@ check_cap() {
   lines=$(wc -l < "$f")
   lines=${lines//[[:space:]]/}
   if (( lines > cap )); then
-    report "$f has $lines lines (cap $cap)"
+    report "$(label_for "$f") has $lines lines (cap $cap)"
   fi
 }
 
@@ -153,7 +218,7 @@ done < <(git ls-files -z --)
 
 for extra in "$@"; do
   if [[ ! -f "$extra" ]]; then
-    report "not a file: $extra"
+    report "not a file: $(label_for "$extra")"
     continue
   fi
   scan_tree_file "$extra"
@@ -182,10 +247,12 @@ fi
 rules=".skipr/rules.md"
 prov_re='^.+ \([^)]+, [0-9]{4}-[0-9]{2}-[0-9]{2}[^)]*\)$'
 if [[ -f "$rules" ]]; then
+  prov_n=0
   while IFS= read -r line || [[ -n "$line" ]]; do
+    prov_n=$((prov_n + 1))
     [[ "$line" == "- "* ]] || continue
     if ! [[ "$line" =~ $prov_re ]]; then
-      report "$rules: rule line missing provenance: $line"
+      report "$rules:$prov_n: rule line missing provenance"
     fi
   done < "$rules"
 fi
