@@ -96,13 +96,19 @@ repo so you can read it on GitHub and install it into Claude Code’s skills fol
 
 Skill source: [`skills/setup-harness/`](../skills/setup-harness/)
 
-**Clone or zip the repo first**, then copy (or use the macOS installer, which backs up
-any existing skill):
+**Clone or zip the repo first.** First install only. These commands move an existing
+folder to `~/.claude/skills-backup/` before copying (outside `~/.claude/skills`):
 
 ```bash
 # after: git clone https://github.com/mgatorr/skipr.git
-mkdir -p ~/.claude/skills/setup-harness
-cp -R /path/to/skipr/skills/setup-harness/. ~/.claude/skills/setup-harness/
+mkdir -p ~/.claude/skills
+if [ -e ~/.claude/skills/setup-harness ]; then
+  mkdir -p ~/.claude/skills-backup
+  bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
+  rm "$bak"
+  mv ~/.claude/skills/setup-harness "$bak"
+fi
+cp -R /path/to/skipr/skills/setup-harness ~/.claude/skills/setup-harness
 ```
 
 Claude Code CLI install (official): [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install)

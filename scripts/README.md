@@ -2,7 +2,7 @@
 
 Helper scripts for skipr. Product messages are English.
 
-`./scripts/check-docs.sh` exits non-zero when a tracked file contains a term from the banned list (`DOCS_BANNED` or a local `.docs-banned`; without either it warns and skips that scan), a capped doc is too long, or a relative Markdown link is broken.
+`./scripts/check-docs.sh` exits non-zero when a tracked file contains a term from the banned list (`DOCS_BANNED` or a local `.docs-banned`), a capped doc is too long, or a relative Markdown link is broken. With no list it warns and skips only the term scan; in CI (`CI` or `GITHUB_ACTIONS` set to `true`) it exits 1 and prints `DOCS_BANNED secret not set`.
 
 **Linux/Windows ≠ this installer.** `install-macos.sh` is macOS-only and **exits
 non-zero** on other OSes (including `--dry-run`). Clone (or unzip) this repo, copy

@@ -62,8 +62,17 @@ Do this in order (you do not need to be a developer):
    mkdir -p ~/Projects/lisbon-trip
    cd ~/Projects/lisbon-trip
    ```
-4. **Install and run setup-harness** — copy [`skills/setup-harness/`](./skills/setup-harness/) to `~/.claude/skills/setup-harness/`, then in the project folder:
+4. **Install and run setup-harness** — from this repo, first install only (an existing copy is moved aside, then replaced). Then start Claude in the project folder:
    ```bash
+   mkdir -p ~/.claude/skills
+   if [ -e ~/.claude/skills/setup-harness ]; then
+     mkdir -p ~/.claude/skills-backup
+     bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
+     rm "$bak"
+     mv ~/.claude/skills/setup-harness "$bak"
+   fi
+   cp -R skills/setup-harness ~/.claude/skills/setup-harness
+   cd ~/Projects/lisbon-trip
    claude
    # "Run setup-harness for this folder"
    ```
@@ -178,11 +187,17 @@ Ghostty is opt-in (`--with-ghostty` or interactive `y/N`). Details: [`scripts/RE
 
 Canonical source: **[`skills/setup-harness/SKILL.md`](./skills/setup-harness/SKILL.md)**
 
-**Clone or download a zip of this repo first**, then copy the skill (or use `./scripts/install-macos.sh`, which backs up any existing copy):
+**Clone or download a zip of this repo first.** First install only. These commands move an existing folder to `~/.claude/skills-backup/` before copying (outside `~/.claude/skills`):
 
 ```bash
-mkdir -p ~/.claude/skills/setup-harness
-cp -R skills/setup-harness/. ~/.claude/skills/setup-harness/
+mkdir -p ~/.claude/skills
+if [ -e ~/.claude/skills/setup-harness ]; then
+  mkdir -p ~/.claude/skills-backup
+  bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
+  rm "$bak"
+  mv ~/.claude/skills/setup-harness "$bak"
+fi
+cp -R skills/setup-harness ~/.claude/skills/setup-harness
 ```
 
 Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. Claude Code install: [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install).

@@ -57,11 +57,17 @@ It fails on purpose on a loose `IMG_0042.JPG`. How to pass: [photo-trip fail/pas
 ## Ten-minute first win (your own folder)
 
 1. Install the [Claude Code CLI](https://code.claude.com/docs/en/install) (`claude --version`) — not only the desktop app.
-2. Copy [`skills/setup-harness/`](../skills/setup-harness/) to `~/.claude/skills/setup-harness/` (from the skipr clone):
+2. From the skipr clone, first install only. An existing copy is moved to `~/.claude/skills-backup/` before copying:
 
    ```bash
-   mkdir -p ~/.claude/skills/setup-harness
-   cp -R /path/to/skipr/skills/setup-harness/. ~/.claude/skills/setup-harness/
+   mkdir -p ~/.claude/skills
+   if [ -e ~/.claude/skills/setup-harness ]; then
+     mkdir -p ~/.claude/skills-backup
+     bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
+     rm "$bak"
+     mv ~/.claude/skills/setup-harness "$bak"
+   fi
+   cp -R /path/to/skipr/skills/setup-harness ~/.claude/skills/setup-harness
    ```
 3. `cd` into a trip or client folder, run `claude`, ask: *Run setup-harness for this folder*.
 4. Run the checker it installed. Green or a clear red — both are a win.
