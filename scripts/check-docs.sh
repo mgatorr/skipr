@@ -155,6 +155,17 @@ if [[ -f "$note" ]]; then
   done
 fi
 
+rules=".skipr/rules.md"
+prov_re='^.+ \([^)]+, [0-9]{4}-[0-9]{2}-[0-9]{2}[^)]*\)$'
+if [[ -f "$rules" ]]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" == "- "* ]] || continue
+    if ! [[ "$line" =~ $prov_re ]]; then
+      report "$rules: rule line missing provenance: $line"
+    fi
+  done < "$rules"
+fi
+
 if (( fail == 0 )); then
   printf 'docs check ok\n'
   exit 0

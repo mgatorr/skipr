@@ -45,3 +45,10 @@ Not loaded by default. Search it during Explore, or when a question touches an e
 ## Note
 
 One note per feature, ≤ 60 lines, thrown away at close. It is the handoff for a cloud or background agent. Template: [`templates/note.md`](./templates/note.md).
+
+## Templates
+
+- [`templates/note.md`](./templates/note.md) — the short note
+- [`templates/rules.md`](./templates/rules.md) — layer 1 line format
+- [`templates/logbook-entry.md`](./templates/logbook-entry.md) — one closed feature
+- [`templates/logbook-index.md`](./templates/logbook-index.md) — one line per feature
