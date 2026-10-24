@@ -32,7 +32,9 @@ new_repo() {
 count() { git -C "$1" rev-list --count HEAD; }
 
 # A token shaped like a GitHub one, built at run time so this file holds none.
-token="gh""p_$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 36)"
+# A fixed read: `tr </dev/urandom | head` never ends on macOS when SIGPIPE is
+# ignored, as it is on GitHub's runners.
+token="gh""p_$(od -An -tx1 -N18 /dev/urandom | tr -d ' \n')"
 
 # A gitleaks that errors out must not let a secret through.
 printf '#!/bin/sh\nexit 3\n' >"$work/broken-gitleaks" && chmod +x "$work/broken-gitleaks"
