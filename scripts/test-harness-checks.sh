@@ -42,10 +42,13 @@ run_case brief-not-prefix 1 "$checks/brief-ready.sh" "$fixtures/brief-ready/not-
 
 run_case naming-en 0 "$checks/naming.sh" "$fixtures/naming/en"
 run_case naming-spanish-alias 0 "$checks/naming.sh" "$fixtures/naming/accepts-spanish-alias"
+run_case naming-en-working-folders 0 "$checks/naming.sh" "$fixtures/naming/en-working-folders"
+run_case naming-spanish-working-folders 0 "$checks/naming.sh" "$fixtures/naming/spanish-working-folders"
 run_case naming-undated 1 "$checks/naming.sh" "$fixtures/naming/undated"
 run_case naming-loose 1 "$checks/naming.sh" "$fixtures/naming/loose"
 run_case naming-photo-trip-en 0 "$photo_naming" "$fixtures/naming/en"
 run_case naming-photo-trip-spanish-alias 0 "$photo_naming" "$fixtures/naming/accepts-spanish-alias"
+run_case naming-photo-trip-spanish-working-folders 0 "$photo_naming" "$fixtures/naming/spanish-working-folders"
 
 run_case delivery-en 0 "$checks/delivery.sh" "$fixtures/delivery/en"
 run_case delivery-spanish-alias 0 "$checks/delivery.sh" "$fixtures/delivery/accepts-spanish-alias"
