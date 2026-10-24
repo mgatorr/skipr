@@ -5,6 +5,7 @@
 # no *bak* under skills, distinct backup suffixes, one name each, rules untouched.
 # Scenario 9 shims mktemp to fail and records cp destinations.
 # Scenario 10 fails only the clone-path mktemp -d and records git clone.
+# Scenario 11 shims mv to send SIGINT right after the backup move.
 set -u
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -551,6 +552,73 @@ EOF
   [ -z "$home_write" ] || note "write outside the temp area ($home_write)"
   grep -qx 'canary' "$work/canary" || note "file outside the temp area changed"
   finish 10
+  rm -rf "$work"
+}
+
+# --- 11. SIGINT right after the backup move: the old skill is moved back ---
+begin 11
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  seed_skill "$REPO/skills/setup-harness" "$home/.claude/skills/setup-harness"
+  seed_skill "$REPO/skills/fdd" "$home/.claude/skills/fdd"
+  printf 'old\n' > "$home/.claude/skills/setup-harness/OLD"
+  snap="$work/snap-setup"
+  cp -R "$home/.claude/skills/setup-harness" "$snap"
+  mark="$work/killed"
+  shim11="$(mktemp -d)"
+  real_mv="$(command -v mv)"
+  cat > "$shim11/mv" <<EOF
+#!/bin/sh
+'$real_mv' "\$@" || exit \$?
+case "\${2:-}" in
+  */skills-backup/setup-harness.*)
+    if [ ! -e "\$SKIPR_KILL_MARK" ]; then
+      : > "\$SKIPR_KILL_MARK"
+      kill -INT "\$PPID"
+    fi
+    ;;
+esac
+exit 0
+EOF
+  chmod +x "$shim11/mv"
+  EC=0
+  env -u GIT_DIR -u GIT_WORK_TREE \
+    HOME="$home" PATH="$shim11:$ORIG_PATH" SKIPR_REPO_URL="$REPO" SKIPR_KILL_MARK="$mark" \
+    bash "$INSTALLER" --force </dev/null >"$log" 2>&1 || EC=$?
+  rm -rf "$shim11"
+  [ -e "$mark" ] || note "the backup move was never reached"
+  [ "$EC" -eq 130 ] || note "exit $EC want 130"
+  if [ -d "$home/.claude/skills/setup-harness" ]; then
+    diff -r "$snap" "$home/.claude/skills/setup-harness" >/dev/null || note "setup-harness is not the original"
+  else
+    note "setup-harness missing from skills after SIGINT"
+  fi
+  staging_left="$(find "$home/.claude/skills" -name '.*.staging.*' -print | head -n 1)"
+  [ -z "$staging_left" ] || note "staging dir left ($staging_left)"
+  finish 11
+  rm -rf "$work"
+}
+
+# --- 12. installed skill dirs are mode 755, not mktemp's 700 ---
+begin 12
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  run_inst "$log" "$home"
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  for s in setup-harness fdd; do
+    d="$home/.claude/skills/$s"
+    if [ -d "$d" ]; then
+      mode="$(stat -c %a "$d" 2>/dev/null || stat -f %Lp "$d")"
+      [ "$mode" = 755 ] || note "$s dir mode $mode want 755"
+    else
+      note "$s missing"
+    fi
+  done
+  finish 12
   rm -rf "$work"
 }
 
