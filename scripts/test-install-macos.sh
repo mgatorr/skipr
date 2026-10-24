@@ -622,7 +622,9 @@ begin 12
   rm -rf "$work"
 }
 
-# --- 13. SIGINT during the curl|bash clone: the temp clone is removed ---
+# --- 13. SIGTERM during the curl|bash clone: the temp clone is removed ---
+# TERM, not INT: CI runners may start steps with SIGINT ignored, and a signal
+# ignored on entry cannot be trapped. Both traps drop the clone the same way.
 begin 13
 {
   work="$(new_home)"
@@ -636,7 +638,7 @@ begin 13
 #!/bin/sh
 if [ "\${1:-}" = "clone" ]; then
   '$real_git' "\$@" || exit 1
-  kill -INT "\$PPID"
+  kill -TERM "\$PPID"
   exit 0
 fi
 exec '$real_git' "\$@"
@@ -651,7 +653,7 @@ EOF
       bash -c "$body" bash </dev/null >"$log" 2>&1
   ) || EC=$?
   rm -rf "$shim13"
-  [ "$EC" -eq 130 ] || note "exit $EC want 130"
+  [ "$EC" -eq 143 ] || note "exit $EC want 143"
   left="$(find "$tmp" -maxdepth 1 -name 'skipr-install.*' -print)"
   [ -z "$left" ] || note "temp clone left behind ($left)"
   finish 13
