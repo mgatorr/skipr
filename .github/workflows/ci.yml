@@ -64,6 +64,8 @@ jobs:
         run: bash scripts/test-readme-zsh.sh
       - name: README starts claude only after the clone
         run: bash scripts/test-readme-claude.sh
+      - name: skipr.dev docs links land on a file
+        run: bash scripts/test-landing-redirects.sh
       - name: fdd undo
         run: bash scripts/test-fdd-undo.sh
       - name: fdd commit
