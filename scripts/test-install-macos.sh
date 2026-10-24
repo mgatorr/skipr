@@ -622,6 +622,42 @@ begin 12
   rm -rf "$work"
 }
 
+# --- 13. SIGINT during the curl|bash clone: the temp clone is removed ---
+begin 13
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  tmp="$work/tmpdir"
+  mkdir -p "$tmp"
+  shim13="$(mktemp -d)"
+  real_git="$(command -v git)"
+  cat > "$shim13/git" <<EOF
+#!/bin/sh
+if [ "\${1:-}" = "clone" ]; then
+  '$real_git' "\$@" || exit 1
+  kill -INT "\$PPID"
+  exit 0
+fi
+exec '$real_git' "\$@"
+EOF
+  chmod +x "$shim13/git"
+  body="$(cat "$INSTALLER")"
+  EC=0
+  (
+    cd "$work"
+    env -u GIT_DIR -u GIT_WORK_TREE \
+      HOME="$home" PATH="$shim13:$ORIG_PATH" SKIPR_REPO_URL="$REPO" TMPDIR="$tmp" \
+      bash -c "$body" bash </dev/null >"$log" 2>&1
+  ) || EC=$?
+  rm -rf "$shim13"
+  [ "$EC" -eq 130 ] || note "exit $EC want 130"
+  left="$(find "$tmp" -maxdepth 1 -name 'skipr-install.*' -print)"
+  [ -z "$left" ] || note "temp clone left behind ($left)"
+  finish 13
+  rm -rf "$work"
+}
+
 if [ "$fail" -eq 0 ]; then
   say "installer scenarios: PASS"
   exit 0
