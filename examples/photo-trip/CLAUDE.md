@@ -1,6 +1,6 @@
 # Photo trip — Porto (example)
 
-Work folder: **viaje / trip**. Stay in this directory. Do not wander into a generic vault.
+Work folder: **trip**. Stay in this directory. Do not wander into a generic vault.
 
 ## Language
 

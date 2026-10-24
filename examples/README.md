@@ -40,6 +40,6 @@ The terminal is taught, not hidden. skipr is independent and **not affiliated wi
 
 | Folder | Domain | Checker | What you should see |
 |---|---|---|---|
-| [`photo-trip/`](./photo-trip/) | trip / viaje | `./checks/naming.sh` | Fails on a loose `IMG_####` name; passes after you move it into the dated folder |
+| [`photo-trip/`](./photo-trip/) | trip | `./checks/naming.sh` | Fails on a loose `IMG_####` name; passes after you move it into the dated folder |
 
 More examples can land later. Prefer a new folder with one check over extra skills.

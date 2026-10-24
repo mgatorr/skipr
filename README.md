@@ -42,14 +42,14 @@ Software-founder desktop-app tracks from earlier MVPs are parked. Start here wit
 
 ## Novice path
 
-Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · [for photographers](./docs/for-photographers.md) · [examples](./examples/) · Spanish mirror: [docs/es/novice-guide.md](./docs/es/novice-guide.md)
+Full step-by-step: **[docs/novice-guide.md](./docs/novice-guide.md)** · [for photographers](./docs/for-photographers.md) · [examples](./examples/)
 
 Do this in order (you do not need to be a developer):
 
 0. **Two-minute fail/pass (no Claude yet)** — clone this repo, then:
    ```bash
-   git clone https://github.com/mgatorr/skipr.git
-   cd skipr/examples/photo-trip
+   git clone https://github.com/mgatorr/skipr.git ~/skipr
+   cd ~/skipr/examples/photo-trip
    ./checks/naming.sh
    ```
    Red with a clear message is a win. How to pass: [`examples/photo-trip/checks/README.md`](./examples/photo-trip/checks/README.md).
@@ -57,18 +57,33 @@ Do this in order (you do not need to be a developer):
 2. **Open a terminal you will actually use** — on macOS we recommend [Ghostty](https://ghostty.org); Terminal.app / iTerm are fine.
 3. **Create or open your project folder** — a trip, client job, culling session — not a giant vault of prompts:
    ```bash
-   mkdir -p ~/Projects/viaje-lisboa
-   cd ~/Projects/viaje-lisboa
+   mkdir -p ~/Projects/lisbon-trip
+   cd ~/Projects/lisbon-trip
    ```
-4. **Install and run setup-harness** — copy [`skills/setup-harness/`](./skills/setup-harness/) to `~/.claude/skills/setup-harness/`, then in the project folder:
+4. **Install and run setup-harness** — from the `~/skipr` clone, first install only (an existing copy is moved aside, then replaced). The parentheses run in their own shell, so a later failed checker does not close the terminal. Then start Claude in the project folder:
    ```bash
+   (
+     if [ ! -d skills/setup-harness ]; then
+       cd ~/skipr || exit 1
+     fi
+     mkdir -p ~/.claude/skills &&
+     if [ -e ~/.claude/skills/setup-harness ]; then
+       mkdir -p ~/.claude/skills-backup &&
+       bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)" &&
+       rm "$bak" &&
+       mv ~/.claude/skills/setup-harness "$bak"
+     fi &&
+     cp -R skills/setup-harness ~/.claude/skills/setup-harness &&
+     cd ~/Projects/lisbon-trip
+   ) &&
    claude
-   # "Run setup-harness for this folder" / "Monta el harness en esta carpeta"
    ```
+   Tell Claude: "Run setup-harness for this folder".
 5. **Run a checker** — see *no* work:
    ```bash
-   ./checks/naming.sh   # or brief-ready.sh / delivery.sh
+   ./checks/naming.sh
    ```
+   Or run `./checks/brief-ready.sh` or `./checks/delivery.sh`.
 6. **First win** — `claude` runs here, short `CLAUDE.md`, at least one executable check, and you understand pass vs fail. You already saw fail/pass in step 0 on [`examples/photo-trip`](./examples/photo-trip/).
 
 ## This grows with you
@@ -82,36 +97,32 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 
 ```text
 .
-├── README.md                 # this carta (product surface)
+├── README.md                 # this product surface
 ├── assets/
 │   └── skipr-hero.png        # README hero (escape-complexity)
 ├── docs/
-│   ├── novice-guide.md       # full beginner path (EN)
+│   ├── novice-guide.md       # full beginner path
 │   ├── for-photographers.md  # L0/L1 path for photographers
-│   ├── es/novice-guide.md    # short Spanish mirror
 │   ├── l2/                   # optional advanced tracks (Cursor, OpenCode, Hermes)
-│   ├── ARCHIVE.md            # map of superseded eras
-│   ├── design.md             # HISTORICAL — desktop/no-terminal era
-│   └── constitution.md       # HISTORICAL — principles (see banners)
+│   └── ARCHIVE.md            # pointer to tag era-spec-kit
 ├── scripts/
 │   ├── install-macos.sh      # macOS L0/L1 installer (v0)
 │   └── README.md             # script usage
 ├── examples/                 # first-wins you can run (photo-trip fail/pass)
 ├── skills/
 │   └── setup-harness/        # vendored Claude Code skill + templates
-├── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
-└── specs/                    # Spec Kit history
+└── landing/                  # skipr.dev static GitHub stub (see landing/README.md)
 ```
 
 ## Historical docs
 
-Earlier Spec Kit / Cockpit / desktop no-terminal eras are archived — see [`docs/ARCHIVE.md`](./docs/ARCHIVE.md). Do not treat those files as current product truth.
+Earlier eras are on the tag `era-spec-kit`. See [`docs/ARCHIVE.md`](./docs/ARCHIVE.md). Do not treat that history as the current product.
 
 ## Language
 
 - **Product / docs / README:** English (canonical).
 - **Working chat with the human:** configurable — set `Working language: es` in project `CLAUDE.md`, or `SKIPR_LOCALE` / `LANG` (default `en`).
-- Details: [`docs/language.md`](./docs/language.md). Spanish novice guide: [`docs/es/novice-guide.md`](./docs/es/novice-guide.md) (secondary mirror).
+- Details: [`docs/language.md`](./docs/language.md). Product files stay English. Replies to the human may follow `Working language`.
 
 ## macOS installer (v0)
 
@@ -129,9 +140,16 @@ Ghostty is opt-in (`--with-ghostty` or interactive `y/N`). Details: [`scripts/RE
 
 Canonical source: **[`skills/setup-harness/SKILL.md`](./skills/setup-harness/SKILL.md)**
 
-**Clone or download a zip of this repo first**, then copy the skill (or use `./scripts/install-macos.sh`, which backs up any existing copy):
+**Clone or download a zip of this repo first.** First install only. These commands move an existing folder to `~/.claude/skills-backup/` before copying (outside `~/.claude/skills`):
 
 ```bash
+mkdir -p ~/.claude/skills
+if [ -e ~/.claude/skills/setup-harness ]; then
+  mkdir -p ~/.claude/skills-backup
+  bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
+  rm "$bak"
+  mv ~/.claude/skills/setup-harness "$bak"
+fi
 cp -R skills/setup-harness ~/.claude/skills/setup-harness
 ```
 
@@ -140,7 +158,7 @@ Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. C
 ## Roadmap
 
 - [x] Reposition promise: escape AI complexity (not “hide the terminal”)
-- [x] GitHub-first carta: README + novice guide + vendored harness
+- [x] GitHub-first product surface: README + novice guide + vendored harness
 - [x] Install script v0 (macOS) — [`scripts/install-macos.sh`](./scripts/install-macos.sh)
 - [x] L2 track docs (optional advanced tools) — [`docs/l2/`](./docs/l2/)
 - [x] Examples (photo-trip first-win) — [`examples/`](./examples/)

@@ -1,6 +1,6 @@
 ---
 name: setup-harness
-description: Use when scaffolding a minimal AI harness for a photo (or other non-software) project folder — "setup harness", "monta el arnés", checkers for a trip/client/culling folder, CLAUDE.md corto + checks that can fail, without Spec Kit or a Second Brain. Also when helping photographers move from the Claude app to the terminal (Ghostty/Orca) with a lean setup.
+description: Use when scaffolding a minimal AI harness for a photo (or other non-software) project folder — "setup harness", "set up the harness", checkers for a trip/client/culling folder, short CLAUDE.md + checks that can fail, without Spec Kit or a Second Brain. Also when helping photographers move from the Claude app to the terminal (Ghostty/Orca) with a lean setup.
 ---
 
 # Setup Harness
@@ -18,13 +18,13 @@ it is not a check.
 ## Language
 
 - **Canonical product / repo language:** English (this skill file; commits when contributing upstream).
-- **Project `CLAUDE.md` must include a short Language section:** English for code/commits/paths; replies to the human in `{{LANG}}` (default `en`, can be `es`).
+- **Project `CLAUDE.md` must include a short Language section:** English for code/commits/paths; replies to the human in `{{LANG}}` (default `en`).
 - Also write the line `Working language: {{LANG}}` so agents can detect locale (`SKIPR_LOCALE` / `LANG` are alternatives; see `docs/language.md` in the skipr repo).
-- Checker fail messages: prefer the same `{{LANG}}` the harness was installed with.
+- Checker fail messages are English.
 
 ## When to use
 
-- "Monta el harness / arnés en esta carpeta"
+- "Set up the harness in this folder"
 - New trip, client job, culling session, delivery pack as a folder
 - Teaching someone to leave the Claude desktop app and work in the
   terminal inside the project directory
@@ -52,8 +52,8 @@ Ask once (or infer from the folder name) and pick **one**:
 
 | Domain | Local skill to install | Default checker |
 |---|---|---|
-| `viaje` / trip | `naming-viaje` | `checks/naming.sh` |
-| `cliente` / client | `brief-cliente` | `checks/brief-ready.sh` |
+| `trip` | `naming-trip` | `checks/naming.sh` |
+| `client` | `brief-client` | `checks/brief-ready.sh` |
 | `culling` | (none beyond CLAUDE.md) | `checks/naming.sh` |
 | `delivery` | `delivery-checklist` | `checks/delivery.sh` |
 
@@ -75,20 +75,20 @@ jump to `~/.claude` except to read this skill's templates.
 
 ### 2. Ask domain if unknown
 
-One question. Default to `viaje` if the folder looks like a trip name.
+One question. Default to `trip` if the folder looks like a trip name.
 
 ### 3. Write `CLAUDE.md`
 
 Copy from this skill's `templates/CLAUDE.md`, then substitute:
 
 - `{{PROJECT_NAME}}` — folder basename or human title
-- `{{DOMAIN}}` — viaje | cliente | culling | delivery
-- `{{LANG}}` — working conversation language (default `en`; use `es` for Spanish). Code/paths/commits stay English ASCII
+- `{{DOMAIN}}` — trip | client | culling | delivery
+- `{{LANG}}` — working conversation language (default `en`). Code, paths, and commits stay English
 
 Hard rules for the file you write:
 
 - **≤ 40 lines** of body (frontmatter optional; prefer none)
-- No Spec Kit, no constitution versioning, no wave/ola language
+- No Spec Kit, no constitution versioning, no wave language
 - Must include: Language section (`Working language: {{LANG}}`); work only in this folder;
   do not invent EXIF/GPS/dates; ask if the brief is missing; run `./checks/…` before claiming done
 
@@ -103,7 +103,7 @@ Copy the matching scripts from `templates/checks/`:
 Each script must:
 
 - Exit `0` on success, non-zero on failure
-- Print a clear message of what failed (in `{{LANG}}`)
+- Print a clear English message of what failed
 - Be safe to run twice
 - Never delete user photos (read-only checks only)
 
@@ -125,7 +125,7 @@ Then tell them how to break it on purpose (README section).
 
 ### 7. Closing message (always print)
 
-Print in the human working language (`{{LANG}}`, default English):
+Print in the human working language (`{{LANG}}`, default English). When that language is English, use:
 
 ```text
 Harness ready in: <pwd>
@@ -140,7 +140,7 @@ Not a Second Brain. Do not copy 50 skills. Extra rules go in
 CLAUDE.md (keep it short) or a new checker under checks/.
 ```
 
-If `{{LANG}}` is `es`, use the Spanish equivalent of the same four steps.
+When `{{LANG}}` is not English, print the same four steps in that language. Do not change the commands.
 
 ## Templates location
 
@@ -152,8 +152,8 @@ templates/checks/README.md
 templates/checks/naming.sh
 templates/checks/brief-ready.sh
 templates/checks/delivery.sh
-templates/skills/brief-cliente/SKILL.md
-templates/skills/naming-viaje/SKILL.md
+templates/skills/brief-client/SKILL.md
+templates/skills/naming-trip/SKILL.md
 templates/skills/delivery-checklist/SKILL.md
 ```
 

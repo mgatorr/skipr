@@ -11,6 +11,8 @@
     {"source": "/articles/:path*", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
     {"source": "/api/:path*", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
     {"source": "/waitlist", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
+    {"source": "/es", "destination": "/", "permanent": false},
+    {"source": "/es/:path*", "destination": "/", "permanent": false},
     {"source": "/sitemap.xml", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
     {"source": "/sitemap-index.xml", "destination": "https://github.com/mgatorr/skipr", "permanent": false}
   ]

@@ -25,3 +25,6 @@ Thumbs.db
 .specify/
 .claude/
 .vercel
+
+# Local banned-term list for scripts/check-docs.sh (CI uses the DOCS_BANNED secret)
+.docs-banned

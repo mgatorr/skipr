@@ -68,7 +68,7 @@ Then:
 5. Before “done”: `./checks/…` — same scripts as L1
 
 Provider keys stay in the environment or the tool’s own auth store. Never commit
-secrets. See the constitution’s security rule and [`docs/language.md`](../language.md).
+secrets. See [`docs/language.md`](../language.md).
 
 ## What not to do
 
