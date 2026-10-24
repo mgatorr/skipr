@@ -8,3 +8,4 @@ Loaded every session. One rule per line. At 40 lines, merge or delete before add
 - Canonical language for this repo is English, including file names. (CLAUDE.md, 2026-09-04, language)
 - Brand is skipr; do not put Claude in the product name. (CLAUDE.md, 2026-05-31, branding)
 - A check that cannot fail is not a check. (skills/setup-harness/SKILL.md, 2026-09-04, harness)
+- Commit with `fdd commit`; co-author is the owner's noreply (`git config fdd.coauthor "Mario Garrido Torres <7696597+mgatorr@users.noreply.github.com>"`), never Claude. (owner, 2026-10-23, fdd-commit)
