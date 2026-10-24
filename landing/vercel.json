@@ -6,6 +6,13 @@
   "outputDirectory": "public",
   "redirects": [
     {"source": "/docs", "destination": "https://github.com/mgatorr/skipr/blob/main/README.md", "permanent": false},
+    {"source": "/docs/es/:path*", "destination": "https://github.com/mgatorr/skipr/blob/main/docs/:path*", "permanent": false},
+    {"source": "/docs/constitution.md", "destination": "https://github.com/mgatorr/skipr/blob/era-spec-kit/docs/constitution.md", "permanent": false},
+    {"source": "/docs/design.md", "destination": "https://github.com/mgatorr/skipr/blob/era-spec-kit/docs/design.md", "permanent": false},
+    {"source": "/docs/MVP-KICKOFF.md", "destination": "https://github.com/mgatorr/skipr/blob/era-spec-kit/docs/MVP-KICKOFF.md", "permanent": false},
+    {"source": "/docs/product-screens.md", "destination": "https://github.com/mgatorr/skipr/blob/era-spec-kit/docs/product-screens.md", "permanent": false},
+    {"source": "/docs/design-assets/:path*", "destination": "https://github.com/mgatorr/skipr/blob/era-spec-kit/docs/design-assets/:path*", "permanent": false},
+    {"source": "/docs/superpowers/:path*", "destination": "https://github.com/mgatorr/skipr/blob/era-spec-kit/docs/superpowers/:path*", "permanent": false},
     {"source": "/docs/:path*", "destination": "https://github.com/mgatorr/skipr/blob/main/docs/:path*", "permanent": false},
     {"source": "/articles", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
     {"source": "/articles/:path*", "destination": "https://github.com/mgatorr/skipr", "permanent": false},
