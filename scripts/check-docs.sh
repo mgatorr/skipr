@@ -229,6 +229,34 @@ check_cap "skills/fdd/SKILL.md" 100
 check_cap "skills/fdd/templates/note.md" 60
 check_cap ".skipr/rules.md" 40
 
+note="skills/fdd/templates/note.md"
+if [[ -f "$note" ]]; then
+  for heading in "Goal" "Why" "Questions closed" "Out of scope" "Slices" "Checks" "Evidence" "Next"; do
+    if ! grep -qE "^#{1,6} ${heading}$" "$note"; then
+      report "$note: missing heading ${heading}"
+    fi
+  done
+fi
+
+if [[ -f .skipr/rules.md && -f CLAUDE.md ]]; then
+  if ! grep -qF '@.skipr/rules.md' CLAUDE.md; then
+    report "CLAUDE.md: missing @.skipr/rules.md"
+  fi
+fi
+
+rules=".skipr/rules.md"
+prov_re='^.+ \([^)]+, [0-9]{4}-[0-9]{2}-[0-9]{2}[^)]*\)$'
+if [[ -f "$rules" ]]; then
+  prov_n=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    prov_n=$((prov_n + 1))
+    [[ "$line" == "- "* ]] || continue
+    if ! [[ "$line" =~ $prov_re ]]; then
+      report "$rules:$prov_n: rule line missing provenance"
+    fi
+  done < "$rules"
+fi
+
 if (( fail == 0 )); then
   printf 'docs check ok\n'
   exit 0
