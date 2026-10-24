@@ -65,6 +65,34 @@ for block in "$work"/block-*; do
   fi
 done
 
+# The guides are pasted too. Their blocks are not run here (they clone, cd and
+# install), so a "#" line in any bash/sh/zsh fence fails on sight. Put the
+# words in the prose next to the block instead.
+if ! python3 - "$root" <<'PY'
+import pathlib, re, sys
+root = pathlib.Path(sys.argv[1])
+docs = ["README.md", "docs/novice-guide.md", "docs/for-photographers.md", "scripts/README.md"]
+fence = re.compile(r"^[ \t]*```(?:bash|sh|zsh)[ \t]*\n(.*?)^[ \t]*```", re.S | re.M)
+bad = 0
+for doc in docs:
+    text = (root / doc).read_text()
+    blocks = fence.findall(text)
+    if not blocks:
+        print(f"FAIL no shell blocks found in {doc}")
+        bad = 1
+    for i, body in enumerate(blocks):
+        for line in body.splitlines():
+            # A trailing "  # note" is a comment too; quoted text is not.
+            bare = re.sub(r"'[^']*'|\"(?:\\.|[^\"\\])*\"", "", line)
+            if re.search(r"(^|[ \t])#", bare):
+                print(f"FAIL pasted block has a comment ({doc} block {i}): {line.strip()}")
+                bad = 1
+sys.exit(bad)
+PY
+then
+  fail=1
+fi
+
 # Run from the stub project so ./checks/naming.sh is the recorder.
 # Only the step-5 block is a single naming.sh command; step 0 cds away first.
 : > "$work/naming.args"

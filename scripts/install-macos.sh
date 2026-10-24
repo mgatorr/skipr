@@ -532,8 +532,15 @@ install_skills_from_root() {
   fi
 }
 
+# The curl|bash clone, removed on return and by the INT, TERM and EXIT traps.
+CLONE_TMP=""
+drop_clone_tmp() {
+  if [[ -n "$CLONE_TMP" && -d "$CLONE_TMP" ]]; then rm -rf "$CLONE_TMP"; fi
+  CLONE_TMP=""
+}
+
 fetch_skill_via_clone() {
-  local tmp
+  local tmp status
   if [[ "$DRY_RUN" -eq 1 ]]; then
     printf '    [dry-run] git clone --depth 1 %s <tmpdir> && copy skills\n' "$SKIPR_REPO_URL"
     return 0
@@ -542,18 +549,22 @@ fetch_skill_via_clone() {
     warn "Could not create a temporary directory."
     return 1
   fi
-  # shellcheck disable=SC2064
-  trap "rm -rf '$tmp'" RETURN
+  CLONE_TMP="$tmp"
   info "Cloning skipr (shallow) to fetch skills…"
   if ! git clone --depth 1 "$SKIPR_REPO_URL" "$tmp/skipr"; then
     warn "Clone failed."
+    drop_clone_tmp
     return 1
   fi
   if [[ ! -f "$tmp/skipr/skills/setup-harness/SKILL.md" ]]; then
     warn "Clone succeeded but skills/setup-harness is missing."
+    drop_clone_tmp
     return 1
   fi
-  install_skills_from_root "$tmp/skipr"
+  status=0
+  install_skills_from_root "$tmp/skipr" || status=$?
+  drop_clone_tmp
+  return "$status"
 }
 
 ensure_skill() {
@@ -630,9 +641,9 @@ EOF
 }
 
 main() {
-  trap 'drop_staging_dir; restore_swap_backup; exit 130' INT
-  trap 'drop_staging_dir; restore_swap_backup; exit 143' TERM
-  trap 'status=$?; if [[ "$status" -ne 0 ]]; then drop_staging_dir; fi; exit "$status"' EXIT
+  trap 'drop_staging_dir; restore_swap_backup; drop_clone_tmp; exit 130' INT
+  trap 'drop_staging_dir; restore_swap_backup; drop_clone_tmp; exit 143' TERM
+  trap 'status=$?; if [[ "$status" -ne 0 ]]; then drop_staging_dir; fi; drop_clone_tmp; exit "$status"' EXIT
   parse_args "$@"
   refuse_unless_macos
 

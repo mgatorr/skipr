@@ -23,7 +23,7 @@ None yet.
 
 ## Follow-ups
 - The owner checks the meter and the warning in his own terminal.
-- setup-harness could offer to merge `templates/claude-settings.json` into a project, backup first.
+- setup-harness does not turn on the `fdd` hooks: in a photo folder the first snapshot would copy every unignored photo into `.git`. Decided 2026-10-24; revisit only with a total-size guard.
 
 ## Links
 - Tests: `scripts/test-fdd-undo.sh`, `scripts/test-fdd-commit.sh`, `scripts/test-fdd-context.sh`

@@ -4,13 +4,18 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 fail=0
 
-# Loose IMG_/DSC_/RAW camera names at project root
+# Loose camera dump names at project root.
+# Camera default names, any case: Canon/iPhone IMG_ and _MG_, Sony DSC/_DSC,
+# Nikon DSC_/_DSC, Fuji DSCF, DJI DJI_, GoPro GOPR/GH/GX.
 while IFS= read -r -d '' f; do
   echo "✗ Loose camera dump name at project root: $f"
   fail=1
 done < <(find . -maxdepth 1 -type f \( \
   -iname 'IMG_[0-9]*' -o -iname 'DSC_[0-9]*' -o -iname 'DSCF[0-9]*' \
-  -o -iname '_MG_[0-9]*' -o -iname 'P[0-9][0-9][0-9][0-9]*' \
+  -o -iname 'DSC[0-9]*' -o -iname '_DSC[0-9]*' -o -iname '_MG_[0-9]*' \
+  -o -iname 'DJI_[0-9]*' -o -iname 'GOPR[0-9]*' \
+  -o -iname 'G[HX][0-9][0-9][0-9][0-9][0-9][0-9]*' \
+  -o -iname 'P[0-9][0-9][0-9][0-9]*' \
 \) -print0 2>/dev/null)
 
 # Top-level dirs that look like media dumps without a date prefix
