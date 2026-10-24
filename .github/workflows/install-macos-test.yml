@@ -5,6 +5,9 @@ on:
     paths:
       - "scripts/install-macos.sh"
       - "scripts/test-install-macos.sh"
+      - "scripts/test-fdd-undo.sh"
+      - "scripts/test-fdd-commit.sh"
+      - "scripts/test-fdd-context.sh"
       - "skills/**"
       - ".github/workflows/install-macos-test.yml"
   push:
@@ -12,6 +15,9 @@ on:
     paths:
       - "scripts/install-macos.sh"
       - "scripts/test-install-macos.sh"
+      - "scripts/test-fdd-undo.sh"
+      - "scripts/test-fdd-commit.sh"
+      - "scripts/test-fdd-context.sh"
       - "skills/**"
       - ".github/workflows/install-macos-test.yml"
 
@@ -22,3 +28,9 @@ jobs:
       - uses: actions/checkout@v6
       - name: Run installer scenarios
         run: bash scripts/test-install-macos.sh
+      - name: fdd undo on the bash that ships with macOS
+        run: /bin/bash scripts/test-fdd-undo.sh
+      - name: fdd commit on the bash that ships with macOS
+        run: /bin/bash scripts/test-fdd-commit.sh
+      - name: fdd context meter on the bash that ships with macOS
+        run: /bin/bash scripts/test-fdd-context.sh

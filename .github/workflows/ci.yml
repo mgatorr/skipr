@@ -64,6 +64,12 @@ jobs:
         run: bash scripts/test-readme-zsh.sh
       - name: README starts claude only after the clone
         run: bash scripts/test-readme-claude.sh
+      - name: fdd undo
+        run: bash scripts/test-fdd-undo.sh
+      - name: fdd commit
+        run: bash scripts/test-fdd-commit.sh
+      - name: fdd context meter
+        run: bash scripts/test-fdd-context.sh
 
   docs-check:
     runs-on: ubuntu-latest

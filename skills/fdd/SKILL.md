@@ -19,7 +19,7 @@ One flow for everyone. Claude Code first.
    - **1 step:** do it, run its check, go to Close. No note.
    - **2+ steps:** open a note.
 4. **Close the questions in a short note.** Copy [`templates/note.md`](./templates/note.md) to `.skipr/notes/<feature>.md`. Ask **one question at a time**, and only about a real decision you cannot get from the code, the rules, or the logbook. Record each answer in the note. Once the note has a goal, closed questions, out of scope, and at least one check, start building. The human does not have to approve the note.
-5. **Build fast, slice by slice.** Each slice is vertical and can be used or looked at quickly. Per slice: write a check that fails, make it pass, small commit. Where a test runner exists, the test goes in its own commit before the code. A slice has at most 3 given/when/then lines. Tick a box only when there is evidence. Do not put technical design in the note.
+5. **Build fast, slice by slice.** Each slice is vertical and can be used or looked at quickly. Per slice: write a check that fails, make it pass, small commit (`fdd commit`). Where a test runner exists, the test goes in its own commit before the code. A slice has at most 3 given/when/then lines. Tick a box only when there is evidence. Do not put technical design in the note.
 6. **Reproduce.** A different agent from the author tries to break the result by reproducing it. Opinions are not a review.
 7. **Review room.** The human looks at a preview to review the build. They approve it or leave comments. Comments send the work back to step 5.
 8. **Close.** Distill the note into `.skipr/logbook/<feature>.md` (≤ 40 lines) and one line in `.skipr/logbook/INDEX.md`. Append any new rule to `.skipr/rules.md`. Delete the note.
@@ -48,9 +48,26 @@ Not loaded by default. Search it during Explore, or when a question touches an e
 
 One note per feature, ≤ 60 lines, thrown away at close. It is the handoff for a cloud or background agent. Template: [`templates/note.md`](./templates/note.md).
 
+## Undo (`fdd undo`)
+
+Each turn is a snapshot of the working tree, taken by two Claude Code hooks. `fdd undo` puts the files back one turn; `fdd redo` goes forward. HEAD, branches and the staging area never change, and ignored files, secret-looking files (`.env*`, keys) and untracked files over 100 MB are never saved or written. When the human asks to undo a turn, run `~/.claude/skills/fdd/bin/fdd undo` and say what came back. Setup and limits: [`tools.md`](./tools.md).
+
+## Context (`fdd statusline`)
+
+One slice per clean session. The status line shows how full the context window is. At 50%, do not start a new slice: finish the current one, then suggest `/compact`. At 75%, finish the slice, write where it stands in the note's `Next` line, and tell the human to start a new session. The prompt hook says this once per threshold to the human and to you. Setup: [`tools.md`](./tools.md).
+
+## Commit (`fdd commit`)
+
+Per slice, commit with `~/.claude/skills/fdd/bin/fdd commit "type(scope): summary" -- <files>`. It takes Conventional Commits only, refuses staged secrets (gitleaks when installed, plus well-known key shapes), drops any Claude attribution, adds the owner's co-author from `git config fdd.coauthor`, and never pushes unless `--push`. Details: [`tools.md`](./tools.md).
+
+## Models
+
+Which model for which step: [`models.md`](./models.md). Starting points; a check decides, not taste.
+
 ## Templates
 
 - [`templates/note.md`](./templates/note.md) — the short note
 - [`templates/rules.md`](./templates/rules.md) — layer 1 line format
 - [`templates/logbook-entry.md`](./templates/logbook-entry.md) — one closed feature
 - [`templates/logbook-index.md`](./templates/logbook-index.md) — one line per feature
+- [`templates/claude-settings.json`](./templates/claude-settings.json) — the hooks and status line for `fdd`, merged into a project's `.claude/settings.json`
