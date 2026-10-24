@@ -52,11 +52,13 @@ When there is no local checkout, the script shallow-clones the public repo to co
 
 ### After install
 
+Open your project folder and start Claude Code. In the session, ask:
+*Run setup-harness for this folder*.
+
 ```bash
 mkdir -p ~/Projects/my-project
 cd ~/Projects/my-project
 claude
-# "Run setup-harness for this folder"
 ```
 
 See [docs/novice-guide.md](../docs/novice-guide.md).

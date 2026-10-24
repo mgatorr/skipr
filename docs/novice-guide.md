@@ -118,21 +118,20 @@ folder to `~/.claude/skills-backup/` before copying (outside `~/.claude/skills`)
 
 Claude Code CLI install (official): [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install)
 
-Then, in your project folder, start Claude Code and ask it to run the skill:
+Then, in your project folder, start Claude Code. In the session that opens, ask:
+*Run setup-harness for this folder*.
 
 ```bash
 claude
-# then, in the session:
-# "Run setup-harness for this folder"
 ```
 
 ### 5. Run a checker (see “no” work)
 
-After setup you should have a `checks/` directory. Run the primary script once:
+After setup you should have a `checks/` directory. Run the primary script once
+(or `brief-ready.sh` / `delivery.sh`, whichever the harness installed):
 
 ```bash
 ./checks/naming.sh
-# or brief-ready.sh / delivery.sh — whichever the harness installed
 ```
 
 Green means the folder already passes. Red with a clear message is also a win — it proves
@@ -192,21 +191,23 @@ Domains it knows (pick one): trip / client / culling / delivery — each maps to
 Want the rails in your trip folder before starting Claude? Copy the same
 templates the skill uses — this is not a second installer.
 
+Clone the repo first (`git clone https://github.com/mgatorr/skipr.git`), then run
+this from your trip folder (e.g. `~/Projects/lisbon-trip`), with `REPO` set to
+where the clone lives. `naming.sh` is the checker for a trip or a culling session.
+
 ```bash
-# after: git clone https://github.com/mgatorr/skipr.git
-# from your trip folder, e.g. ~/Projects/lisbon-trip
 REPO=/path/to/skipr
 cp "$REPO/skills/setup-harness/templates/CLAUDE.md" ./CLAUDE.md
-# replace {{PROJECT_NAME}}, {{DOMAIN}} (trip / client / culling / delivery), {{LANG}}
 mkdir -p checks
 cp "$REPO/skills/setup-harness/templates/checks/README.md" checks/
-cp "$REPO/skills/setup-harness/templates/checks/naming.sh" checks/  # trip / culling
+cp "$REPO/skills/setup-harness/templates/checks/naming.sh" checks/
 chmod +x checks/*.sh
 ./checks/naming.sh
 ```
 
-Then open `claude` when you are ready. Asking *Run setup-harness for this
-folder* is the usual path; this is the same files, by hand.
+Then edit `CLAUDE.md` and replace `{{PROJECT_NAME}}`, `{{DOMAIN}}` (trip / client /
+culling / delivery) and `{{LANG}}`, and open `claude` when you are ready. Asking
+*Run setup-harness for this folder* is the usual path; this is the same files, by hand.
 
 ### After the harness is in
 
