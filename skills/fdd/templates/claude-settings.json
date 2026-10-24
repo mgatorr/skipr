@@ -1,0 +1,11 @@
+{
+  "statusLine": { "type": "command", "command": "\"$HOME/.claude/skills/fdd/bin/fdd\" statusline" },
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/skills/fdd/bin/fdd\" hook" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/skills/fdd/bin/fdd\" hook" }] }
+    ]
+  }
+}

@@ -1,0 +1,561 @@
+#!/usr/bin/env bash
+# fdd: small helpers for Fast Driven Development.
+#
+# Snapshots are commits no branch points at, kept by per-worktree refs under
+# refs/worktree/fdd/<n>. Each one is built in a throwaway index, so HEAD, branches
+# and the staging area are never touched. Ignored files and files that look like
+# secrets are never saved and never written back.
+#
+# Runs on the bash 3.2 that ships with macOS.
+set -u
+
+REF_ROOT="refs/worktree/fdd"
+# Never saved, even when .gitignore misses them. Matched in any case.
+SECRET_GLOBS=(
+  '**/.env*' '**/*.pem' '**/*.key' '**/*.p8' '**/*.p12' '**/*.pfx'
+  '**/id_rsa*' '**/id_dsa*' '**/id_ecdsa*' '**/id_ed25519*'
+  '**/.netrc' '**/.npmrc' '**/.pypirc' '**/credentials.json' '**/secrets.json'
+)
+# Untracked files over this size are not saved: a video export would make every
+# hook copy gigabytes into .git.
+MAX_FILE_MB="${FDD_MAX_FILE_MB:-100}"
+
+die() { printf 'fdd: %s\n' "$*" >&2; exit 1; }
+say() { [ "${FDD_QUIET:-0}" = 1 ] || printf '%s\n' "$*"; }
+
+usage() {
+  cat <<'EOF'
+fdd: helpers for Fast Driven Development
+
+  fdd snapshot [label]   save the working tree as a state (no-op when unchanged)
+  fdd undo               put the files back as they were one state before
+  fdd redo               go forward again after an undo
+  fdd goto <n>           put the files back as they were in state #n
+  fdd history [--clear]  list the states; --clear forgets them all
+  fdd commit "type(scope): summary" [--body text] [--push] [-- paths]
+                         Conventional Commit of what is staged, after a secret
+                         scan; no Claude attribution; never pushes unless --push
+  fdd statusline         context meter for Claude Code's status line
+  fdd hook               entry point for Claude Code hooks (reads their JSON on stdin)
+
+Undo moves files only. HEAD, branches and what you staged stay as they are.
+Ignored files, secret-looking files (.env*, keys, .netrc, credentials.json...)
+and untracked files over FDD_MAX_FILE_MB (100) are never saved and never written.
+EOF
+}
+
+# --- repository ---------------------------------------------------------------
+
+# 0 inside a work tree (and cd to its top), 1 outside one, 2 when GIT_DIR is set
+# alone: git would then take the current folder as the top of the tree.
+in_repo() {
+  local top
+  if [ -n "${GIT_DIR:-}" ] && [ -z "${GIT_WORK_TREE:-}" ]; then
+    printf 'fdd: GIT_DIR is set without GIT_WORK_TREE; set both, or unset GIT_DIR\n' >&2
+    return 2
+  fi
+  top="$(git rev-parse --show-toplevel 2>/dev/null)" || return 1
+  cd "$top" || return 1
+}
+
+git_path() { git rev-parse --git-path "$1"; }
+
+secret_excludes() {
+  local g
+  for g in "${SECRET_GLOBS[@]}"; do printf ':(exclude,glob,icase)%s\n' "$g"; done
+}
+secret_pathspecs() {
+  local g
+  for g in "${SECRET_GLOBS[@]}"; do printf ':(glob,icase)%s\n' "$g"; done
+}
+
+lock_dir=""
+take_lock() {
+  local owner
+  lock_dir="$(git_path fdd.lock)"
+  # A lock whose process is gone is left over from a killed run.
+  if [ -d "$lock_dir" ]; then
+    owner="$(cat "$lock_dir/pid" 2>/dev/null)"
+    if [ -n "$owner" ] && ! kill -0 "$owner" 2>/dev/null; then
+      rm -f "$lock_dir/pid" && rmdir "$lock_dir" 2>/dev/null
+    elif [ -z "$owner" ] && [ -n "$(find "$lock_dir" -maxdepth 0 -mmin +1 2>/dev/null)" ]; then
+      rmdir "$lock_dir" 2>/dev/null
+    fi
+  fi
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    lock_dir=""
+    return 1
+  fi
+  printf '%s\n' "$$" >"$lock_dir/pid"
+  trap 'release_lock' EXIT
+  trap 'release_lock; exit 130' INT TERM
+}
+release_lock() {
+  [ -n "$lock_dir" ] && rm -f "$lock_dir/pid" && rmdir "$lock_dir" 2>/dev/null
+  lock_dir=""
+}
+
+# The working tree as a tree object, built in a throwaway index.
+worktree_tree() {
+  local idx real tree excludes=() line
+  while IFS= read -r line; do excludes+=("$line"); done <<EOF
+$(secret_excludes)
+EOF
+  idx="$(mktemp "$(git_path fdd-index).XXXXXX")" || return 1
+  real="$(git_path index)"
+  # Starting from a copy of the real index keeps git's stat cache, so only
+  # changed files are hashed. A missing index must not be an empty file.
+  if [ -f "$real" ]; then cp -p "$real" "$idx"; else rm -f "$idx"; fi
+  if ! tree="$(build_tree "$idx" "${excludes[@]}")"; then
+    # A copy taken mid-merge holds unmerged entries: start over from HEAD.
+    rm -f "$idx"
+    git rev-parse -q --verify HEAD >/dev/null && GIT_INDEX_FILE="$idx" git read-tree HEAD
+    tree="$(build_tree "$idx" "${excludes[@]}")" || { rm -f "$idx"; return 1; }
+  fi
+  rm -f "$idx"
+  printf '%s\n' "$tree"
+}
+
+build_tree() {
+  local idx="$1" globs=() big=() line
+  shift
+  while IFS= read -r line; do globs+=("$line"); done <<EOF
+$(secret_pathspecs)
+EOF
+  while IFS= read -r -d '' line; do
+    printf 'fdd: not saved, over %s MB: %s\n' "$MAX_FILE_MB" "$line" >&2
+    big+=(":(exclude,literal)$line")
+  done < <(GIT_INDEX_FILE="$idx" git ls-files -z -o --exclude-standard -- . "$@" 2>/dev/null |
+    MAX="$MAX_FILE_MB" perl -0ne 'chomp; print "$_\0" if -f $_ && !-l $_ && -s _ > $ENV{MAX} * 1048576')
+  GIT_INDEX_FILE="$idx" git add -A -- . "$@" ${big[@]+"${big[@]}"} >/dev/null 2>&1 || return 1
+  # Tracked secret files come in with the copied index: take them out too.
+  GIT_INDEX_FILE="$idx" git rm --cached -r -q --ignore-unmatch -- "${globs[@]}" >/dev/null 2>&1 || return 1
+  GIT_INDEX_FILE="$idx" git write-tree 2>/dev/null
+}
+
+# --- states -------------------------------------------------------------------
+
+numbers() {
+  git for-each-ref --format='%(refname:lstrip=3)' "$REF_ROOT/" | grep -E '^[0-9]+$' | sort -n
+}
+
+commit_of() { git rev-parse -q --verify "$REF_ROOT/$1^{commit}" 2>/dev/null; }
+tree_of() { git rev-parse -q --verify "$REF_ROOT/$1^{tree}" 2>/dev/null; }
+label_of() { git log -1 --format=%s "$REF_ROOT/$1"; }
+
+number_of_commit() {
+  git for-each-ref --points-at "$1" --format='%(refname:lstrip=3)' "$REF_ROOT/" | grep -E '^[0-9]+$' | head -1
+}
+
+parent_of() {
+  local p
+  p="$(git rev-parse -q --verify "$REF_ROOT/$1^1" 2>/dev/null)" || return 0
+  number_of_commit "$p"
+}
+
+cursor() {
+  local f n
+  f="$(git_path fdd-cursor)"
+  if [ -f "$f" ]; then
+    n="$(cat "$f")"
+    if [ -n "$(commit_of "$n")" ]; then printf '%s\n' "$n"; return; fi
+  fi
+  numbers | tail -1
+}
+
+set_cursor() { printf '%s\n' "$1" >"$(git_path fdd-cursor)"; }
+
+# Save $2 (a tree) as a new state labelled $1, child of the cursor. Prints its number.
+save_state() {
+  local label="$1" tree="$2" cur parent=() n commit
+  cur="$(cursor)"
+  [ -n "$cur" ] && parent=(-p "$(commit_of "$cur")")
+  n=$(( $(numbers | tail -1 | sed 's/^$/0/') + 1 ))
+  commit="$(printf '%s\n' "$label" | GIT_AUTHOR_NAME=fdd GIT_AUTHOR_EMAIL=fdd@localhost \
+    GIT_COMMITTER_NAME=fdd GIT_COMMITTER_EMAIL=fdd@localhost git commit-tree "$tree" ${parent[@]+"${parent[@]}"})" || return 1
+  git update-ref "$REF_ROOT/$n" "$commit" || return 1
+  set_cursor "$n"
+  printf '%s\n' "$n"
+}
+
+# Move the working tree from tree $1 to tree $2. Refuses, moving nothing, when it
+# would write over a file no state holds (an ignored or excluded one).
+move_files() {
+  local from="$1" to="$2" idx path dir sub blocked=0
+  # git read-tree -u writes over an ignored file at a path the target adds, so
+  # check every added path (and its folders) against the disk first. What the
+  # current state holds there (a file that becomes a folder, or back) may go.
+  while IFS= read -r -d '' path; do
+    if [ -d "$path" ] && [ ! -L "$path" ] && git cat-file -e "$from:$path" 2>/dev/null; then
+      while IFS= read -r -d '' sub; do
+        if ! git cat-file -e "$from:$sub" 2>/dev/null; then
+          printf '  %s\n' "$sub" >&2
+          blocked=1
+        fi
+      done < <(find "$path" \( -type f -o -type l \) -print0)
+      continue
+    fi
+    if [ -e "$path" ] || [ -L "$path" ]; then
+      printf '  %s\n' "$path" >&2
+      blocked=1
+      continue
+    fi
+    dir="$(dirname "$path")"
+    while [ "$dir" != "." ]; do
+      if { [ -e "$dir" ] || [ -L "$dir" ]; } && [ ! -d "$dir" ] && ! git cat-file -e "$from:$dir" 2>/dev/null; then
+        printf '  %s\n' "$dir" >&2
+        blocked=1
+        break
+      fi
+      dir="$(dirname "$dir")"
+    done
+  done < <(git diff-tree -r -z --no-renames --diff-filter=A --name-only "$from" "$to")
+  [ "$blocked" = 0 ] || return 1
+  idx="$(mktemp "$(git_path fdd-index).XXXXXX")" || return 1
+  rm -f "$idx"
+  GIT_INDEX_FILE="$idx" git read-tree "$from" &&
+    GIT_INDEX_FILE="$idx" git update-index -q --refresh >/dev/null 2>&1
+  if ! GIT_INDEX_FILE="$idx" git read-tree -m -u "$from" "$to" 2>"$idx.err"; then
+    sed 's/^/  /' "$idx.err" >&2
+    rm -f "$idx" "$idx.err"
+    return 1
+  fi
+  rm -f "$idx" "$idx.err"
+}
+
+describe() { printf '#%s (%s)' "$1" "$(label_of "$1")"; }
+
+# Before any jump: hand edits since the cursor become a state of their own.
+keep_changes() {
+  local tree="$1" cur="$2" n
+  if [ -n "$cur" ] && [ "$tree" != "$(tree_of "$cur")" ]; then
+    n="$(save_state "your changes, kept before a jump" "$tree")" || die "could not save your changes; nothing moved"
+    say "Your changes since $(describe "$cur") are kept as #$n." >&2
+    printf '%s\n' "$n"
+    return
+  fi
+  printf '%s\n' "$cur"
+}
+
+jump() {
+  local to="$1" from_tree="$2"
+  if ! move_files "$from_tree" "$(tree_of "$to")"; then
+    die "nothing moved: that would write over a file no state holds (ignored or secret). Move it away and retry."
+  fi
+  set_cursor "$to"
+}
+
+# --- commands -----------------------------------------------------------------
+
+cmd_snapshot() {
+  local label="${1:-snapshot}" tree cur n rc=0
+  in_repo || rc=$?
+  [ "$rc" = 2 ] && exit 1
+  if [ "$rc" != 0 ]; then
+    say "fdd: not a git repository; nothing saved."
+    return 0
+  fi
+  take_lock || { say "fdd: another fdd run is busy; skipped."; return 0; }
+  tree="$(worktree_tree)" || die "could not read the working tree"
+  cur="$(cursor)"
+  if [ -n "$cur" ] && [ "$tree" = "$(tree_of "$cur")" ]; then
+    say "No changes since $(describe "$cur")."
+    return 0
+  fi
+  n="$(save_state "$label" "$tree")" || die "could not save the snapshot"
+  say "Saved #$n."
+}
+
+cmd_undo() {
+  local tree cur target
+  in_repo || { [ $? = 2 ] && exit 1; die "not a git repository"; }
+  take_lock || die "another fdd run is busy; try again"
+  cur="$(cursor)"
+  [ -n "$cur" ] || die "nothing to undo: no states yet"
+  tree="$(worktree_tree)" || die "could not read the working tree"
+  if [ "$tree" != "$(tree_of "$cur")" ]; then
+    keep_changes "$tree" "$cur" >/dev/null || exit 1
+    target="$cur"
+  else
+    target="$(parent_of "$cur")"
+    while [ -n "$target" ] && [ "$(tree_of "$target")" = "$tree" ]; do target="$(parent_of "$target")"; done
+    [ -n "$target" ] || die "nothing to undo: $(describe "$cur") is the first state"
+  fi
+  jump "$target" "$tree"
+  say "Files are back at $(describe "$target"). fdd redo goes forward again."
+}
+
+cmd_redo() {
+  local tree cur cur_commit n child=""
+  in_repo || { [ $? = 2 ] && exit 1; die "not a git repository"; }
+  take_lock || die "another fdd run is busy; try again"
+  cur="$(cursor)"
+  [ -n "$cur" ] || die "nothing to redo: no states yet"
+  tree="$(worktree_tree)" || die "could not read the working tree"
+  if [ "$tree" != "$(tree_of "$cur")" ]; then
+    n="$(keep_changes "$tree" "$cur")" || exit 1
+    die "nothing to redo: files changed since $(describe "$cur"); they are kept as #$n"
+  fi
+  cur_commit="$(commit_of "$cur")"
+  # The newest state that came from the cursor.
+  for n in $(numbers | sort -rn); do
+    if [ "$(git rev-parse -q --verify "$REF_ROOT/$n^1" 2>/dev/null)" = "$cur_commit" ]; then
+      child="$n"
+      break
+    fi
+  done
+  [ -n "$child" ] || die "nothing to redo"
+  jump "$child" "$tree"
+  say "Files are at $(describe "$child")."
+}
+
+cmd_goto() {
+  local to="${1:-}" tree cur
+  in_repo || { [ $? = 2 ] && exit 1; die "not a git repository"; }
+  [ -n "$to" ] && [ -n "$(commit_of "$to")" ] || die "no state #${to:-?}; see fdd history"
+  take_lock || die "another fdd run is busy; try again"
+  tree="$(worktree_tree)" || die "could not read the working tree"
+  cur="$(cursor)"
+  keep_changes "$tree" "$cur" >/dev/null || exit 1
+  jump "$to" "$tree"
+  say "Files are at $(describe "$to")."
+}
+
+cmd_history() {
+  local cur n mark parent files
+  in_repo || { [ $? = 2 ] && exit 1; die "not a git repository"; }
+  if [ "${1:-}" = "--clear" ]; then
+    for n in $(numbers); do git update-ref -d "$REF_ROOT/$n"; done
+    rm -f "$(git_path fdd-cursor)"
+    say "All states forgotten. Your files did not change."
+    return 0
+  fi
+  cur="$(cursor)"
+  [ -n "$cur" ] || { say "No states yet."; return 0; }
+  for n in $(numbers | sort -rn); do
+    mark=" "
+    [ "$n" = "$cur" ] && mark="*"
+    parent="$(git rev-parse -q --verify "$REF_ROOT/$n^1" 2>/dev/null)"
+    if [ -n "$parent" ]; then
+      files="$(git diff --name-only "$parent" "$REF_ROOT/$n" | wc -l | tr -d ' ')"
+    else
+      files="$(git ls-tree -r --name-only "$REF_ROOT/$n" | wc -l | tr -d ' ')"
+    fi
+    printf '%s #%-4s %-14s %3s files  %s\n' "$mark" "$n" "$(git log -1 --format=%cr "$REF_ROOT/$n")" "$files" "$(label_of "$n")"
+  done
+  say "* marks where your files are. fdd undo / fdd redo / fdd goto <n>."
+}
+
+# --- commit -------------------------------------------------------------------
+
+COMMIT_TYPES="feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
+
+# Files whose staged lines hold a secret, one per line. gitleaks when it is
+# installed (the scanner CI runs), plus a short list of well-known shapes.
+# Only file names are printed, never the matching text.
+staged_secrets() {
+  local leaks="${FDD_GITLEAKS:-}" report
+  [ -z "$leaks" ] && leaks="$(command -v gitleaks 2>/dev/null)"
+  if [ -n "$leaks" ] && [ "$leaks" != none ]; then
+    report="$(mktemp "${TMPDIR:-/tmp}/fdd-leaks.XXXXXX")" || return 2
+    if "$leaks" git --help >/dev/null 2>&1; then
+      "$leaks" git --staged --no-banner --redact --report-format json --report-path "$report" . >/dev/null 2>&1
+    else
+      "$leaks" protect --staged --no-banner --redact --report-format json --report-path "$report" >/dev/null 2>&1
+    fi
+    perl -MJSON::PP -e 'local $/; my $j = eval { JSON::PP->new->decode(<>) } || []; my %s; $s{$_->{File} // "(a staged file)"}++ for @$j; print "$_\n" for sort keys %s' "$report" 2>/dev/null
+    rm -f "$report"
+  fi
+  # Always, so a gitleaks that errors out still leaves a scan behind.
+  git -c core.quotePath=false diff --cached -U0 --no-color --no-ext-diff --src-prefix=a/ --dst-prefix=b/ | perl -ne '
+    BEGIN { our %hit; our $f = "(a staged file)" }
+    if (/^\+\+\+ (?:"b\/(.*)"|b\/(.*))$/) { $f = defined $1 ? $1 : $2; next }
+    next if /^\+\+\+ /;
+    next unless /^\+/;
+    $hit{$f}++ if /(sk-ant-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{32,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/;
+    END { print "$_\n" for sort keys %hit }'
+}
+
+cmd_commit() {
+  local subject="" body="" push=0 paths=() secret_files=() globs=() msg coauthor sha branch line
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --body) [ $# -ge 2 ] || die "--body needs a text"; body="$2"; shift 2 ;;
+      --push) push=1; shift ;;
+      --) shift; paths=("$@"); break ;;
+      -*) die "unknown option $1" ;;
+      *) [ -z "$subject" ] || die "one message only; put the rest in --body"; subject="$1"; shift ;;
+    esac
+  done
+  in_repo || { [ $? = 2 ] && exit 1; die "not a git repository"; }
+  [ -n "$subject" ] || die 'usage: fdd commit "type(scope): summary" [--body text] [--push] [-- paths]'
+  printf '%s\n' "$subject" | grep -Eq "^($COMMIT_TYPES)(\([A-Za-z0-9._/-]+\))?!?: [^ ]" ||
+    die "not a Conventional Commit: \"$subject\". Use type(scope): summary, type one of ${COMMIT_TYPES//|/, }"
+  [ "${#subject}" -le 72 ] || die "the summary is ${#subject} characters; keep it at 72 or less"
+
+  if [ ${#paths[@]} -gt 0 ]; then
+    git add -A -- "${paths[@]}" || die "could not stage ${paths[*]}"
+  fi
+  git diff --cached --quiet && die "nothing staged; git add the files of this commit, or pass them after --"
+
+  while IFS= read -r line; do globs+=("$line"); done <<EOF
+$(secret_pathspecs)
+EOF
+  while IFS= read -r line; do [ -n "$line" ] && secret_files+=("$line"); done <<EOF
+$(git -c core.quotePath=false diff --cached --name-only -- "${globs[@]}")
+$(staged_secrets)
+EOF
+  if [ ${#secret_files[@]} -gt 0 ]; then
+    printf 'fdd: refusing to commit: a secret, or a file that holds secrets, is staged in:\n' >&2
+    printf '  %s\n' "${secret_files[@]}" | LC_ALL=C sort -u >&2
+    die "unstage it (git restore --staged <file>), move the secret to an env var, and retry"
+  fi
+
+  msg="$(mktemp "${TMPDIR:-/tmp}/fdd-msg.XXXXXX")" || die "could not write the message"
+  # Only attribution lines go: a subject or a sentence that mentions Claude stays.
+  {
+    printf '%s\n' "$subject"
+    [ -n "$body" ] && printf '\n%s\n' "$body" |
+      LC_ALL=C grep -viE '^[[:space:]]*(co-authored-by:.*(claude|anthropic)|claude-session:|([^[:alnum:][:space:]]+[[:space:]]*)?generated with \[claude code\]|https?://claude\.ai/code[^[:space:]]*[[:space:]]*$)'
+  } >"$msg"
+  coauthor="$(git config --get fdd.coauthor 2>/dev/null)"
+  if [ -n "$coauthor" ] && ! grep -qxF "Co-Authored-By: $coauthor" "$msg"; then
+    printf '\nCo-Authored-By: %s\n' "$coauthor" >>"$msg"
+  fi
+  if ! git commit -q --cleanup=whitespace -F "$msg"; then
+    rm -f "$msg"
+    die "git commit failed; nothing was committed"
+  fi
+  rm -f "$msg"
+  sha="$(git rev-parse --short HEAD)"
+  branch="$(git branch --show-current)"
+  say "Committed $sha on ${branch:-a detached HEAD}: $subject"
+  case "$branch" in main|master) say "Note: that is $branch. FDD works on a branch and merges by PR." ;; esac
+  if [ "$push" = 1 ]; then
+    [ -n "$branch" ] || die "detached HEAD: the commit is kept; push it to a branch by hand"
+    git push -q -u origin HEAD || die "push failed; the commit is kept locally"
+    say "Pushed to origin/$branch."
+  else
+    say "Not pushed. git push when you are ready, or fdd commit --push next time."
+  fi
+}
+
+# --- context ------------------------------------------------------------------
+
+# Claude Code hands the status line the context fill; hooks get no such figure.
+# The status line keeps it per session so the prompt hook can warn once at 50%
+# (compact) and once at 75% (new session). A compaction re-arms both.
+context_file() {
+  local sid="$1"
+  case "$sid" in ""|*[!A-Za-z0-9_-]*) return 1 ;; esac
+  printf '%s/fdd-context-%s\n' "${TMPDIR:-/tmp}" "$sid"
+}
+
+cmd_statusline() {
+  local parsed sid pct file
+  parsed="$(perl -MJSON::PP -e '
+    local $/; my $j = eval { JSON::PP->new->decode(<STDIN>) } or exit 0;
+    ref $j eq "HASH" or exit 0;
+    my $c = ref $j->{context_window} eq "HASH" ? $j->{context_window} : {};
+    use Scalar::Util qw(looks_like_number);
+    my $p = $c->{used_percentage};
+    $p = undef if ref $p || !looks_like_number($p // "x");
+    if (!defined $p && ref $c->{current_usage} eq "HASH") {
+      my $u = $c->{current_usage};
+      my $size = $c->{context_window_size} || 200000;
+      $p = 100 * (($u->{input_tokens} // 0) + ($u->{cache_creation_input_tokens} // 0) + ($u->{cache_read_input_tokens} // 0)) / $size;
+    }
+    $p = undef if defined $p && ($p < 0 || $p > 100);
+    print(($j->{session_id} // ""), "\n", (defined $p ? int($p + 0.5) : ""), "\n");
+  ' 2>/dev/null)" || return 0
+  sid="$(printf '%s\n' "$parsed" | sed -n 1p)"
+  pct="$(printf '%s\n' "$parsed" | sed -n 2p)"
+  case "$pct" in ""|*[!0-9]*) return 0 ;; esac
+  if file="$(context_file "$sid")"; then printf '%s\n' "$pct" >"$file" 2>/dev/null; fi
+  if [ "$pct" -ge 75 ]; then
+    printf '\033[31mcontext %s%% · new session\033[0m\n' "$pct"
+  elif [ "$pct" -ge 50 ]; then
+    printf '\033[33mcontext %s%% · /compact\033[0m\n' "$pct"
+  else
+    printf '\033[2mcontext %s%%\033[0m\n' "$pct"
+  fi
+}
+
+# Print a hook warning as JSON when the fill crossed a threshold not warned yet.
+context_warning() {
+  local file pct warned level human model
+  file="$(context_file "$1")" || return 0
+  pct="$(cat "$file" 2>/dev/null)"
+  case "$pct" in ""|*[!0-9]*) return 0 ;; esac
+  warned="$(cat "$file.warned" 2>/dev/null)"
+  case "$warned" in 50|75) ;; *) warned=0 ;; esac
+  if [ "$pct" -lt 50 ]; then
+    [ "$warned" = 0 ] || printf '0\n' >"$file.warned"
+    return 0
+  fi
+  level=50
+  [ "$pct" -ge 75 ] && level=75
+  [ "$level" -gt "$warned" ] || return 0
+  printf '%s\n' "$level" >"$file.warned"
+  if [ "$level" = 75 ]; then
+    human="Context is at $pct%. Finish this slice, then start a new session (one slice per clean session)."
+    model="The context window is at $pct%. Finish the current slice only, write where it stands in the note's Next line, and tell the human to start a new session."
+  else
+    human="Context is at $pct%. A good moment to /compact once this slice is done."
+    model="The context window is at $pct%. Do not start a new slice in this session; when the current one is done, suggest /compact to the human."
+  fi
+  HUMAN="$human" MODEL="$model" perl -MJSON::PP -e '
+    print JSON::PP->new->canonical->encode({
+      systemMessage => $ENV{HUMAN},
+      hookSpecificOutput => { hookEventName => "UserPromptSubmit", additionalContext => $ENV{MODEL} },
+    }), "\n";'
+}
+
+# Claude Code hook: UserPromptSubmit saves hand edits made between turns,
+# Stop saves what the turn changed, labelled with its prompt. Never fails. Prints
+# only a context warning, as hook JSON: anything else on stdout reaches the model.
+cmd_hook() {
+  local parsed event cwd prompt prompt_file
+  parsed="$(perl -MJSON::PP -e '
+    local $/; my $in = <STDIN>;
+    my $j = eval { JSON::PP->new->utf8->decode($in) } or exit 0;
+    ref $j eq "HASH" or exit 0;
+    my $p = $j->{prompt} // "";
+    $p =~ s/\s+/ /g; $p =~ s/^ //;
+    $p = substr($p, 0, 60);
+    binmode STDOUT, ":utf8";
+    print join("\n", $j->{hook_event_name} // "", $j->{cwd} // "", $p, $j->{session_id} // ""), "\n";
+  ' 2>/dev/null)" || return 0
+  event="$(printf '%s\n' "$parsed" | sed -n 1p)"
+  cwd="$(printf '%s\n' "$parsed" | sed -n 2p)"
+  prompt="$(printf '%s\n' "$parsed" | sed -n 3p)"
+  [ "$event" = UserPromptSubmit ] && context_warning "$(printf '%s\n' "$parsed" | sed -n 4p)"
+  [ -n "$cwd" ] && cd "$cwd" 2>/dev/null
+  in_repo 2>/dev/null || return 0
+  prompt_file="$(git_path fdd-prompt)"
+  export FDD_QUIET=1
+  case "$event" in
+    UserPromptSubmit)
+      printf '%s\n' "$prompt" >"$prompt_file" 2>/dev/null
+      ( cmd_snapshot "changes outside Claude, before: $prompt" ) >/dev/null 2>&1
+      ;;
+    Stop)
+      prompt="$(cat "$prompt_file" 2>/dev/null)"
+      ( cmd_snapshot "${prompt:-turn}" ) >/dev/null 2>&1
+      ;;
+  esac
+  return 0
+}
+
+case "${1:-}" in
+  snapshot) shift; cmd_snapshot "$@" ;;
+  undo) shift; cmd_undo "$@" ;;
+  redo) shift; cmd_redo "$@" ;;
+  goto) shift; cmd_goto "$@" ;;
+  history) shift; cmd_history "$@" ;;
+  commit) shift; cmd_commit "$@" ;;
+  statusline) shift; cmd_statusline "$@"; exit 0 ;;
+  hook) shift; cmd_hook "$@"; exit 0 ;;
+  -h|--help|help|"") usage ;;
+  *) usage >&2; exit 2 ;;
+esac
