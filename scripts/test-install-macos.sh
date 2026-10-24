@@ -624,36 +624,41 @@ begin 12
 
 # --- 13. SIGTERM during the curl|bash clone: the temp clone is removed ---
 # TERM, not INT: CI runners may start steps with SIGINT ignored, and a signal
-# ignored on entry cannot be trapped. Both traps drop the clone the same way.
+# ignored on entry cannot be trapped. The shim is cp, not git: the installer
+# loads brew shellenv, which puts a Homebrew git ahead of any shim on PATH.
 begin 13
 {
   work="$(new_home)"
   home="$work/home dir"
   log="$work/log"
   tmp="$work/tmpdir"
+  mark="$work/killed"
   mkdir -p "$tmp"
   shim13="$(mktemp -d)"
-  real_git="$(command -v git)"
-  cat > "$shim13/git" <<EOF
+  real_cp="$(command -v cp)"
+  cat > "$shim13/cp" <<EOF
 #!/bin/sh
-if [ "\${1:-}" = "clone" ]; then
-  '$real_git' "\$@" || exit 1
-  printf 'shim: TERM to %s (%s)\n' "\$PPID" "\$(ps -o comm= -p "\$PPID" 2>/dev/null)" >&2
-  kill -TERM "\$PPID"
-  exit 0
-fi
-exec '$real_git' "\$@"
+case "\$*" in
+  *skipr-install.*)
+    if [ ! -e "\$SKIPR_KILL_MARK" ]; then
+      : > "\$SKIPR_KILL_MARK"
+      kill -TERM "\$PPID"
+    fi
+    ;;
+esac
+exec '$real_cp' "\$@"
 EOF
-  chmod +x "$shim13/git"
+  chmod +x "$shim13/cp"
   body="$(cat "$INSTALLER")"
   EC=0
   (
     cd "$work"
     env -u GIT_DIR -u GIT_WORK_TREE \
       HOME="$home" PATH="$shim13:$ORIG_PATH" SKIPR_REPO_URL="$REPO" TMPDIR="$tmp" \
-      bash -c "$body" bash </dev/null >"$log" 2>&1
+      SKIPR_KILL_MARK="$mark" bash -c "$body" bash </dev/null >"$log" 2>&1
   ) || EC=$?
   rm -rf "$shim13"
+  [ -e "$mark" ] || note "the copy from the clone never ran"
   [ "$EC" -eq 143 ] || note "exit $EC want 143"
   left="$(find "$tmp" -maxdepth 1 -name 'skipr-install.*' -print)"
   [ -z "$left" ] || note "temp clone left behind ($left)"
