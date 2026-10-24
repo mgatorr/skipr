@@ -118,17 +118,22 @@ Every comment you leave in the review room is either a one-off fix or becomes on
 
 ### Use it
 
-Copy the skill. First install only. Moving the old folder aside drops files the new copy no longer has; copying into the existing folder would leave them:
+Copy the skill. Run it from the skipr clone, or keep the clone at `~/skipr`. First install only. Moving the old folder aside drops files the new copy no longer has; copying into the existing folder would leave them:
 
 ```bash
-mkdir -p ~/.claude/skills
-if [ -e ~/.claude/skills/fdd ]; then
-  mkdir -p ~/.claude/skills-backup
-  bak="$(mktemp ~/.claude/skills-backup/fdd.XXXXXX)"
-  rm "$bak"
-  mv ~/.claude/skills/fdd "$bak"
-fi
-cp -R skills/fdd ~/.claude/skills/fdd
+(
+  if [ ! -d skills/fdd ]; then
+    cd ~/skipr || exit 1
+  fi
+  mkdir -p ~/.claude/skills &&
+  if [ -e ~/.claude/skills/fdd ]; then
+    mkdir -p ~/.claude/skills-backup &&
+    bak="$(mktemp ~/.claude/skills-backup/fdd.XXXXXX)" &&
+    rm "$bak" &&
+    mv ~/.claude/skills/fdd "$bak"
+  fi &&
+  cp -R skills/fdd ~/.claude/skills/fdd
+)
 ```
 
 `CLAUDE.md` is created by setup-harness first. Then start `.skipr/rules.md` in your project from [`skills/fdd/templates/rules.md`](./skills/fdd/templates/rules.md) and add `@.skipr/rules.md` to the project's `CLAUDE.md`. This creates `.skipr/rules.md` only when it is missing.
@@ -199,17 +204,22 @@ Ghostty is opt-in (`--with-ghostty` or interactive `y/N`). Details: [`scripts/RE
 
 Canonical source: **[`skills/setup-harness/SKILL.md`](./skills/setup-harness/SKILL.md)**
 
-**Clone or download a zip of this repo first.** First install only. These commands move an existing folder to `~/.claude/skills-backup/` before copying (outside `~/.claude/skills`):
+**Clone or download a zip of this repo first.** Run this from the clone, or keep the clone at `~/skipr`. First install only. These commands move an existing folder to `~/.claude/skills-backup/` before copying (outside `~/.claude/skills`):
 
 ```bash
-mkdir -p ~/.claude/skills
-if [ -e ~/.claude/skills/setup-harness ]; then
-  mkdir -p ~/.claude/skills-backup
-  bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
-  rm "$bak"
-  mv ~/.claude/skills/setup-harness "$bak"
-fi
-cp -R skills/setup-harness ~/.claude/skills/setup-harness
+(
+  if [ ! -d skills/setup-harness ]; then
+    cd ~/skipr || exit 1
+  fi
+  mkdir -p ~/.claude/skills &&
+  if [ -e ~/.claude/skills/setup-harness ]; then
+    mkdir -p ~/.claude/skills-backup &&
+    bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)" &&
+    rm "$bak" &&
+    mv ~/.claude/skills/setup-harness "$bak"
+  fi &&
+  cp -R skills/setup-harness ~/.claude/skills/setup-harness
+)
 ```
 
 Templates (`CLAUDE.md`, checks, optional local skills) live next to the skill. Claude Code install: [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install).

@@ -23,6 +23,10 @@ BACKUP_ROOT="${HOME}/.claude/skills-backup"
 # Staging dir created beside the skill. Cleared on failure so a signal cannot
 # leave .<name>.staging.* under ~/.claude/skills.
 SKIPR_STAGING=""
+# Set while a skill is moved aside. A signal before the swap lands moves the
+# backup back, so the skill is never left only in skills-backup.
+SKIPR_SWAP_DEST=""
+SKIPR_SWAP_BACKUP=""
 ZSHRC_MARK_BEGIN="# >>> skipr zsh extras (managed by scripts/install-macos.sh) >>>"
 ZSHRC_MARK_END="# <<< skipr zsh extras <<<"
 
@@ -394,6 +398,20 @@ drop_staging_dir() {
   SKIPR_STAGING=""
 }
 
+restore_swap_backup() {
+  local dest="${SKIPR_SWAP_DEST}" backup="${SKIPR_SWAP_BACKUP}"
+  SKIPR_SWAP_DEST=""
+  SKIPR_SWAP_BACKUP=""
+  [[ -n "$dest" && -n "$backup" ]] || return 0
+  if ! skill_exists "$dest" && skill_exists "$backup"; then
+    if mv "$backup" "$dest"; then
+      warn "Interrupted; restored the previous skill at ${dest}"
+    else
+      warn "Interrupted; previous skill left at ${backup}"
+    fi
+  fi
+}
+
 # Copy into a temp dir beside dest, then swap. A failure removes the temp dir
 # and, if the previous skill was already moved aside, moves that backup back.
 # Callers use `|| return`, which turns off set -e for this function, so each
@@ -432,6 +450,12 @@ install_one_skill() {
     return 1
   fi
   SKIPR_STAGING="$staging"
+  # mktemp -d makes it 0700; the installed skill dir should be 0755.
+  if ! chmod 755 "$staging"; then
+    drop_staging_dir
+    warn "Could not set permissions on the temp dir for ${label}"
+    return 1
+  fi
   if ! cp -R "${src}/." "${staging}/"; then
     drop_staging_dir
     warn "Copy of ${label} failed; left the existing skill unchanged"
@@ -466,7 +490,11 @@ install_one_skill() {
       warn "Could not prepare backup path ${backup}"
       return 1
     fi
+    SKIPR_SWAP_DEST="$dest"
+    SKIPR_SWAP_BACKUP="$backup"
     if ! mv "$dest" "$backup"; then
+      SKIPR_SWAP_DEST=""
+      SKIPR_SWAP_BACKUP=""
       drop_staging_dir
       warn "Could not move ${dest} aside (backup path ${backup})"
       return 1
@@ -474,6 +502,8 @@ install_one_skill() {
     info "Backup at ${backup}"
   fi
   if ! mv "$staging" "$dest"; then
+    SKIPR_SWAP_DEST=""
+    SKIPR_SWAP_BACKUP=""
     drop_staging_dir
     if [[ -n "$backup" ]] && skill_exists "$backup"; then
       if mv "$backup" "$dest"; then
@@ -487,6 +517,8 @@ install_one_skill() {
     return 1
   fi
   SKIPR_STAGING=""
+  SKIPR_SWAP_DEST=""
+  SKIPR_SWAP_BACKUP=""
   ok "${label} installed at ${dest}"
 }
 
@@ -546,24 +578,27 @@ ensure_skill() {
   else
     warn "git not found; cannot fetch skill automatically."
     cat <<EOF
-    Clone the repo and re-run, or copy manually:
+    Clone ${SKIPR_REPO_URL} to ~/skipr (or unzip it there) and re-run,
+    or copy manually:
 
-      git clone ${SKIPR_REPO_URL}
-      mkdir -p ~/.claude/skills
-      if [ -e ~/.claude/skills/setup-harness ]; then
-        mkdir -p ~/.claude/skills-backup
-        bak="\$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
-        rm "\$bak"
-        mv ~/.claude/skills/setup-harness "\$bak"
-      fi
-      cp -R skipr/skills/setup-harness ~/.claude/skills/setup-harness
-      if [ -e ~/.claude/skills/fdd ]; then
-        mkdir -p ~/.claude/skills-backup
-        bak="\$(mktemp ~/.claude/skills-backup/fdd.XXXXXX)"
-        rm "\$bak"
-        mv ~/.claude/skills/fdd "\$bak"
-      fi
-      cp -R skipr/skills/fdd ~/.claude/skills/fdd
+      (
+        cd ~/skipr &&
+        mkdir -p ~/.claude/skills &&
+        if [ -e ~/.claude/skills/setup-harness ]; then
+          mkdir -p ~/.claude/skills-backup &&
+          bak="\$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)" &&
+          rm "\$bak" &&
+          mv ~/.claude/skills/setup-harness "\$bak"
+        fi &&
+        cp -R skills/setup-harness ~/.claude/skills/setup-harness &&
+        if [ -e ~/.claude/skills/fdd ]; then
+          mkdir -p ~/.claude/skills-backup &&
+          bak="\$(mktemp ~/.claude/skills-backup/fdd.XXXXXX)" &&
+          rm "\$bak" &&
+          mv ~/.claude/skills/fdd "\$bak"
+        fi &&
+        cp -R skills/fdd ~/.claude/skills/fdd
+      )
 EOF
     return 1
   fi
@@ -595,8 +630,8 @@ EOF
 }
 
 main() {
-  trap 'drop_staging_dir; exit 130' INT
-  trap 'drop_staging_dir; exit 143' TERM
+  trap 'drop_staging_dir; restore_swap_backup; exit 130' INT
+  trap 'drop_staging_dir; restore_swap_backup; exit 143' TERM
   trap 'status=$?; if [[ "$status" -ne 0 ]]; then drop_staging_dir; fi; exit "$status"' EXIT
   parse_args "$@"
   refuse_unless_macos

@@ -86,7 +86,7 @@ if leaks; then note "dir link printed the term"; fi
 printf '%s\n' "$OUT" | grep -q "docs/$term/" && note "dir link printed the path in clear"
 rm -rf "$work"
 
-# 5. clean path, content hit, still file:line. Glued word in content is not a hit.
+# 5. clean path, content hit, still file:line.
 work="$(new_repo)"
 printf 'QAFAKETERM\n' > "$work/docs/qa1.md"
 git -C "$work" add -f docs/qa1.md
@@ -96,12 +96,101 @@ if [ "$EC" -ne 1 ]; then note "clean path exit $EC want 1"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs/qa1.md:1: banned term found' || note "clean path wanted file:line"
 rm -rf "$work"
 
+# The rest uses the fake term zorblax.
+term=zorblax
+
+# 6. underscores do not hide a term in content; possessive and uppercase still hit
+for text in '_zorblax_' '__zorblax__' 'zorblax_client' "zorblax's" 'ZORBLAX'; do
+  work="$(new_repo)"
+  printf 'x %s y\n' "$text" > "$work/docs/qa1.md"
+  git -C "$work" add -f docs/qa1.md
+  git -C "$work" commit -qm underscore
+  run_repo "$work"
+  if [ "$EC" -ne 1 ]; then note "content $text exit $EC want 1"; fi
+  if leaks; then note "content $text printed the term"; fi
+  printf '%s\n' "$OUT" | grep -qx 'docs/qa1.md:1: banned term found' || note "content $text wanted file:line"
+  rm -rf "$work"
+done
+
+# 7. in CI an empty DOCS_BANNED fails even when a .docs-banned decoy is committed
+for var in CI GITHUB_ACTIONS; do
+  work="$(new_repo)"
+  printf 'decoy\n' > "$work/.docs-banned"
+  printf 'x %s y\n' "$term" > "$work/docs/qa1.md"
+  git -C "$work" add -f .docs-banned docs/qa1.md
+  git -C "$work" commit -qm decoy
+  EC=0
+  OUT="$(cd "$work" && env -u CI -u GITHUB_ACTIONS "$var=true" DOCS_BANNED= ./scripts/check-docs.sh 2>&1)" || EC=$?
+  if [ "$EC" -ne 1 ]; then note "CI ($var) with decoy exit $EC want 1"; fi
+  printf '%s\n' "$OUT" | grep -qx 'DOCS_BANNED secret not set' || note "CI ($var) with decoy wanted 'DOCS_BANNED secret not set'"
+  rm -rf "$work"
+done
+
+# 8. a tracked symlink whose target holds the term, dangling or not
+for kind in dangling live; do
+  work="$(new_repo)"
+  if [ "$kind" = live ]; then
+    printf 'clean\n' > "$work/docs/${term}-target.md"
+    git -C "$work" add -f "docs/${term}-target.md"
+    # the target path is checked on its own; the test is about the link
+    ln -s "./${term}-target.md" "$work/docs/link.md"
+  else
+    ln -s "../${term}-gone.md" "$work/docs/link.md"
+  fi
+  git -C "$work" add -f docs/link.md
+  git -C "$work" commit -qm symlink
+  run_repo "$work"
+  if [ "$EC" -ne 1 ]; then note "symlink $kind exit $EC want 1"; fi
+  if leaks; then note "symlink $kind printed the term"; fi
+  printf '%s\n' "$OUT" | grep -qE '^docs/link\.md: symlink target \[path#[0-9a-f]{12}\]$' || note "symlink $kind wanted a hashed target"
+  rm -rf "$work"
+done
+
+# A dangling symlink whose own path holds the term, with a clean target.
 work="$(new_repo)"
-printf 'x %s_notes y\n' "$term" > "$work/docs/qa1.md"
-git -C "$work" add -f docs/qa1.md
-git -C "$work" commit -qm gluedcontent
+ln -s ./gone.md "$work/docs/${term}-link.md"
+git -C "$work" add -f "docs/${term}-link.md"
+git -C "$work" commit -qm symlinkpath
 run_repo "$work"
-if [ "$EC" -ne 0 ]; then note "glued content word exit $EC want 0"; fi
+if [ "$EC" -ne 1 ]; then note "symlink path exit $EC want 1"; fi
+if leaks; then note "symlink path printed the term"; fi
+printf '%s\n' "$OUT" | grep -qE '^\[path#[0-9a-f]{12}\]$' || note "symlink path wanted [path#hash]"
+rm -rf "$work"
+
+# 9. a Latin-1 text file (not valid UTF-8) is still scanned
+work="$(new_repo)"
+printf 'caf\351 %s\n' "$term" > "$work/docs/latin1.txt"
+git -C "$work" add -f docs/latin1.txt
+git -C "$work" commit -qm latin1
+run_repo "$work"
+if [ "$EC" -ne 1 ]; then note "latin-1 exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'docs/latin1.txt:1: banned term found' || note "latin-1 wanted file:line"
+rm -rf "$work"
+
+# A binary file (NUL bytes) stays skipped.
+work="$(new_repo)"
+printf '\000\001 %s\n' "$term" > "$work/docs/blob.bin"
+git -C "$work" add -f docs/blob.bin
+git -C "$work" commit -qm binary
+run_repo "$work"
+if [ "$EC" -ne 0 ]; then note "binary exit $EC want 0"; fi
+rm -rf "$work"
+
+# 10. an unreadable file is reported without its raw path
+work="$(new_repo)"
+printf 'see [x](./nope.md)\n' > "$work/docs/${term}.md"
+git -C "$work" add -f "docs/${term}.md"
+git -C "$work" commit -qm unreadable
+chmod 000 "$work/docs/${term}.md"
+if [ -r "$work/docs/${term}.md" ]; then
+  say "skip unreadable case: running as a user that can read mode 000"
+else
+  run_repo "$work"
+  if [ "$EC" -ne 1 ]; then note "unreadable exit $EC want 1"; fi
+  if leaks; then note "unreadable printed the term"; fi
+  printf '%s\n' "$OUT" | grep -qE '^\[path#[0-9a-f]{12}\]: unreadable$' || note "unreadable wanted [path#hash]: unreadable"
+fi
+chmod 644 "$work/docs/${term}.md"
 rm -rf "$work"
 
 if [ "$fail" -eq 0 ]; then

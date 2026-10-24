@@ -97,19 +97,23 @@ repo so you can read it on GitHub and install it into Claude Code’s skills fol
 
 Skill source: [`skills/setup-harness/`](../skills/setup-harness/)
 
-**Clone or zip the repo first.** First install only. These commands move an existing
+**Clone or zip the repo first.** Run this from the clone, or keep the clone at `~/skipr`. First install only. These commands move an existing
 folder to `~/.claude/skills-backup/` before copying (outside `~/.claude/skills`):
 
 ```bash
-# after: git clone https://github.com/mgatorr/skipr.git
-mkdir -p ~/.claude/skills
-if [ -e ~/.claude/skills/setup-harness ]; then
-  mkdir -p ~/.claude/skills-backup
-  bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)"
-  rm "$bak"
-  mv ~/.claude/skills/setup-harness "$bak"
-fi
-cp -R /path/to/skipr/skills/setup-harness ~/.claude/skills/setup-harness
+(
+  if [ ! -d skills/setup-harness ]; then
+    cd ~/skipr || exit 1
+  fi
+  mkdir -p ~/.claude/skills &&
+  if [ -e ~/.claude/skills/setup-harness ]; then
+    mkdir -p ~/.claude/skills-backup &&
+    bak="$(mktemp ~/.claude/skills-backup/setup-harness.XXXXXX)" &&
+    rm "$bak" &&
+    mv ~/.claude/skills/setup-harness "$bak"
+  fi &&
+  cp -R skills/setup-harness ~/.claude/skills/setup-harness
+)
 ```
 
 Claude Code CLI install (official): [code.claude.com/docs/en/install](https://code.claude.com/docs/en/install)

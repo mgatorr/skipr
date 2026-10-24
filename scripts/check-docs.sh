@@ -65,20 +65,23 @@ report() {
   fail=1
 }
 
-# Banned terms come from DOCS_BANNED (CI secret) or, if that is unset or
-# empty, from the gitignored file .docs-banned at the repo root. Format: one
+# Banned terms come from DOCS_BANNED (CI secret) or, outside CI, if that is
+# unset or empty, from the gitignored file .docs-banned at the repo root. In CI
+# .docs-banned is never read, so a committed decoy list cannot stand in. Format: one
 # term per line; blank lines and lines starting with # are ignored. A term may
 # be several words. A line starting with = is matched in exact case;
 # every other term is matched case-insensitively. Content matching is whole
 # words. Path and link-target matching is a case-insensitive substring.
+in_ci=0
+if [[ "${GITHUB_ACTIONS:-}" == "true" || "${CI:-}" == "true" ]]; then
+  in_ci=1
+fi
 banned_list="${DOCS_BANNED:-}"
-banned_source="DOCS_BANNED"
-if [[ -z "$banned_list" && -f .docs-banned ]]; then
+if [[ "$in_ci" -eq 0 && -z "$banned_list" && -f .docs-banned ]]; then
   banned_list="$(cat .docs-banned)"
-  banned_source=".docs-banned"
 fi
 if [[ -z "${banned_list//[[:space:]]/}" ]]; then
-  if [[ "${GITHUB_ACTIONS:-}" == "true" || "${CI:-}" == "true" ]]; then
+  if [[ "$in_ci" -eq 1 ]]; then
     printf 'DOCS_BANNED secret not set\n' >&2
     exit 1
   fi
@@ -90,7 +93,9 @@ export DOCS_BANNED_LIST="$banned_list"
 # A content hit prints file:line, or [path#<sha>] when the path contains a term.
 # Path matching is a case-insensitive substring with separators ignored.
 # Content matching stays whole-word. A path-only hit prints [path#<sha>] only.
-# Files that are not valid UTF-8 text (binary) are skipped. Never prints the term.
+# Files with a NUL byte (binary) are skipped. Text that is not valid UTF-8 is
+# read as Latin-1. Words split on anything but letters and digits, so _ is a
+# separator too. Never prints the term.
 banned_scanner='
 use strict; use warnings;
 use Encode qw(decode FB_CROAK);
@@ -115,7 +120,7 @@ sub path_has_term {
 }
 sub phrase_hit {
   my ($text) = @_;
-  my @w = NFC($text) =~ /(\w+)/g;
+  my @w = NFC($text) =~ /([^\W_]+)/g;
   for my $i (0 .. $#w) {
     for my $k (1 .. $max) {
       last if $i + $k > @w;
@@ -131,7 +136,7 @@ for my $t (split /\r?\n/, decode("UTF-8", $ENV{DOCS_BANNED_LIST} // "")) {
   my $exact = $t =~ s/^=//;
   my $needle = squash($t);
   push @path_needles, $needle if $needle ne "";
-  my @w = NFC($t) =~ /(\w+)/g;
+  my @w = NFC($t) =~ /([^\W_]+)/g;
   next unless @w;
   $max = @w if @w > $max;
   if ($exact) { $cs{ join " ", @w } = 1 } else { $ci{ lc join " ", @w } = 1 }
@@ -151,7 +156,7 @@ my $raw = do { local $/; <$fh> };
 close $fh;
 path_only() if $raw =~ /\x00/;
 my $text = eval { decode("UTF-8", $raw, FB_CROAK) };
-path_only() unless defined $text;
+$text = decode("ISO-8859-1", $raw) unless defined $text;
 my ($n, $hit) = (0, 0);
 binmode STDERR, ":encoding(UTF-8)";
 for my $line (split /\n/, $text, -1) {
@@ -190,7 +195,7 @@ scan_links() {
       tlabel="$(label_for "$path")"
       report "$flabel:$lineno: missing $tlabel"
     fi
-  done < <(grep -n -o -E '\]\(\.\.?/[^)[:space:]]+' -- "$f" || true)
+  done < <(grep -n -o -E '\]\(\.\.?/[^)[:space:]]+' -- "$f" 2>/dev/null || true)
 }
 
 check_cap() {
@@ -203,9 +208,29 @@ check_cap() {
   fi
 }
 
+# A symlink's target is text git tracks. Check it like a path; never print it.
+scan_symlink() {
+  local f="$1" target tlabel
+  target="$(readlink -- "$f")" || target=""
+  tlabel="$(label_for "$target")"
+  if [[ "$tlabel" != "$target" ]]; then
+    report "$(label_for "$f"): symlink target $tlabel"
+  elif [[ ! -e "$f" && "$(label_for "$f")" != "$f" ]]; then
+    # Dangling, so the content scan never sees the path. Check it here.
+    report "$f"
+  fi
+}
+
 scan_tree_file() {
   local f="$1"
+  if [[ -L "$f" ]]; then
+    scan_symlink "$f"
+  fi
   [[ -f "$f" ]] || return 0
+  if [[ ! -r "$f" ]]; then
+    report "$(label_for "$f"): unreadable"
+    return 0
+  fi
   scan_banned "$f"
   if [[ "$f" == *.md ]]; then
     scan_links "$f"

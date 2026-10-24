@@ -84,6 +84,99 @@ for block in "$work"/block-*; do
   fi
 done
 
+# Skill copy blocks: README, the guides, and the fallback the installer prints.
+# Pasted from the wrong folder they must leave the existing skill in place.
+# With ~/.claude/skills-backup a file they must not nest skill/skill.
+copies="$work/copies"
+mkdir -p "$copies"
+if ! python3 - "$root" "$copies" <<'PY'
+import pathlib, re, sys
+root, dest = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+n = 0
+def keep(name, body):
+    global n
+    skills = sorted(set(re.findall(r"cp -R \S*skills/([a-z-]+) ~/\.claude/skills/", body)))
+    if not skills:
+        return
+    (dest / f"copy-{n}").write_text(body + "\n")
+    (dest / f"copy-{n}.skills").write_text("\n".join(skills) + "\n")
+    (dest / f"copy-{n}.name").write_text(name + "\n")
+    n += 1
+for doc in ["README.md", "docs/novice-guide.md", "docs/for-photographers.md"]:
+    text = (root / doc).read_text()
+    for i, m in enumerate(re.finditer(r"```bash\n(.*?)```", text, re.S)):
+        keep(f"{doc} block {i}", m.group(1))
+lines = (root / "scripts/install-macos.sh").read_text().splitlines()
+start = next(i for i, l in enumerate(lines) if "copy manually:" in l)
+end = next(i for i in range(start, len(lines)) if lines[i] == "EOF")
+body = "\n".join(l[6:] if l.startswith("      ") else l.strip() for l in lines[start + 1:end])
+body = body.replace("\\$", "$").replace("${SKIPR_REPO_URL}", "https://example.invalid/skipr.git")
+keep("install-macos.sh manual fallback", body)
+if n < 6:
+    sys.exit(f"only {n} skill copy blocks found")
+PY
+then
+  note "skill copy blocks not extracted"
+fi
+
+seed_home() {
+  local home="$1" clone="$2" s
+  rm -rf "$home"
+  mkdir -p "$home/Projects/lisbon-trip" "$home/elsewhere"
+  if [ "$clone" = yes ]; then
+    mkdir -p "$home/skipr/skills"
+    cp -R "$root/skills/setup-harness" "$root/skills/fdd" "$home/skipr/skills/"
+  fi
+  while IFS= read -r s; do
+    mkdir -p "$home/.claude/skills/$s"
+    printf 'old\n' > "$home/.claude/skills/$s/OLD"
+  done < "$skills"
+}
+
+paste_block() {
+  local home="$1" cwd="$2"
+  (
+    cd "$cwd"
+    { cat "$copy"; printf '%s\n' 'false' 'echo alive'; } |
+      PATH="$stub:$PATH" HOME="$home" zsh -f -i +o interactivecomments \
+      >"$work/copy.out" 2>"$work/copy.err" || true
+  )
+}
+
+for copy in "$copies"/copy-?; do
+  [ -f "$copy" ] || continue
+  skills="$copy.skills"
+  name="$(cat "$copy.name")"
+  h="$work/copyhome"
+
+  # Wrong folder, no clone: nothing may be moved away.
+  seed_home "$h" no
+  paste_block "$h" "$h/elsewhere"
+  while IFS= read -r s; do
+    [ -f "$h/.claude/skills/$s/OLD" ] || note "$name from a wrong folder removed the existing $s"
+  done < "$skills"
+  grep -qx 'alive' "$work/copy.out" || note "$name closed the shell"
+
+  # skills-backup is a file, pasted inside the clone: no nesting, old skill stays.
+  seed_home "$h" yes
+  printf 'not a dir\n' > "$h/.claude/skills-backup"
+  paste_block "$h" "$h/skipr"
+  while IFS= read -r s; do
+    [ ! -e "$h/.claude/skills/$s/$s" ] || note "$name nested $s/$s with skills-backup a file"
+    [ -f "$h/.claude/skills/$s/OLD" ] || note "$name lost the existing $s with skills-backup a file"
+  done < "$skills"
+
+  # From the project folder with the clone at ~/skipr: installs, old copy aside.
+  seed_home "$h" yes
+  paste_block "$h" "$h/Projects/lisbon-trip"
+  while IFS= read -r s; do
+    [ -f "$h/.claude/skills/$s/SKILL.md" ] || note "$name did not install $s"
+    [ ! -e "$h/.claude/skills/$s/OLD" ] || note "$name left the old $s in place"
+    ls "$h/.claude/skills-backup/$s".* >/dev/null 2>&1 || note "$name made no backup of $s"
+  done < "$skills"
+  rm -rf "$h"
+done
+
 if [ "$fail" -eq 0 ]; then
   say "readme zsh: PASS"
   exit 0

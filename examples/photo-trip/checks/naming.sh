@@ -17,7 +17,9 @@ done < <(find . -maxdepth 1 -type f \( \
 while IFS= read -r -d '' d; do
   base=$(basename "$d")
   case "$base" in
-    .|.claude|checks|deliverables|entregables|selects|rejects|raw|jpg|jpeg|preview|edits) continue ;;
+    # Working folders, English and Spanish: deliverables/entregables,
+    # selects/seleccion, rejects/descartes, preview/previas, edits/editadas.
+    .|.claude|checks|deliverables|entregables|selects|seleccion|selección|rejects|descartes|raw|jpg|jpeg|preview|previas|edits|editadas) continue ;;
   esac
   if ! [[ "$base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
     if find "$d" -maxdepth 2 -type f \( \
