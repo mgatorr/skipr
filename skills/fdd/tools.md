@@ -55,7 +55,11 @@ ignored file at a path an older snapshot had). Move that file away and retry.
   put back.
 - A jump moves files, not commits. If you committed since, the old files show as changes
   on top of the new HEAD.
-- Untracked files that are not ignored are saved inside `.git`. A large one grows `.git`.
+- Untracked files that are not ignored are saved inside `.git`, once each (later snapshots
+  reuse the copy). A large one grows `.git`. **In a folder of photos or video, put the media
+  in `.gitignore` before turning the hooks on**, or the first snapshot copies every file
+  under the size limit: a 200 GB shoot would take 200 GB more. `setup-harness` does not turn
+  these hooks on for that reason.
   `fdd history --clear` forgets every state; `git gc` frees the space later.
 
 ## Context: `fdd statusline`
