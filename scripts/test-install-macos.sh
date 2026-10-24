@@ -638,6 +638,7 @@ begin 13
 #!/bin/sh
 if [ "\${1:-}" = "clone" ]; then
   '$real_git' "\$@" || exit 1
+  printf 'shim: TERM to %s (%s)\n' "\$PPID" "\$(ps -o comm= -p "\$PPID" 2>/dev/null)" >&2
   kill -TERM "\$PPID"
   exit 0
 fi
@@ -656,6 +657,7 @@ EOF
   [ "$EC" -eq 143 ] || note "exit $EC want 143"
   left="$(find "$tmp" -maxdepth 1 -name 'skipr-install.*' -print)"
   [ -z "$left" ] || note "temp clone left behind ($left)"
+  [ -z "$reasons" ] || sed 's/^/    | /' "$log"
   finish 13
   rm -rf "$work"
 }
