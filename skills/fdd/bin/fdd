@@ -701,7 +701,8 @@ if ($mode eq "add") {
         my @h = grep { !is_h($_) } @{ $e->{hooks} };
         if (@h < @{ $e->{hooks} }) {
           $gone = 1;
-          if (@h) { $e->{hooks} = \@h } else { delete $e->{hooks}; next unless %$e }
+          # An entry with no hook left goes, matcher and all.
+          if (@h) { $e->{hooks} = \@h } else { next }
         }
       }
       push @keep, $e;
