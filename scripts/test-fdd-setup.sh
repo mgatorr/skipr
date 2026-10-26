@@ -288,6 +288,18 @@ printf '#!/bin/bash\necho mine\n' >"$HOME/.claude/fdd-statusline.sh"
 put '{"statusLine":{"type":"command","command":"bash ~/.claude/fdd-statusline.sh"}}'
 ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
 check "lost meter: says the script no longer calls fdd statusline, not to save over it" '[ "$ec" = 0 ] && has "$out" "already runs ~/.claude/fdd-statusline.sh" && ! has "$out" "save this as"'
+# The status line names that script but it is not there: there is nothing to keep, so save it.
+fresh no-wrapper
+put '{"statusLine":{"type":"command","command":"bash ~/.claude/fdd-statusline.sh"}}'
+ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
+check "missing wrapper: says save this as, not that it no longer calls the meter" '[ "$ec" = 0 ] && has "$out" "save this as ~/.claude/fdd-statusline.sh" && ! has "$out" "no longer calls the meter" && ! has "$out" "Do not save over it"'
+# Another path that ends in fdd-statusline.sh is a script of yours, not setup's.
+fresh other-wrapper
+mkdir -p "$HOME/bin"
+printf '#!/bin/bash\necho mine\n' >"$HOME/bin/fdd-statusline.sh"
+put '{"statusLine":{"type":"command","command":"bash ~/bin/fdd-statusline.sh"}}'
+ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
+check "other wrapper path: says save this as ~/.claude/fdd-statusline.sh" '[ "$ec" = 0 ] && has "$out" "save this as ~/.claude/fdd-statusline.sh" && ! has "$out" "no longer calls the meter"'
 
 # 16. A read-only settings.json is refused like a symlink.
 fresh readonly
