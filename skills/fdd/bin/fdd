@@ -618,9 +618,10 @@ cmd_hook() {
 
 # Merges templates/user-settings.json into a settings file, or takes it out.
 # Args: add|remove, template, settings file (may be missing), output file.
-# Prints one line per key, tab separated: ADD, DEL, KEEP or FOREIGN, the key and
-# its command; or INVALID and a reason (exit 1). Writes the output only when it
-# prints ADD or DEL. Removing drops only the exact command and the exact
+# Prints one line per key, tab separated: ADD, DEL, KEEP, FOREIGN or EDITED (a
+# status line that runs the meter but is not setup's), the key and its command;
+# or INVALID and a reason (exit 1). Writes the output only when it prints ADD or
+# DEL. Removing drops only the exact command and the exact
 # statusLine value setup writes, and the lists and objects that leaves empty.
 SETTINGS_MERGE='
 use strict; use warnings; use JSON::PP;
@@ -693,6 +694,8 @@ if ($mode eq "add") {
   if (defined $j->{statusLine} && $cn->encode($j->{statusLine}) eq $cn->encode($S)) {
     delete $j->{statusLine}; $changed = 1;
     print "DEL\tstatusLine\t$S->{command}\n";
+  } elsif (ref $j->{statusLine} eq "HASH" && calls_meter(cmd_of($j->{statusLine}))) {
+    print "EDITED\tstatusLine\t", cmd_of($j->{statusLine}), "\n";
   }
   if (ref $ups eq "ARRAY") {
     my (@keep, $gone);
@@ -765,7 +768,7 @@ setup_why() {
 # first. --remove takes out exactly what it adds.
 cmd_setup() {
   local user=0 dry=0 yes=0 remove=0 home dir file tpl plan rc=0 mode=add tab kind key cmd
-  local changes=0 foreign="" before after backup="" answer
+  local changes=0 foreign="" edited=0 before after backup="" answer
   while [ $# -gt 0 ]; do
     case "$1" in
       --user) user=1 ;;
@@ -818,6 +821,9 @@ cmd_setup() {
       ADD) changes=$((changes + 1)); printf '  + %s: %s\n    why: %s\n' "$key" "$cmd" "$(setup_why "$key")" ;;
       DEL) changes=$((changes + 1)); printf '  - %s: %s\n' "$key" "$cmd" ;;
       KEEP) printf '  = %s: %s (already there, kept)\n' "$key" "$cmd" ;;
+      EDITED) edited=1
+        printf '  = %s: %s (kept)\n' "$key" "$cmd"
+        printf '    statusLine still runs fdd statusline, but not as setup writes it; remove it by hand.\n' ;;
       FOREIGN) foreign="$cmd" ;;
     esac
   done <<EOF
@@ -832,7 +838,9 @@ EOF
     printf 'to "bash ~/.claude/statusline.sh", and run fdd setup --user again.\n'
   fi
   if [ "$changes" = 0 ]; then
-    if [ "$mode" = remove ]; then
+    if [ "$mode" = remove ] && [ "$edited" = 1 ]; then
+      printf 'Nothing removed: the status line above is yours to take out.\n'
+    elif [ "$mode" = remove ]; then
       printf 'Nothing to remove: none of the entries fdd setup writes is there.\n'
     elif [ -z "$foreign" ]; then
       printf 'Nothing to change: the meter is already on.\n'

@@ -149,7 +149,8 @@ printf '%s  %s\n' "$mine" "$meter"
 
 To undo, `fdd setup --user --remove` takes out the exact hook command and the exact
 `statusLine` that setup writes, backup first, and leaves the rest as it was. Entries of
-yours stay, even fdd ones (a full `fdd hook`, a `Stop` hook, a status line you wrote). An
+yours stay, even fdd ones (a full `fdd hook`, a `Stop` hook, a status line you wrote);
+a status line that still runs `fdd statusline` is named so you can take it out by hand. An
 entry identical to what setup writes goes too, even if you had typed it by hand. Or copy
 the newest file in `~/.claude/settings-backup/` back over `~/.claude/settings.json`. The
 file is rewritten sorted, with two-space indents; the values stay the same.
