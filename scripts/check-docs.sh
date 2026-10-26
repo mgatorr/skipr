@@ -208,6 +208,29 @@ check_cap() {
   fi
 }
 
+# A required '## <heading>' section, capped at <cap> lines. Lines count from the
+# heading to the next '## ' heading or EOF; trailing blank lines and --- rules
+# before the next heading are not counted.
+check_section_cap() {
+  local f="$1" heading="$2" cap="$3" lines
+  [[ -f "$f" ]] || return 0
+  lines=$(awk -v h="## $heading" '
+    { sub(/\r$/, "") }
+    !on && $0 == h { on = 1; found = 1; n = 1; keep = 1; next }
+    on && /^## / { exit }
+    on {
+      n++
+      if ($0 !~ /^[ \t]*$/ && $0 !~ /^---+[ \t]*$/) keep = n
+    }
+    END { if (found) print keep; else print "missing" }
+  ' "$f")
+  if [[ "$lines" == "missing" ]]; then
+    report "$(label_for "$f"): missing heading $heading"
+  elif (( lines > cap )); then
+    report "$(label_for "$f"): section $heading has $lines lines (cap $cap)"
+  fi
+}
+
 # A symlink's target is text git tracks. Check it like a path; never print it.
 scan_symlink() {
   local f="$1" target tlabel
@@ -253,6 +276,12 @@ check_cap "CLAUDE.md" 60
 check_cap "skills/fdd/SKILL.md" 100
 check_cap "skills/fdd/templates/note.md" 60
 check_cap ".skipr/rules.md" 40
+check_section_cap "docs/novice-guide.md" "One task per session" 20
+
+harness_tpl="skills/setup-harness/templates/CLAUDE.md"
+if [[ -f "$harness_tpl" ]] && ! grep -qF '/clear' "$harness_tpl"; then
+  report "$(label_for "$harness_tpl"): missing /clear"
+fi
 
 note="skills/fdd/templates/note.md"
 if [[ -f "$note" ]]; then

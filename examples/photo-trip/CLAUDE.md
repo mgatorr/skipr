@@ -16,6 +16,7 @@ Work folder: **trip**. Stay in this directory. Do not wander into a generic vaul
 - Prefer `checks/` over adding new skills. If a rule keeps coming up, tighten one line here
   or one checker — do not grow a skill hoard.
 - Before saying “done”, run `./checks/naming.sh` and fix failures.
+- One task per session. When the task is done or the topic changes, tell the human to type /clear.
 
 ## Checkers
 

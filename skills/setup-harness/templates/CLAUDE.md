@@ -13,6 +13,7 @@ Work folder: **{{DOMAIN}}**. The agent stays in this directory — not a generic
 - Do not invent EXIF, GPS, dates, clients, or deliverables. If data is missing, ask.
 - Do not delete original photos or folders. If cleanup is needed, propose and wait for OK.
 - Before saying “done”, run the matching checker under `checks/` and fix failures.
+- One task per session. When the task is done or the topic changes, tell the human to type /clear.
 - Keep this file short. If it grows, trim it — do not add a Second Brain.
 
 ## Checkers
