@@ -44,6 +44,8 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - 4: `test-fdd-context.sh` now also checks docs/novice-guide.md (150k, 250k, no 50% or 75%) → PASS; failed at ef7a90d. Other tests and check-docs with the real list → PASS. Only BSD awk here; mawk and gawk not run.
 - 5: `/bin/bash scripts/test-check-docs.sh` → PASS (2026-10-26). At 8d0fc84 the 51-line, missing-heading and 13-line fixtures failed; with the new check and before the docs, the real tree failed (missing heading). Mutations caught: section cap 13, file cap 51, section check removed.
 - 5: all 12 scripts/test-*.sh on /bin/bash → PASS; check-docs with the real list → `docs check ok`. models.md is 47 lines. /opt/homebrew/bin/bash not installed.
+- Repro fixes (2026-10-26), each test committed first and seen failing (1ae6d9b..c6b6093): `--remove` drops an entry it empties, matcher and all; names an edited status line that still runs the meter instead of "nothing to remove"; the wrapper is `~/.claude/fdd-statusline.sh`, never a script of yours; a read-only settings.json is refused; numbers keep their value (allow_bignum) or the file is refused (2^64, 1e5000); red says "sooner on a small window" in the guide and the why line; the new-sessions line comes once, never on usage errors.
+- Repro fixes: `/bin/bash scripts/test-fdd-setup.sh` → `fdd setup: PASS`, 102 checks, 5 repeat runs; all 12 scripts/test-*.sh → PASS; check-docs with the real list → `docs check ok`. /opt/homebrew/bin/bash not installed.
 
 ## Next
 All five slices are done: the branch is ready for the review room, after a different agent reproduces it. Still open from the old slice 3: photo folders get the meter through `--warn-only`, never snapshots.
