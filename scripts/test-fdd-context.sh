@@ -184,8 +184,9 @@ check "a session id cannot write outside TMPDIR" '[ -z "$(find "$work" -path "$T
 warn="$(sed -n 's/^FDD_WARN_TOKENS=\([0-9][0-9]*\)$/\1/p' "$fdd")"
 stop="$(sed -n 's/^FDD_STOP_TOKENS=\([0-9][0-9]*\)$/\1/p' "$fdd")"
 check "bin/fdd names FDD_WARN_TOKENS and FDD_STOP_TOKENS" '[ -n "$warn" ] && [ -n "$stop" ]'
-for doc in "$skill" "$tools"; do
+for doc in "$skill" "$tools" "$root/docs/novice-guide.md"; do
   name="$(basename "$doc")"
+  check "$name exists" '[ -f "$doc" ]'
   check "$name quotes both thresholds in k" '[ -n "$warn" ] && [ -n "$stop" ] && grep -qF "$((warn / 1000))k" "$doc" && grep -qF "$((stop / 1000))k" "$doc"'
   check "$name has no literal 50% or 75%" '! grep -qF "50%" "$doc" && ! grep -qF "75%" "$doc"'
 done
