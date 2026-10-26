@@ -64,19 +64,37 @@ ignored file at a path an older snapshot had). Move that file away and retry.
 
 ## Context: `fdd statusline`
 
-Claude Code gives the status line the context fill (`context_window.used_percentage`).
-Hooks get no such figure, so the status line keeps it for the prompt hook.
+Claude Code gives the status line the context figures (`context_window.total_input_tokens`,
+`context_window_size`, `current_usage`, `used_percentage`). Hooks get none, so the status
+line keeps the latest count per session for the prompt hook.
 
 ```text
-context 32%                     under 50%, dim
-context 58% · /compact          from 50%, yellow
-context 81% · new session       from 75%, red
+context 82k                         under 150k, dim
+context 182k · finish this task     from 150k, yellow
+context 262k · new session          from 250k, red
 ```
 
-The rule is one slice per clean session. On the first prompt past 50% and past 75%, the
-`UserPromptSubmit` hook tells the human (a line above the answer) and Claude (extra context)
-once. A compaction drops the fill below 50% and arms both warnings again. Before the first
-answer of a session, and right after `/compact`, there is no figure and the line is empty.
+The meter counts tokens, not a share of the window, because every request re-sends the
+whole context: at 182k each message sends 182k tokens again, whether the window holds 200k
+or 1M. A 1M window only makes it worse, since autocompaction fires near its end. The levels
+are 150k and 250k, or half and three quarters of a smaller window (100k and 150k on 200k).
+The count is `total_input_tokens`, else the sum of `current_usage` (input, cache creation,
+cache read), else the percentage times the window size. With none of these, the line shows
+the percentage with a dim `?` and the hook gives no warning.
+
+The rule is one slice and one topic per clean session. On the first prompt at each level
+the `UserPromptSubmit` hook tells the human (a line above the answer) and Claude (extra
+context) once: at 150k, finish this task and start nothing new; at 250k, finish it, write
+the note's `Next` line and type `/clear`. A `/clear` or a compaction drops the count below
+the first level and arms both warnings again. Before the first answer of a session there is
+no figure and the line is empty.
+
+`fdd hook --warn-only` gives the warning and nothing else: it never snapshots, so it never
+copies files into `.git`. Use it at user level (`~/.claude/settings.json`), and in folders
+of photos. A user-level and a project-level hook on the same prompt print one warning.
+
+To measure a session by hand: `/context` in print mode undercounts. The `usage` of the
+first request in the session's transcript is the reliable start figure.
 
 The `statusLine` entry in [`templates/claude-settings.json`](./templates/claude-settings.json)
 replaces any status line you already have. To keep yours, call `fdd statusline` from it with

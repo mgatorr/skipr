@@ -54,7 +54,7 @@ Each turn is a snapshot of the working tree, taken by two Claude Code hooks. `fd
 
 ## Context (`fdd statusline`)
 
-One slice per clean session. The status line shows how full the context window is. At 50%, do not start a new slice: finish the current one, then suggest `/compact`. At 75%, finish the slice, write where it stands in the note's `Next` line, and tell the human to start a new session. The prompt hook says this once per threshold to the human and to you. Setup: [`tools.md`](./tools.md).
+One slice and one topic per clean session. Every message re-sends the whole context, so the status line counts it in tokens. At 150k tokens (or half of a smaller window), start nothing new. At 250k (or three quarters), finish the slice, write where it stands in the note's `Next` line, and tell the human to type `/clear`. When the topic changes, suggest `/clear` whatever the size. Prefer `/clear` plus the note over `/compact`. The prompt hook says this once per level to the human and to you. Subagents and workflows inherit this session's model and effort, so set them per agent ([`models.md`](./models.md)). Setup: [`tools.md`](./tools.md).
 
 ## Commit (`fdd commit`)
 

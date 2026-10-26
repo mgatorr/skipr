@@ -18,7 +18,7 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - Reading transcripts, blocking a prompt.
 
 ## Slices
-- [ ] 1. The meter counts tokens: status line, hook warnings once per level, `fdd hook --warn-only`, SKILL.md and tools.md.
+- [x] 1. The meter counts tokens: status line, hook warnings once per level, `fdd hook --warn-only`, SKILL.md and tools.md.
 - [ ] 2. The installer offers the meter at user level, [Y/n], backup-first (provisional).
 - [ ] 3. Photo folders get the meter through `--warn-only`, never snapshots (provisional).
 - [ ] 4. The novice guide teaches the meter and `/clear` (provisional).
@@ -33,7 +33,9 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - Every slice: `DOCS_BANNED=... GITHUB_ACTIONS=true bash scripts/check-docs.sh`.
 
 ## Evidence
-- (none yet)
+- 1: `/bin/bash scripts/test-fdd-context.sh` → `fdd context: PASS` (2026-10-26; 15 repeat runs, 0 failures; failed against the old bin/fdd at ba447e4). /opt/homebrew/bin/bash is not installed here.
+- 1: `/bin/bash scripts/test-fdd-undo.sh` and `test-fdd-commit.sh` → PASS; check-docs with the real list → `docs check ok`.
+- 1: with no token figure the line shows the percentage and a dim `?`; the hook then gives no warning (no stale count).
 
 ## Next
-Slice 1: tests in scripts/test-fdd-context.sh, then bin/fdd and the docs.
+Slice 2: the installer offers the meter at user level (`fdd hook --warn-only`), [Y/n], backup-first.
