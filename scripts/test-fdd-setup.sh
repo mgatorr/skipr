@@ -226,7 +226,15 @@ put '{"model":"opus"}'
 ec=0; FDD_SETUP_TEST_SLEEP=1 "$BASH" "$fdd" setup --user --yes >/dev/null 2>&1 || ec=$?
 check "calm: the same pause without a change writes" '[ "$ec" = 0 ] && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 1 ]'
 
-# 11. The docs say how to undo it.
+# 11. setup --help exits 0 and writes nothing: the installer probes with it.
+fresh help
+ec=0; out="$(setup --help 2>&1)" || ec=$?
+check "help: setup --help exits 0 and prints the usage" '[ "$ec" = 0 ] && has "$out" "fdd setup --user [--dry-run] [--yes] [--remove]"'
+check "help: setup --help writes nothing" '[ ! -e "$HOME/.claude" ]'
+ec=0; setup --nonsense >/dev/null 2>&1 || ec=$?
+check "help: an unknown option still exits non-zero" '[ "$ec" != 0 ]'
+
+# 12. The docs say how to undo it.
 check "tools.md has a Setup at user level section" 'grep -qE "^## Setup at user level" "$tools"'
 check "tools.md says to remove before deleting the skill" 'grep -qF "run fdd setup --user --remove before deleting the skill" "$tools"'
 check "tools.md names the backup folder" 'grep -qF "~/.claude/settings-backup/" "$tools"'
