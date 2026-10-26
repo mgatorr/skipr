@@ -745,9 +745,20 @@ exit 0;
 
 setup_new=""
 setup_tmp=""
+# 1 once there is a plan, 2 once the new-sessions line is out: it comes once per run.
+setup_said=0
 
-new_sessions_line() { printf 'Applies to new sessions only; close open Claude Code sessions first.\n'; }
-setup_die() { printf 'fdd: %s\n' "$*" >&2; new_sessions_line; exit 1; }
+new_sessions_line() {
+  [ "$setup_said" = 2 ] && return 0
+  setup_said=2
+  printf 'Applies to new sessions only; close open Claude Code sessions first.\n'
+}
+# An argument error plans nothing, so it gets no new-sessions line.
+setup_die() {
+  printf 'fdd: %s\n' "$*" >&2
+  [ "$setup_said" = 1 ] && new_sessions_line
+  exit 1
+}
 
 # The size, inode and mtime (to the nanosecond where the system keeps it).
 file_stamp() {
@@ -838,6 +849,7 @@ cmd_setup() {
     return 1
   fi
 
+  setup_said=1
   tab="$(printf '\t')"
   if [ "$mode" = add ]; then printf 'fdd setup --user: %s\n' "$file"; else printf 'fdd setup --user --remove: %s\n' "$file"; fi
   while IFS="$tab" read -r kind key cmd; do
@@ -883,9 +895,9 @@ EOF
     new_sessions_line
     return 0
   fi
-  new_sessions_line
-  [ "$dry" = 1 ] && return 0
+  if [ "$dry" = 1 ]; then new_sessions_line; return 0; fi
   if [ "$yes" != 1 ]; then
+    new_sessions_line
     printf 'Write this to %s? [y/N] ' "$file"
     answer=""
     read -r answer || true
