@@ -813,7 +813,7 @@ setup_why() {
 # first. --remove takes out exactly what it adds.
 cmd_setup() {
   local user=0 dry=0 yes=0 remove=0 home dir file tpl plan rc=0 mode=add tab kind key cmd
-  local changes=0 foreign="" edited=0 before after backup="" answer
+  local changes=0 foreign="" edited=0 before after backup="" answer wrapper
   while [ $# -gt 0 ]; do
     case "$1" in
       --user) user=1 ;;
@@ -885,21 +885,24 @@ EOF
   if [ -n "$foreign" ]; then
     printf 'Kept your status line: %s\n' "$foreign"
     printf 'Warnings stay off until your status line calls fdd statusline\n'
+    # The name setup suggests, spelled the ways a status line can spell it.
+    wrapper=0
     case "$foreign" in
-      *fdd-statusline.sh*)
-        # Saving the snippet over it would lose what is in it now.
-        printf 'It already runs ~/.claude/fdd-statusline.sh, which no longer calls the meter.\n'
-        printf 'Do not save over it: put the meter lines back by hand, as in this sample,\n'
-        printf 'and run fdd setup --user again:\n\n'
-        setup_snippet
-        ;;
-      *)
-        printf 'To keep yours and add the meter, save this as ~/.claude/fdd-statusline.sh:\n\n'
-        setup_snippet
-        printf '\nPut your command in place of YOUR-CURRENT-COMMAND, set the statusLine command\n'
-        printf 'to "bash ~/.claude/fdd-statusline.sh", and run fdd setup --user again.\n'
-        ;;
+      *'~/.claude/fdd-statusline.sh'*|*'$HOME/.claude/fdd-statusline.sh'*|*'${HOME}/.claude/fdd-statusline.sh'*|*"$HOME/.claude/fdd-statusline.sh"*)
+        [ -f "$HOME/.claude/fdd-statusline.sh" ] && wrapper=1 ;;
     esac
+    if [ "$wrapper" = 1 ]; then
+      # Saving the snippet over it would lose what is in it now.
+      printf 'It already runs ~/.claude/fdd-statusline.sh, which no longer calls the meter.\n'
+      printf 'Do not save over it: put the meter lines back by hand, as in this sample,\n'
+      printf 'and run fdd setup --user again:\n\n'
+      setup_snippet
+    else
+      printf 'To keep yours and add the meter, save this as ~/.claude/fdd-statusline.sh:\n\n'
+      setup_snippet
+      printf '\nPut your command in place of YOUR-CURRENT-COMMAND, set the statusLine command\n'
+      printf 'to "bash ~/.claude/fdd-statusline.sh", and run fdd setup --user again.\n'
+    fi
   fi
   if [ "$changes" = 0 ]; then
     if [ "$mode" = remove ] && [ "$edited" = 1 ]; then
