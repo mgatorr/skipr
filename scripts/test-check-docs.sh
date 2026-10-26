@@ -266,6 +266,62 @@ OUT="$(cd "$root" && env -u CI -u GITHUB_ACTIONS DOCS_BANNED="$real_term" "$BASH
 if [ "$EC" -ne 0 ]; then note "real tree exit $EC want 0: $OUT"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "real tree wanted 'docs check ok'"
 
+# 13. skills/fdd/models.md: at most 50 lines, with an 'Agents and workflows'
+# section of at most 12 lines (heading included).
+models_fixture() { # work section-lines (0 = no heading) total-lines
+  local work="$1" s="$2" total="$3" i=1 n
+  mkdir -p "$work/skills/fdd"
+  {
+    printf '# Model per task\n\nx\n\n'
+    n=4
+    if [ "$s" -gt 0 ]; then
+      printf '## Agents and workflows\n'
+      n=$((n + 1))
+      while [ "$i" -lt "$s" ]; do printf -- '- agent %s\n' "$i"; i=$((i + 1)); n=$((n + 1)); done
+      printf '\n'
+      n=$((n + 1))
+    fi
+    printf '## Prices\n'
+    n=$((n + 1))
+    while [ "$n" -lt "$total" ]; do printf 'price %s\n' "$n"; n=$((n + 1)); done
+  } > "$work/skills/fdd/models.md"
+  git -C "$work" add -f skills/fdd/models.md
+  git -C "$work" commit -qm models
+}
+
+# A 50-line file with a 12-line section passes.
+work="$(new_repo)"
+models_fixture "$work" 12 50
+run_repo "$work"
+if [ "$EC" -ne 0 ]; then note "compliant models.md exit $EC want 0: $OUT"; fi
+printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "compliant models.md wanted 'docs check ok'"
+[ "$(wc -l < "$work/skills/fdd/models.md" | tr -d ' ')" = 50 ] || note "compliant models.md fixture is not 50 lines"
+rm -rf "$work"
+
+# A 51-line file fails and names the count and the cap.
+work="$(new_repo)"
+models_fixture "$work" 12 51
+run_repo "$work"
+if [ "$EC" -ne 1 ]; then note "51-line models.md exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md has 51 lines (cap 50)' || note "51-line models.md wanted the cap message: $OUT"
+rm -rf "$work"
+
+# A file without the heading fails.
+work="$(new_repo)"
+models_fixture "$work" 0 30
+run_repo "$work"
+if [ "$EC" -ne 1 ]; then note "models.md without the heading exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md: missing heading Agents and workflows' || note "models.md without the heading wanted the message: $OUT"
+rm -rf "$work"
+
+# A 13-line section fails.
+work="$(new_repo)"
+models_fixture "$work" 13 40
+run_repo "$work"
+if [ "$EC" -ne 1 ]; then note "13-line agents section exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md: section Agents and workflows has 13 lines (cap 12)' || note "13-line agents section wanted the cap message: $OUT"
+rm -rf "$work"
+
 if [ "$fail" -eq 0 ]; then
   say "check-docs redaction: PASS"
   exit 0
