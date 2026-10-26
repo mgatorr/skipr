@@ -270,6 +270,25 @@ setup --user --remove --yes >/dev/null 2>&1
 ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
 check "unedited: removed, and the next run says nothing to remove" '[ "$ec" = 0 ] && [ -z "$(status_cmd "$settings")" ] && has "$out" "none of the entries" && ! has "$out" "still runs fdd statusline"'
 
+# 15. The wrapper advice never names a script of yours: it uses a name setup owns.
+fresh own-script
+mkdir -p "$HOME/.claude"
+printf '#!/bin/bash\necho mine\n' >"$HOME/.claude/statusline.sh"
+cp "$HOME/.claude/statusline.sh" "$work/own-script.orig"
+put '{"statusLine":{"type":"command","command":"bash ~/.claude/statusline.sh"}}'
+ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
+check "own script: the advice is not to save over ~/.claude/statusline.sh" '[ "$ec" = 0 ] && ! has "$out" "save this as ~/.claude/statusline.sh" && ! has "$out" "\"bash ~/.claude/statusline.sh\""'
+check "own script: the advice names ~/.claude/fdd-statusline.sh" 'has "$out" "save this as ~/.claude/fdd-statusline.sh" && has "$out" "\"bash ~/.claude/fdd-statusline.sh\""'
+check "own script: tools.md gives the same name" 'grep -qF "~/.claude/fdd-statusline.sh" "$tools" && ! grep -qF "save this as \`~/.claude/statusline.sh\`" "$tools"'
+check "own script: your script is untouched" 'cmp -s "$HOME/.claude/statusline.sh" "$work/own-script.orig"'
+# The status line already runs that name but lost the meter: add a line, do not overwrite.
+fresh lost-meter
+mkdir -p "$HOME/.claude"
+printf '#!/bin/bash\necho mine\n' >"$HOME/.claude/fdd-statusline.sh"
+put '{"statusLine":{"type":"command","command":"bash ~/.claude/fdd-statusline.sh"}}'
+ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
+check "lost meter: says the script no longer calls fdd statusline, not to save over it" '[ "$ec" = 0 ] && has "$out" "already runs ~/.claude/fdd-statusline.sh" && ! has "$out" "save this as"'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0
