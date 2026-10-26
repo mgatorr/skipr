@@ -21,7 +21,7 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - [x] 1. The meter counts tokens: status line, hook warnings once per level, `fdd hook --warn-only`, SKILL.md and tools.md.
 - [x] 2. `fdd setup --user` turns the meter on in `~/.claude/settings.json`, backup first; `--remove` takes it out.
 - [x] 3. The installer offers the meter: plan first, `[Y/n]` yes by default, `--with-session-meter` when nothing can ask; an older kept fdd skill is warned and skipped.
-- [ ] 4. The novice guide teaches the meter and `/clear` (provisional).
+- [x] 4. The novice guide teaches one task per session, the meter and `/clear`; check-docs caps that section at 20 lines and wants `/clear` in the harness template.
 - [ ] 5. Subagents and workflows get their model and effort per agent (provisional).
 
 ## Checks
@@ -40,6 +40,8 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - 2: test-fdd-context, -undo, -commit, test-check-docs(-provenance) → PASS; check-docs with the real list → `docs check ok`. /opt/homebrew/bin/bash not installed.
 - 3: `/bin/bash scripts/test-install-macos.sh` → `installer scenarios: PASS`, 19 scenarios (2026-10-26; 14-19 and `setup --help` failed at 1c1d5b6). Mutations caught: no probe (18), dry-run writes (16), flag ignored (14, 16-19).
 - 3: by hand through a pty (`script`): empty answer to `[Y/n]` wrote settings.json, `n` wrote nothing. Other tests and check-docs → PASS. Not run on Linux here.
+- 4: `/bin/bash scripts/test-check-docs.sh` → `check-docs redaction: PASS` (2026-10-26). At ef7a90d the 21-line, missing-heading and no-`/clear` fixtures failed; with the new check and before the docs, the real tree failed (missing heading, missing /clear). Mutations caught: cap 21, section not ended by `## `, trailing `---` counted, wrong template string.
+- 4: `test-fdd-context.sh` now also checks docs/novice-guide.md (150k, 250k, no 50% or 75%) → PASS; failed at ef7a90d. Other tests and check-docs with the real list → PASS. Only BSD awk here; mawk and gawk not run.
 
 ## Next
-Slice 4: the novice guide teaches the meter and `/clear`. Still open from the old slice 3: photo folders get the meter through `--warn-only`, never snapshots.
+Slice 5: subagents and workflows get their model and effort per agent. Still open from the old slice 3: photo folders get the meter through `--warn-only`, never snapshots.
