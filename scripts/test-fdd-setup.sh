@@ -327,6 +327,11 @@ put '{"a":3,"b":0.5,"c":-2}'
 ec=0; setup --user --yes >/dev/null 2>&1 || ec=$?
 check "number: plain numbers are written and keep their value" '[ "$ec" = 0 ] && same_number "$settings" 3 && [ "$(jget "$settings" "\$j->{b}")" = 0.5 ] && [ "$(jget "$settings" "\$j->{c}")" = -2 ]'
 
+# 18. The why line says the levels come sooner on a small window.
+fresh why
+ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
+check "why: the status line why gives both levels and says sooner on a small window" '[ "$ec" = 0 ] && has "$out" "yellow from 150k and red from 250k" && has "$out" "sooner on a small window"'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0

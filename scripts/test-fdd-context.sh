@@ -190,6 +190,9 @@ for doc in "$skill" "$tools" "$root/docs/novice-guide.md"; do
   check "$name quotes both thresholds in k" '[ -n "$warn" ] && [ -n "$stop" ] && grep -qF "$((warn / 1000))k" "$doc" && grep -qF "$((stop / 1000))k" "$doc"'
   check "$name has no literal 50% or 75%" '! grep -qF "50%" "$doc" && ! grep -qF "75%" "$doc"'
 done
+guide="$root/docs/novice-guide.md"
+# On a small window both levels come sooner: 150k is red on 200k.
+check "the guide says sooner on a small window for yellow and for red" 'grep -E "^[0-9]+\. Yellow \(" "$guide" | grep -qF "sooner on a small window" && grep -E "^[0-9]+\. Red \(" "$guide" | grep -qF "sooner on a small window"'
 
 if [ "$fail" -eq 0 ]; then
   printf 'fdd context: PASS\n'
