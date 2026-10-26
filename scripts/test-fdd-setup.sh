@@ -332,6 +332,22 @@ fresh why
 ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
 check "why: the status line why gives both levels and says sooner on a small window" '[ "$ec" = 0 ] && has "$out" "yellow from 150k and red from 250k" && has "$out" "sooner on a small window"'
 
+# 19. The new-sessions line comes once on every path that planned, never on usage errors.
+nsl() { printf '%s\n' "$1" | grep -cF 'Applies to new sessions only'; }
+fresh once
+put '{}'
+out="$(setup --user --yes 2>&1)"; check "once: --yes write says it once" '[ "$(nsl "$out")" = 1 ]'
+out="$(setup --user --yes 2>&1)"; check "once: nothing to change says it once" '[ "$(nsl "$out")" = 1 ]'
+out="$(setup --user --remove --dry-run 2>&1)"; check "once: --dry-run says it once" '[ "$(nsl "$out")" = 1 ]'
+out="$(printf '' | setup --user --remove 2>&1)"; check "once: no answer says it once" '[ "$(nsl "$out")" = 1 ] && has "$out" "Nothing changed."'
+out="$(printf 'n\n' | setup --user --remove 2>&1)"; check "once: n says it once" '[ "$(nsl "$out")" = 1 ]'
+out="$(printf 'y\n' | setup --user --remove 2>&1)"; check "once: y says it once" '[ "$(nsl "$out")" = 1 ] && has "$out" "Saved"'
+put '{"a":'
+out="$(setup --user --yes 2>&1)"; check "once: invalid JSON says it once" '[ "$(nsl "$out")" = 1 ]'
+out="$(setup --user --bogus 2>&1)"; check "once: an unknown option does not say it" '[ "$(nsl "$out")" = 0 ] && has "$out" "unknown option"'
+out="$(setup --yes 2>&1)"; check "once: no --user does not say it" '[ "$(nsl "$out")" = 0 ] && has "$out" "--user"'
+out="$(setup --help 2>&1)"; check "once: --help does not say it" '[ "$(nsl "$out")" = 0 ]'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0
