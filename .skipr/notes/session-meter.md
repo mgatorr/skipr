@@ -27,7 +27,7 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 ## Checks
 - 1: `bash scripts/test-fdd-context.sh` on /bin/bash (and /opt/homebrew/bin/bash when present).
 - 2: `bash scripts/test-fdd-setup.sh` on /bin/bash (CI: harness-checks and install-macos-test).
-- 3: `bash scripts/test-install-macos.sh` scenarios 14-19, plus `setup --help` in test-fdd-setup.sh.
+- 3: `bash scripts/test-install-macos.sh` scenarios 14-20, plus `setup --help` in test-fdd-setup.sh.
 - 4: `scripts/check-docs.sh` with the real list, plus a test that the guide quotes the thresholds.
 - 5: `scripts/check-docs.sh` wants `## Agents and workflows` in models.md (at most 12 lines) and caps the file at 50; test-check-docs.sh case 13.
 - Every slice: `DOCS_BANNED=... GITHUB_ACTIONS=true bash scripts/check-docs.sh`.
@@ -46,6 +46,8 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - 5: all 12 scripts/test-*.sh on /bin/bash → PASS; check-docs with the real list → `docs check ok`. models.md is 47 lines. /opt/homebrew/bin/bash not installed.
 - Repro fixes (2026-10-26), each test committed first and seen failing (1ae6d9b..c6b6093): `--remove` drops an entry it empties, matcher and all; names an edited status line that still runs the meter instead of "nothing to remove"; the wrapper is `~/.claude/fdd-statusline.sh`, never a script of yours; a read-only settings.json is refused; numbers keep their value (allow_bignum) or the file is refused (2^64, 1e5000); red says "sooner on a small window" in the guide and the why line; the new-sessions line comes once, never on usage errors.
 - Repro fixes: `/bin/bash scripts/test-fdd-setup.sh` → `fdd setup: PASS`, 102 checks, 5 repeat runs; all 12 scripts/test-*.sh → PASS; check-docs with the real list → `docs check ok`. /opt/homebrew/bin/bash not installed.
+- Round 2 (2026-10-26), each test committed first and seen failing (acd5d4b..0b62268): a read-only file is refused only when the plan writes (meter already on → exit 0); `--remove` refusals say how to turn the meter off; a duplicate key is refused; a missing or foreign-path fdd-statusline.sh gets the save advice; the installer shows the plan and the new-sessions line once on a yes run (scenario 20).
+- Round 2: `/bin/bash scripts/test-fdd-setup.sh` → PASS, 116 checks, 5 repeat runs; `test-install-macos.sh` → 20 scenarios PASS; all 12 scripts/test-*.sh → PASS; check-docs with the real list → `docs check ok`. /opt/homebrew/bin/bash not installed.
 
 ## Next
 All five slices are done: the branch is ready for the review room, after a different agent reproduces it. Still open from the old slice 3: photo folders get the meter through `--warn-only`, never snapshots.
