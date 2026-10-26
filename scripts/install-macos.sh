@@ -695,7 +695,11 @@ ensure_session_meter() {
     return 0
   fi
   out="$("$fdd" setup --user --yes 2>&1)" || rc=$?
-  printf '%s\n' "$out" | sed 's/^/    /'
+  # The plan and the new-sessions line are already above: show what the write said.
+  if [[ "$rc" -eq 0 && "$out" == *"${nl}Saved "* ]]; then
+    out="$(printf '%s\n' "$out" | sed -n '/^Saved /,$p')"
+  fi
+  printf '%s\n' "$out" | sed -e '/^Applies to new sessions only/d' -e 's/^/    /'
   if [[ "$rc" -ne 0 ]]; then
     warn "The session meter was not turned on (see above)."
     return 0
