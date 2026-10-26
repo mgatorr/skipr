@@ -276,7 +276,9 @@ check_cap "CLAUDE.md" 60
 check_cap "skills/fdd/SKILL.md" 100
 check_cap "skills/fdd/templates/note.md" 60
 check_cap ".skipr/rules.md" 40
+check_cap "skills/fdd/models.md" 50
 check_section_cap "docs/novice-guide.md" "One task per session" 20
+check_section_cap "skills/fdd/models.md" "Agents and workflows" 12
 
 harness_tpl="skills/setup-harness/templates/CLAUDE.md"
 if [[ -f "$harness_tpl" ]] && ! grep -qF '/clear' "$harness_tpl"; then
