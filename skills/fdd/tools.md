@@ -128,8 +128,8 @@ What it never does:
   `~/.claude/settings-backup/settings.json.<suffix>`, byte for byte. It writes a temporary
   file next to `settings.json` and moves it in. If the file changed while it was merging (an
   open session saving it), it stops with `settings changed while merging, run again`.
-- **Touch a file it cannot read.** Invalid JSON or a symlink (a dotfiles setup) is refused,
-  nothing changes, and it prints the keys to paste by hand.
+- **Touch a file it cannot read.** Invalid JSON, a symlink (a dotfiles setup) or a
+  read-only file is refused, nothing changes, and it prints the keys to paste by hand.
 - **Replace your status line.** If you have one that does not call `fdd statusline`, it is
   kept and the hook is not added: `Warnings stay off until your status line calls fdd
   statusline`. To keep yours and add the meter, save this as

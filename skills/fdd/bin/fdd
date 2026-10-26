@@ -802,6 +802,13 @@ cmd_setup() {
     new_sessions_line
     return 1
   fi
+  # A file locked against edits stays locked: the move would replace it anyway.
+  if [ -f "$file" ] && [ ! -w "$file" ]; then
+    printf 'fdd: %s is read-only; it is not touched.\n' "$file" >&2
+    setup_by_hand "$file" "$tpl"
+    new_sessions_line
+    return 1
+  fi
 
   before="$(file_stamp "$file")"
   setup_new="$(mktemp "${TMPDIR:-/tmp}/fdd-settings.XXXXXX")" || setup_die "could not make a temporary file"
