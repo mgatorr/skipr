@@ -624,12 +624,22 @@ cmd_hook() {
 # DEL. Removing drops only the exact command and the exact
 # statusLine value setup writes, and the lists and objects that leaves empty.
 SETTINGS_MERGE='
-use strict; use warnings; use JSON::PP;
+use strict; use warnings; use JSON::PP; use Math::BigFloat;
 my ($mode, $tpl_path, $path, $out) = @ARGV;
-my $js = JSON::PP->new->utf8;
-my $cn = JSON::PP->new->utf8->canonical;
+# allow_bignum keeps long decimals and big integers as they are.
+my $js = JSON::PP->new->utf8->allow_bignum;
+my $cn = JSON::PP->new->utf8->canonical->allow_bignum;
+my $pretty = JSON::PP->new->utf8->canonical->allow_bignum->indent->indent_length(2)->space_after;
 sub slurp { open my $f, "<:raw", $_[0] or return undef; local $/; my $s = <$f>; close $f; defined $s ? $s : "" }
 sub invalid { print "INVALID\t$_[0]\n"; exit 1 }
+# The number tokens of a JSON text, strings skipped.
+sub numbers {
+  my @n;
+  while ($_[0] =~ /"[^"\\]*(?:\\.[^"\\]*)*"|(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/gs) {
+    push @n, $1 if defined $1;
+  }
+  @n;
+}
 my $tpl = eval { $js->decode(slurp($tpl_path) // "") };
 ref $tpl eq "HASH" or invalid("the template $tpl_path is missing or broken");
 my $S = $tpl->{statusLine};
@@ -642,6 +652,13 @@ if (-e $path) {
   $j = eval { $js->decode($raw) };
   defined $j or invalid("it is not valid JSON");
   ref $j eq "HASH" or invalid("it is not a JSON object");
+  # Every number must come back with the same value. The edit adds no number
+  # and drops only entries of setup, so checking the file as read is enough.
+  my @was = numbers($raw);
+  invalid("a number in it is too large to rewrite") if grep { /[eE][+-]?0*[0-9]{4,}$/ } @was;
+  my @now = numbers($pretty->encode($j));
+  my $norm = sub { join "\n", sort map { Math::BigFloat->new($_)->bsstr } @_ };
+  invalid("a number in it would change when rewritten") if $norm->(@was) ne $norm->(@now);
 }
 invalid("statusLine is not an object") if exists $j->{statusLine} && ref $j->{statusLine} ne "HASH";
 invalid("hooks is not an object") if exists $j->{hooks} && ref $j->{hooks} ne "HASH";
@@ -720,7 +737,7 @@ if ($mode eq "add") {
 }
 if ($changed) {
   open my $f, ">:raw", $out or invalid("cannot write a temporary file");
-  print $f JSON::PP->new->utf8->canonical->indent->indent_length(2)->space_after->encode($j);
+  print $f $pretty->encode($j);
   close $f or invalid("cannot write a temporary file");
 }
 exit 0;

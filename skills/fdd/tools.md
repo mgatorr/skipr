@@ -154,7 +154,8 @@ yours stay, even fdd ones (a full `fdd hook`, a `Stop` hook, a status line you w
 a status line that still runs `fdd statusline` is named so you can take it out by hand. An
 entry identical to what setup writes goes too, even if you had typed it by hand. Or copy
 the newest file in `~/.claude/settings-backup/` back over `~/.claude/settings.json`. The
-file is rewritten sorted, with two-space indents; the values stay the same.
+file is rewritten sorted, with two-space indents; the values stay the same, and a file
+with a number it cannot write back exactly is refused like invalid JSON.
 
 Uninstall: run fdd setup --user --remove before deleting the skill. Otherwise every session
 runs a status line and a hook that are gone.
