@@ -289,6 +289,24 @@ put '{"statusLine":{"type":"command","command":"bash ~/.claude/fdd-statusline.sh
 ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
 check "lost meter: says the script no longer calls fdd statusline, not to save over it" '[ "$ec" = 0 ] && has "$out" "already runs ~/.claude/fdd-statusline.sh" && ! has "$out" "save this as"'
 
+# 16. A read-only settings.json is refused like a symlink.
+fresh readonly
+put '{"a":1}'
+chmod 444 "$settings"
+cp "$settings" "$work/readonly.orig"
+ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
+check "read-only: exits 1, says read-only, prints the keys to paste" '[ "$ec" = 1 ] && has "$out" "read-only" && has "$out" "$JH"'
+check "read-only: file byte-identical, no backup, no temp file" 'cmp -s "$settings" "$work/readonly.orig" && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 0 ] && [ ! -e "$backups" ] && [ -z "$(strays)" ]'
+ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
+check "read-only: --remove is refused too" '[ "$ec" = 1 ] && has "$out" "read-only"'
+chmod 644 "$settings"
+# The pair: a writable file with a narrow mode is written and keeps its mode.
+fresh mode600
+put '{"a":1}'
+chmod 600 "$settings"
+ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
+check "mode 600: written, and still mode 600" '[ "$ec" = 0 ] && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 1 ] && [ "$(perl -e "printf q(%o), (stat \$ARGV[0])[2] & 07777" "$settings")" = 600 ]'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0
