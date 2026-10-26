@@ -42,6 +42,8 @@ skipr installs **at most two** local skills. Extra rules go in one line of `CLAU
 
 Lisbon trip, a wedding, a cull session — each is its own directory. The agent stays there. It does not invent EXIF, dates, or deliverables. It does not delete originals.
 
+New job, new session: /clear or a fresh claude in that folder. Why: [one task per session](./novice-guide.md#one-task-per-session).
+
 ## Two-minute fail/pass (no Claude yet)
 
 Clone (or unzip) this repo, then:

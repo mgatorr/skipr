@@ -6,6 +6,8 @@
 # Scenario 9 shims mktemp to fail and records cp destinations.
 # Scenario 10 fails only the clone-path mktemp -d and records git clone.
 # Scenario 11 shims mv to send SIGINT right after the backup move.
+# Scenarios 14-20 cover the session meter offer (fdd setup --user). The [Y/n]
+# question needs a TTY, so these runs are non-interactive and use the flag.
 set -u
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -664,6 +666,198 @@ EOF
   [ -z "$left" ] || note "temp clone left behind ($left)"
   [ -z "$reasons" ] || sed 's/^/    | /' "$log"
   finish 13
+  rm -rf "$work"
+}
+
+# --- session meter (scenarios 14-19) ---
+# The exact commands fdd setup writes; $HOME stays literal.
+METER_S='"$HOME/.claude/skills/fdd/bin/fdd" statusline'
+METER_H='"$HOME/.claude/skills/fdd/bin/fdd" hook --warn-only'
+NEXT_CLEAR='One task per session: when the meter turns red, or the topic changes, type /clear.'
+NEXT_NEW='Open Claude Code sessions keep their old settings; start new ones.'
+OLDER_WARN='your fdd skill is older; re-run with --force to update it'
+
+# Prints the statusLine command of a settings file.
+status_cmd() {
+  perl -MJSON::PP -e 'local $/; open my $f, "<", $ARGV[0] or exit 2; my $j = JSON::PP->new->utf8->decode(<$f>); my $s = $j->{statusLine}; print ref $s eq "HASH" ? ($s->{command} // "") : ""' "$1" 2>/dev/null
+}
+# How many UserPromptSubmit hooks run exactly command $2.
+ups_count() {
+  CMD="$2" perl -MJSON::PP -e 'local $/; open my $f, "<", $ARGV[0] or exit 2; my $j = JSON::PP->new->utf8->decode(<$f>); my $n = 0; for my $e (@{ $j->{hooks}{UserPromptSubmit} || [] }) { next unless ref $e eq "HASH" && ref $e->{hooks} eq "ARRAY"; $n += grep { ref $_ eq "HASH" && ($_->{command} // "") eq $ENV{CMD} } @{ $e->{hooks} } } print $n' "$1" 2>/dev/null
+}
+meter_on() {
+  local f="$1"
+  [ -f "$f" ] || { note "no settings.json"; return 1; }
+  [ "$(status_cmd "$f")" = "$METER_S" ] || note "statusLine is not fdd statusline ($(status_cmd "$f"))"
+  [ "$(ups_count "$f" "$METER_H")" = 1 ] || note "UserPromptSubmit has no single --warn-only hook"
+}
+skills_done() {
+  local home="$1"
+  diff -rq "$REPO/skills/setup-harness" "$home/.claude/skills/setup-harness" >/dev/null 2>&1 || note "setup-harness not installed"
+  [ -f "$home/.claude/skills/fdd/SKILL.md" ] || note "fdd not installed"
+}
+# A fdd skill from before fdd setup: unknown commands print usage and exit 2.
+seed_old_fdd() {
+  local home="$1"
+  seed_skill "$REPO/skills/fdd" "$home/.claude/skills/fdd"
+  cat > "$home/.claude/skills/fdd/bin/fdd" <<'EOF'
+#!/bin/sh
+case "${1:-}" in
+  statusline|hook) exit 0 ;;
+esac
+printf 'fdd: helpers for Fast Driven Development\n' >&2
+exit 2
+EOF
+  chmod +x "$home/.claude/skills/fdd/bin/fdd"
+}
+
+# --- 14. --with-session-meter: the meter is on, a re-run changes nothing ---
+begin 14
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  run_inst "$log" "$home" --with-session-meter
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  skills_done "$home"
+  meter_on "$home/.claude/settings.json"
+  grep -qF 'new sessions only' "$log" || note "output does not say new sessions only"
+  grep -qF "$NEXT_CLEAR" "$log" || note "next steps miss the /clear line"
+  grep -qF "$NEXT_NEW" "$log" || note "next steps miss the new sessions line"
+  if [ -f "$home/.claude/settings.json" ]; then
+    cp "$home/.claude/settings.json" "$work/first.json"
+    run_inst "$work/log2" "$home" --with-session-meter
+    [ "$EC" -eq 0 ] || note "re-run exit $EC"
+    cmp -s "$work/first.json" "$home/.claude/settings.json" || note "re-run changed settings.json"
+    [ ! -e "$home/.claude/settings-backup" ] || note "re-run made a backup"
+  fi
+  [ -z "$reasons" ] || sed 's/^/    | /' "$log"
+  finish 14
+  rm -rf "$work"
+}
+
+# --- 15. non-interactive without the flag: skills yes, settings.json no ---
+begin 15
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  run_inst "$log" "$home"
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  skills_done "$home"
+  [ ! -e "$home/.claude/settings.json" ] || note "settings.json written without the flag"
+  grep -qF -- '--with-session-meter' "$log" || note "output does not name --with-session-meter"
+  finish 15
+  rm -rf "$work"
+}
+
+# --- 16. --dry-run --with-session-meter: the plan is printed, no file written ---
+begin 16
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  run_inst "$log" "$home" --dry-run --with-session-meter
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  written="$(find "$home" -mindepth 1 -print | head -n 1)"
+  [ -z "$written" ] || note "dry-run wrote $written"
+  grep -qF '+ statusLine' "$log" || note "plan does not list statusLine"
+  grep -qF '+ hooks.UserPromptSubmit' "$log" || note "plan does not list hooks.UserPromptSubmit"
+  grep -qF -- 'hook --warn-only' "$log" || note "plan does not show the --warn-only hook"
+  [ -z "$reasons" ] || sed 's/^/    | /' "$log"
+  finish 16
+  rm -rf "$work"
+}
+
+# --- 17. an existing settings.json: byte-identical backup, own keys kept ---
+begin 17
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  mkdir -p "$home/.claude"
+  printf '%s\n' '{"model":"opus","hooks":{"Stop":[{"hooks":[{"type":"command","command":"say done"}]}]}}' > "$home/.claude/settings.json"
+  cp "$home/.claude/settings.json" "$work/orig.json"
+  run_inst "$log" "$home" --with-session-meter
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  meter_on "$home/.claude/settings.json"
+  broot="$home/.claude/settings-backup"
+  nb="$(find "$broot" -mindepth 1 -maxdepth 1 -type f -name 'settings.json.*' 2>/dev/null | wc -l | tr -d ' ')"
+  [ "$nb" = 1 ] || note "settings backups=$nb want 1"
+  b="$(find "$broot" -mindepth 1 -maxdepth 1 -type f -name 'settings.json.*' 2>/dev/null | head -n 1)"
+  [ -n "$b" ] && cmp -s "$b" "$work/orig.json" || note "backup is not byte-identical to the original"
+  grep -qF '"opus"' "$home/.claude/settings.json" || note "model key lost"
+  grep -qF 'say done' "$home/.claude/settings.json" || note "own Stop hook lost"
+  finish 17
+  rm -rf "$work"
+}
+
+# --- 18. a kept fdd skill without setup: warn and skip; --force turns it on ---
+begin 18
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  seed_skill "$REPO/skills/setup-harness" "$home/.claude/skills/setup-harness"
+  seed_old_fdd "$home"
+  run_inst "$log" "$home" --with-session-meter
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  grep -qF "$OLDER_WARN" "$log" || note "no warning about the older fdd skill"
+  [ ! -e "$home/.claude/settings.json" ] || note "settings.json written with an older fdd"
+  [ -f "$home/.claude/skills/setup-harness/SKILL.md" ] || note "setup-harness missing"
+  run_inst "$work/log2" "$home" --with-session-meter --force
+  [ "$EC" -eq 0 ] || note "--force exit $EC"
+  meter_on "$home/.claude/settings.json"
+  ! grep -qF "$OLDER_WARN" "$work/log2" || note "--force still warns about an older fdd"
+  finish 18
+  rm -rf "$work"
+}
+
+# --- 19. curl|bash with --with-session-meter: setup runs from the installed copy ---
+begin 19
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  tmp="$work/tmpdir"
+  mkdir -p "$tmp"
+  body="$(cat "$INSTALLER")"
+  EC=0
+  (
+    cd "$work"
+    env -u GIT_DIR -u GIT_WORK_TREE \
+      HOME="$home" PATH="$ORIG_PATH" SKIPR_REPO_URL="$REPO" TMPDIR="$tmp" \
+      bash -c "$body" bash --with-session-meter </dev/null >"$log" 2>&1
+  ) || EC=$?
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  meter_on "$home/.claude/settings.json"
+  left="$(find "$tmp" -maxdepth 1 -name 'skipr-install.*' -print)"
+  [ -z "$left" ] || note "temp clone left behind ($left)"
+  [ -z "$reasons" ] || sed 's/^/    | /' "$log"
+  finish 19
+  rm -rf "$work"
+}
+
+# --- 20. a yes run shows the plan and the new-sessions line once ---
+begin 20
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  mkdir -p "$home/.claude"
+  printf '%s\n' '{"env":{"X":"x"}}' > "$home/.claude/settings.json"
+  run_inst "$log" "$home" --with-session-meter
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  meter_on "$home/.claude/settings.json"
+  grep -qF 'Saved ' "$log" || note "no Saved line"
+  grep -qF 'The old file is in ' "$log" || note "no backup line"
+  for s in 'Applies to new sessions only' '+ statusLine' '+ hooks.UserPromptSubmit' 'why: '; do
+    n="$(grep -cF -- "$s" "$log")"
+    case "$s" in 'why: ') want=2 ;; *) want=1 ;; esac
+    [ "$n" = "$want" ] || note "'$s' printed $n times, want $want"
+  done
+  [ -z "$reasons" ] || sed 's/^/    | /' "$log"
+  finish 20
   rm -rf "$work"
 }
 

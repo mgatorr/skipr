@@ -35,8 +35,12 @@ fdd: helpers for Fast Driven Development
   fdd commit "type(scope): summary" [--body text] [--push] [-- paths]
                          Conventional Commit of what is staged, after a secret
                          scan; no Claude attribution; never pushes unless --push
-  fdd statusline         context meter for Claude Code's status line
-  fdd hook               entry point for Claude Code hooks (reads their JSON on stdin)
+  fdd statusline         context meter in tokens for Claude Code's status line
+  fdd hook [--warn-only] entry point for Claude Code hooks (reads their JSON on stdin);
+                         --warn-only only warns about context, never snapshots
+  fdd setup --user [--dry-run] [--yes] [--remove]
+                         turn the context meter on in ~/.claude/settings.json,
+                         backup first; --remove takes it out again
 
 Undo moves files only. HEAD, branches and what you staged stay as they are.
 Ignored files, secret-looking files (.env*, keys, .netrc, credentials.json...)
@@ -442,68 +446,127 @@ EOF
 
 # --- context ------------------------------------------------------------------
 
-# Claude Code hands the status line the context fill; hooks get no such figure.
-# The status line keeps it per session so the prompt hook can warn once at 50%
-# (compact) and once at 75% (new session). A compaction re-arms both.
+# Every message re-sends the whole context, so the meter counts tokens, not a
+# share of the window: on a 1M window 18% is already 182k tokens a message. The
+# thresholds are the lower of these and half / three quarters of the window,
+# which keeps 100k / 150k on a 200k window.
+FDD_WARN_TOKENS=150000
+FDD_STOP_TOKENS=250000
+
+# Claude Code hands the status line the context figures; hooks get none. The
+# status line keeps "tokens size" per session (size 0 when unknown) so the prompt
+# hook can warn once per level. Never reads a transcript.
 context_file() {
   local sid="$1"
   case "$sid" in ""|*[!A-Za-z0-9_-]*) return 1 ;; esac
   printf '%s/fdd-context-%s\n' "${TMPDIR:-/tmp}" "$sid"
 }
 
+# Sets ctx_k (the shown thousands), ctx_level (0, 1 or 2) from tokens $1 and
+# window size $2 (0 when unknown). The level comes from the shown figure, so
+# "150k" is never dim.
+context_level() {
+  local tokens="$1" size="$2" warn="$FDD_WARN_TOKENS" stop="$FDD_STOP_TOKENS" shown
+  if [ "$size" -gt 0 ]; then
+    [ $((size / 2)) -lt "$warn" ] && warn=$((size / 2))
+    [ $((size * 3 / 4)) -lt "$stop" ] && stop=$((size * 3 / 4))
+  fi
+  ctx_k=$((tokens / 1000))
+  shown=$((ctx_k * 1000))
+  ctx_level=0
+  [ "$shown" -ge "$warn" ] && ctx_level=1
+  [ "$shown" -ge "$stop" ] && ctx_level=2
+  return 0
+}
+
 cmd_statusline() {
-  local parsed sid pct file
+  local parsed sid tokens size pct file colour advice
   parsed="$(perl -MJSON::PP -e '
+    use Scalar::Util qw(looks_like_number);
     local $/; my $j = eval { JSON::PP->new->decode(<STDIN>) } or exit 0;
     ref $j eq "HASH" or exit 0;
     my $c = ref $j->{context_window} eq "HASH" ? $j->{context_window} : {};
-    use Scalar::Util qw(looks_like_number);
-    my $p = $c->{used_percentage};
-    $p = undef if ref $p || !looks_like_number($p // "x");
-    if (!defined $p && ref $c->{current_usage} eq "HASH") {
-      my $u = $c->{current_usage};
-      my $size = $c->{context_window_size} || 200000;
-      $p = 100 * (($u->{input_tokens} // 0) + ($u->{cache_creation_input_tokens} // 0) + ($u->{cache_read_input_tokens} // 0)) / $size;
+    sub num { my $v = shift; return (defined $v && !ref $v && looks_like_number($v) && $v >= 0 && $v < 1e15) ? $v : undef }
+    my $size = num($c->{context_window_size});
+    $size = undef unless $size;
+    my $p = num($c->{used_percentage});
+    $p = undef if defined $p && $p > 100;
+    my $t = num($c->{total_input_tokens});
+    $t = undef unless $t;
+    if (!defined $t && ref $c->{current_usage} eq "HASH") {
+      my $u = $c->{current_usage}; my $sum = 0;
+      $sum += num($u->{$_}) // 0 for qw(input_tokens cache_creation_input_tokens cache_read_input_tokens);
+      $t = $sum if $sum > 0;
     }
-    $p = undef if defined $p && ($p < 0 || $p > 100);
-    print(($j->{session_id} // ""), "\n", (defined $p ? int($p + 0.5) : ""), "\n");
+    $t = $p * $size / 100 if !defined $t && defined $p && defined $size;
+    print join("\n", $j->{session_id} // "", defined $t ? int($t) : "", defined $size ? int($size) : 0,
+      defined $p ? int($p + 0.5) : ""), "\n";
   ' 2>/dev/null)" || return 0
   sid="$(printf '%s\n' "$parsed" | sed -n 1p)"
-  pct="$(printf '%s\n' "$parsed" | sed -n 2p)"
-  case "$pct" in ""|*[!0-9]*) return 0 ;; esac
-  if file="$(context_file "$sid")"; then printf '%s\n' "$pct" >"$file" 2>/dev/null; fi
-  if [ "$pct" -ge 75 ]; then
-    printf '\033[31mcontext %s%% · new session\033[0m\n' "$pct"
-  elif [ "$pct" -ge 50 ]; then
-    printf '\033[33mcontext %s%% · /compact\033[0m\n' "$pct"
-  else
-    printf '\033[2mcontext %s%%\033[0m\n' "$pct"
+  tokens="$(printf '%s\n' "$parsed" | sed -n 2p)"
+  size="$(printf '%s\n' "$parsed" | sed -n 3p)"
+  pct="$(printf '%s\n' "$parsed" | sed -n 4p)"
+  case "$size" in ""|*[!0-9]*) size=0 ;; esac
+  file="$(context_file "$sid")" || file=""
+  case "$tokens" in
+    ""|*[!0-9]*)
+      # No token figure: today's percentage, its 50/75 split, and a dim "?".
+      [ -n "$file" ] && rm -f "$file" 2>/dev/null
+      case "$pct" in ""|*[!0-9]*) return 0 ;; esac
+      if [ "$pct" -ge 75 ]; then
+        printf '\033[31mcontext %s%% · new session\033[0m \033[2m?\033[0m\n' "$pct"
+      elif [ "$pct" -ge 50 ]; then
+        printf '\033[33mcontext %s%% · finish this task\033[0m \033[2m?\033[0m\n' "$pct"
+      else
+        printf '\033[2mcontext %s%% ?\033[0m\n' "$pct"
+      fi
+      return 0
+      ;;
+  esac
+  if [ -n "$file" ]; then
+    printf '%s %s\n' "$tokens" "$size" >"$file.$$" 2>/dev/null && mv -f "$file.$$" "$file" 2>/dev/null
   fi
+  context_level "$tokens" "$size"
+  case "$ctx_level" in
+    2) colour=31 advice=" · new session" ;;
+    1) colour=33 advice=" · finish this task" ;;
+    *) colour=2 advice="" ;;
+  esac
+  printf '\033[%smcontext %sk%s\033[0m\n' "$colour" "$ctx_k" "$advice"
 }
 
-# Print a hook warning as JSON when the fill crossed a threshold not warned yet.
+# Print a hook warning as JSON when the context reached a level not warned yet.
+# The markers are directories: mkdir is atomic, so a user-level and a
+# project-level hook on the same prompt print one warning between them.
 context_warning() {
-  local file pct warned level human model
+  local file reading tokens size human model
   file="$(context_file "$1")" || return 0
-  pct="$(cat "$file" 2>/dev/null)"
-  case "$pct" in ""|*[!0-9]*) return 0 ;; esac
-  warned="$(cat "$file.warned" 2>/dev/null)"
-  case "$warned" in 50|75) ;; *) warned=0 ;; esac
-  if [ "$pct" -lt 50 ]; then
-    [ "$warned" = 0 ] || printf '0\n' >"$file.warned"
-    return 0
-  fi
-  level=50
-  [ "$pct" -ge 75 ] && level=75
-  [ "$level" -gt "$warned" ] || return 0
-  printf '%s\n' "$level" >"$file.warned"
-  if [ "$level" = 75 ]; then
-    human="Context is at $pct%. Finish this slice, then start a new session (one slice per clean session)."
-    model="The context window is at $pct%. Finish the current slice only, write where it stands in the note's Next line, and tell the human to start a new session."
-  else
-    human="Context is at $pct%. A good moment to /compact once this slice is done."
-    model="The context window is at $pct%. Do not start a new slice in this session; when the current one is done, suggest /compact to the human."
-  fi
+  reading="$(cat "$file" 2>/dev/null)"
+  # An old one-number file, or anything else, is no reading.
+  case "$reading" in *" "*) ;; *) return 0 ;; esac
+  tokens="${reading%% *}"
+  size="${reading#* }"
+  case "$tokens" in ""|*[!0-9]*) return 0 ;; esac
+  case "$size" in ""|*[!0-9]*) return 0 ;; esac
+  context_level "$tokens" "$size"
+  case "$ctx_level" in
+    0)
+      rmdir "$file.w2" "$file.w1" 2>/dev/null
+      return 0
+      ;;
+    2)
+      mkdir "$file.w2" 2>/dev/null || return 0
+      # A later drop into the level 1 band must not warn about level 1.
+      mkdir "$file.w1" 2>/dev/null
+      human="Context is at ${ctx_k}k tokens. Finish this task, then type /clear and start fresh."
+      model="The context is at ${ctx_k}k tokens. Finish the current task only. Write where it stands in the note's Next line; if there is no note, give the human a summary of at most 5 lines to paste after /clear. Then tell the human to type /clear."
+      ;;
+    *)
+      mkdir "$file.w1" 2>/dev/null || return 0
+      human="Context is at ${ctx_k}k tokens. Every message re-sends all of it. Finish this task and start nothing new."
+      model="The context is at ${ctx_k}k tokens and every message re-sends all of it. Finish the current task and do not start a new one in this session."
+      ;;
+  esac
   HUMAN="$human" MODEL="$model" perl -MJSON::PP -e '
     print JSON::PP->new->canonical->encode({
       systemMessage => $ENV{HUMAN},
@@ -512,10 +575,13 @@ context_warning() {
 }
 
 # Claude Code hook: UserPromptSubmit saves hand edits made between turns,
-# Stop saves what the turn changed, labelled with its prompt. Never fails. Prints
-# only a context warning, as hook JSON: anything else on stdout reaches the model.
+# Stop saves what the turn changed, labelled with its prompt. Never fails and
+# never blocks a prompt. Prints only a context warning, as hook JSON: anything
+# else on stdout reaches the model. With --warn-only it only warns and never
+# snapshots, so it is safe at user level and in a folder of photos.
 cmd_hook() {
-  local parsed event cwd prompt prompt_file
+  local parsed event cwd prompt prompt_file warn_only=0
+  [ "${1:-}" = --warn-only ] && warn_only=1
   parsed="$(perl -MJSON::PP -e '
     local $/; my $in = <STDIN>;
     my $j = eval { JSON::PP->new->utf8->decode($in) } or exit 0;
@@ -530,6 +596,7 @@ cmd_hook() {
   cwd="$(printf '%s\n' "$parsed" | sed -n 2p)"
   prompt="$(printf '%s\n' "$parsed" | sed -n 3p)"
   [ "$event" = UserPromptSubmit ] && context_warning "$(printf '%s\n' "$parsed" | sed -n 4p)"
+  [ "$warn_only" = 1 ] && return 0
   [ -n "$cwd" ] && cd "$cwd" 2>/dev/null
   in_repo 2>/dev/null || return 0
   prompt_file="$(git_path fdd-prompt)"
@@ -547,6 +614,354 @@ cmd_hook() {
   return 0
 }
 
+# --- setup --------------------------------------------------------------------
+
+# Merges templates/user-settings.json into a settings file, or takes it out.
+# Args: add|remove, template, settings file (may be missing), output file.
+# Prints one line per key, tab separated: ADD, DEL, KEEP, FOREIGN or EDITED (a
+# status line that runs the meter but is not setup's), the key and its command;
+# or INVALID and a reason (exit 1). Writes the output only when it prints ADD or
+# DEL. Removing drops only the exact command and the exact
+# statusLine value setup writes, and the lists and objects that leaves empty.
+SETTINGS_MERGE='
+use strict; use warnings; use JSON::PP; use Math::BigFloat;
+my ($mode, $tpl_path, $path, $out) = @ARGV;
+# allow_bignum keeps long decimals and big integers as they are.
+my $js = JSON::PP->new->utf8->allow_bignum;
+my $cn = JSON::PP->new->utf8->canonical->allow_bignum;
+my $pretty = JSON::PP->new->utf8->canonical->allow_bignum->indent->indent_length(2)->space_after;
+sub slurp { open my $f, "<:raw", $_[0] or return undef; local $/; my $s = <$f>; close $f; defined $s ? $s : "" }
+sub invalid { print "INVALID\t$_[0]\n"; exit 1 }
+# The number tokens of a JSON text, strings skipped.
+sub numbers {
+  my @n;
+  while ($_[0] =~ /"[^"\\]*(?:\\.[^"\\]*)*"|(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/gs) {
+    push @n, $1 if defined $1;
+  }
+  @n;
+}
+my $tpl = eval { $js->decode(slurp($tpl_path) // "") };
+ref $tpl eq "HASH" or invalid("the template $tpl_path is missing or broken");
+my $S = $tpl->{statusLine};
+my $entry = $tpl->{hooks}{UserPromptSubmit}[0];
+my $H = $entry->{hooks}[0]{command};
+my $j = {};
+if (-e $path) {
+  my $raw = slurp($path);
+  defined $raw or invalid("it cannot be read");
+  $j = eval { $js->decode($raw) };
+  defined $j or invalid("it is not valid JSON");
+  ref $j eq "HASH" or invalid("it is not a JSON object");
+  # A key twice in one object decodes to its last value only: the rewrite would
+  # drop the others. Each string followed by a colon is a key of the text.
+  my $keys_in_text = 0;
+  while ($raw =~ /"[^"\\]*(?:\\.[^"\\]*)*"(\s*:)?/gs) { $keys_in_text++ if defined $1 }
+  my $keys_decoded = 0;
+  my $walk; $walk = sub {
+    my $v = shift;
+    if (ref $v eq "HASH") { $keys_decoded += keys %$v; $walk->($_) for values %$v }
+    elsif (ref $v eq "ARRAY") { $walk->($_) for @$v }
+  };
+  $walk->($j);
+  invalid("it has a duplicate key") if $keys_in_text != $keys_decoded;
+  # Every number must come back with the same value. The edit adds no number
+  # and drops only entries of setup, so checking the file as read is enough.
+  my @was = numbers($raw);
+  invalid("a number in it is too large to rewrite") if grep { /[eE][+-]?0*[0-9]{4,}$/ } @was;
+  my @now = numbers($pretty->encode($j));
+  my $norm = sub { join "\n", sort map { Math::BigFloat->new($_)->bsstr } @_ };
+  invalid("a number in it would change when rewritten") if $norm->(@was) ne $norm->(@now);
+}
+invalid("statusLine is not an object") if exists $j->{statusLine} && ref $j->{statusLine} ne "HASH";
+invalid("hooks is not an object") if exists $j->{hooks} && ref $j->{hooks} ne "HASH";
+my $ups = exists $j->{hooks} ? $j->{hooks}{UserPromptSubmit} : undef;
+invalid("hooks.UserPromptSubmit is not a list") if defined $ups && ref $ups ne "ARRAY";
+sub cmd_of { my $c = $_[0]{command}; (defined $c && !ref $c) ? $c : "" }
+sub is_h { my $h = shift; ref $h eq "HASH" && cmd_of($h) eq $H }
+# A status line calls the meter when its command runs fdd statusline, or runs
+# a script that does.
+sub calls_meter {
+  my $cmd = shift;
+  my $re = qr/fdd["\x27]?\s+statusline\b/;
+  return 1 if $cmd =~ $re;
+  for my $w (split /\s+/, $cmd) {
+    $w =~ s/^["\x27]+|["\x27]+$//g;
+    $w =~ s{^(?:~|\$HOME|\$\{HOME\})(?=/)}{$ENV{HOME}};
+    next unless -f $w && -s _ < 1048576;
+    my $s = slurp($w) // next;
+    return 1 if $s =~ $re;
+  }
+  return 0;
+}
+my $changed = 0;
+if ($mode eq "add") {
+  my $sl = $j->{statusLine};
+  my $ok = 1;
+  if (!defined $sl) {
+    $j->{statusLine} = $S; $changed = 1;
+    print "ADD\tstatusLine\t$S->{command}\n";
+  } elsif ($cn->encode($sl) eq $cn->encode($S) || calls_meter(cmd_of($sl))) {
+    print "KEEP\tstatusLine\t", cmd_of($sl), "\n";
+  } else {
+    $ok = 0;
+    print "FOREIGN\tstatusLine\t", (cmd_of($sl) eq "" ? "(no command)" : cmd_of($sl)), "\n";
+  }
+  if ($ok) {
+    my $there = 0;
+    for my $e (@{ $ups || [] }) {
+      next unless ref $e eq "HASH" && ref $e->{hooks} eq "ARRAY";
+      $there = 1 if grep { is_h($_) } @{ $e->{hooks} };
+    }
+    if ($there) {
+      print "KEEP\thooks.UserPromptSubmit\t$H\n";
+    } else {
+      push @{ $j->{hooks}{UserPromptSubmit} }, $entry; $changed = 1;
+      print "ADD\thooks.UserPromptSubmit\t$H\n";
+    }
+  }
+} else {
+  if (defined $j->{statusLine} && $cn->encode($j->{statusLine}) eq $cn->encode($S)) {
+    delete $j->{statusLine}; $changed = 1;
+    print "DEL\tstatusLine\t$S->{command}\n";
+  } elsif (ref $j->{statusLine} eq "HASH" && calls_meter(cmd_of($j->{statusLine}))) {
+    print "EDITED\tstatusLine\t", cmd_of($j->{statusLine}), "\n";
+  }
+  if (ref $ups eq "ARRAY") {
+    my (@keep, $gone);
+    for my $e (@$ups) {
+      if (ref $e eq "HASH" && ref $e->{hooks} eq "ARRAY") {
+        my @h = grep { !is_h($_) } @{ $e->{hooks} };
+        if (@h < @{ $e->{hooks} }) {
+          $gone = 1;
+          # An entry with no hook left goes, matcher and all.
+          if (@h) { $e->{hooks} = \@h } else { next }
+        }
+      }
+      push @keep, $e;
+    }
+    if ($gone) {
+      $changed = 1;
+      print "DEL\thooks.UserPromptSubmit\t$H\n";
+      if (@keep) { $j->{hooks}{UserPromptSubmit} = \@keep }
+      else { delete $j->{hooks}{UserPromptSubmit}; delete $j->{hooks} unless %{ $j->{hooks} } }
+    }
+  }
+}
+if ($changed) {
+  open my $f, ">:raw", $out or invalid("cannot write a temporary file");
+  print $f $pretty->encode($j);
+  close $f or invalid("cannot write a temporary file");
+}
+exit 0;
+'
+
+setup_new=""
+setup_tmp=""
+# 1 once there is a plan, 2 once the new-sessions line is out: it comes once per run.
+setup_said=0
+
+new_sessions_line() {
+  [ "$setup_said" = 2 ] && return 0
+  setup_said=2
+  printf 'Applies to new sessions only; close open Claude Code sessions first.\n'
+}
+# An argument error plans nothing, so it gets no new-sessions line.
+setup_die() {
+  printf 'fdd: %s\n' "$*" >&2
+  [ "$setup_said" = 1 ] && new_sessions_line
+  exit 1
+}
+
+# The size, inode and mtime (to the nanosecond where the system keeps it).
+file_stamp() {
+  perl -MTime::HiRes=stat -e 'my @s = stat($ARGV[0]); print @s ? join(" ", @s[0, 1, 7, 9]) : "none"' "$1"
+}
+
+# Shown when the file cannot be merged safely: what to paste, or delete, by hand.
+# Args: add|remove, the file, the template.
+setup_by_hand() {
+  if [ "$1" = remove ]; then
+    printf 'Nothing changed. To turn the meter off by hand, delete these entries from %s:\n\n' "$2"
+  else
+    printf 'Nothing changed. To turn the meter on by hand, merge this into %s:\n\n' "$2"
+  fi
+  cat "$3"
+  printf '\n'
+}
+
+# Also in tools.md, under Setup at user level. Keep both the same.
+setup_snippet() {
+  cat <<'EOF'
+#!/bin/bash
+# ~/.claude/fdd-statusline.sh: your status line, then the context meter.
+in="$(cat)"
+mine="$(printf '%s' "$in" | YOUR-CURRENT-COMMAND)"
+meter="$(printf '%s' "$in" | "$HOME/.claude/skills/fdd/bin/fdd" statusline)"
+printf '%s  %s\n' "$mine" "$meter"
+EOF
+}
+
+setup_why() {
+  case "$1" in
+    statusLine) printf 'shows the context in tokens, yellow from %sk and red from %sk, sooner on a small window, and keeps the count the hook reads' \
+      "$((FDD_WARN_TOKENS / 1000))" "$((FDD_STOP_TOKENS / 1000))" ;;
+    *) printf 'tells you and Claude once per level; --warn-only never snapshots, so nothing is copied into .git' ;;
+  esac
+}
+
+# fdd setup --user: turn the context meter on in ~/.claude/settings.json, backup
+# first. --remove takes out exactly what it adds.
+cmd_setup() {
+  local user=0 dry=0 yes=0 remove=0 home dir file tpl plan rc=0 mode=add tab kind key cmd
+  local changes=0 foreign="" edited=0 before after backup="" answer wrapper
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --user) user=1 ;;
+      --dry-run) dry=1 ;;
+      --yes|-y) yes=1 ;;
+      --remove) remove=1; mode=remove ;;
+      # The installer probes with --help that this fdd has setup.
+      -h|--help)
+        printf 'usage: fdd setup --user [--dry-run] [--yes] [--remove]\n'
+        printf 'Turns the context meter on in ~/.claude/settings.json, backup first.\n'
+        return 0 ;;
+      *) setup_die "unknown option $1; usage: fdd setup --user [--dry-run] [--yes] [--remove]" ;;
+    esac
+    shift
+  done
+  [ "$user" = 1 ] || setup_die "fdd setup needs --user: it edits ~/.claude/settings.json (see tools.md)"
+  home="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)"
+  tpl="$home/templates/user-settings.json"
+  [ -f "$tpl" ] || setup_die "missing $tpl; reinstall the fdd skill"
+  dir="$HOME/.claude"
+  file="$dir/settings.json"
+  if [ -L "$file" ]; then
+    printf 'fdd: %s is a symlink; it is not touched.\n' "$file" >&2
+    setup_by_hand "$mode" "the file it points to" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+  if [ -e "$file" ] && [ ! -f "$file" ]; then
+    printf 'fdd: %s is not a regular file; it is not touched.\n' "$file" >&2
+    setup_by_hand "$mode" "$file" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+  before="$(file_stamp "$file")"
+  setup_new="$(mktemp "${TMPDIR:-/tmp}/fdd-settings.XXXXXX")" || setup_die "could not make a temporary file"
+  trap 'rm -f "$setup_new" ${setup_tmp:+"$setup_tmp"}' EXIT
+  plan="$(perl -e "$SETTINGS_MERGE" -- "$mode" "$tpl" "$file" "$setup_new")" || rc=$?
+  if [ "$rc" != 0 ]; then
+    printf 'fdd: %s: %s.\n' "$file" "$(printf '%s\n' "$plan" | sed -n 's/^INVALID.//p' | head -1)" >&2
+    setup_by_hand "$mode" "$file" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+  # A file locked against edits stays locked: the move would replace it anyway.
+  # Only a plan that writes is refused; --dry-run says so too.
+  if [ -f "$file" ] && [ ! -w "$file" ] && printf '%s\n' "$plan" | grep -qE '^(ADD|DEL)'; then
+    printf 'fdd: %s is read-only; it is not touched.\n' "$file" >&2
+    setup_by_hand "$mode" "$file" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+
+  setup_said=1
+  tab="$(printf '\t')"
+  if [ "$mode" = add ]; then printf 'fdd setup --user: %s\n' "$file"; else printf 'fdd setup --user --remove: %s\n' "$file"; fi
+  while IFS="$tab" read -r kind key cmd; do
+    case "$kind" in
+      ADD) changes=$((changes + 1)); printf '  + %s: %s\n    why: %s\n' "$key" "$cmd" "$(setup_why "$key")" ;;
+      DEL) changes=$((changes + 1)); printf '  - %s: %s\n' "$key" "$cmd" ;;
+      KEEP) printf '  = %s: %s (already there, kept)\n' "$key" "$cmd" ;;
+      EDITED) edited=1
+        printf '  = %s: %s (kept)\n' "$key" "$cmd"
+        printf '    statusLine still runs fdd statusline, but not as setup writes it; remove it by hand.\n' ;;
+      FOREIGN) foreign="$cmd" ;;
+    esac
+  done <<EOF
+$plan
+EOF
+  if [ -n "$foreign" ]; then
+    printf 'Kept your status line: %s\n' "$foreign"
+    printf 'Warnings stay off until your status line calls fdd statusline\n'
+    # The name setup suggests, spelled the ways a status line can spell it.
+    wrapper=0
+    case "$foreign" in
+      *'~/.claude/fdd-statusline.sh'*|*'$HOME/.claude/fdd-statusline.sh'*|*'${HOME}/.claude/fdd-statusline.sh'*|*"$HOME/.claude/fdd-statusline.sh"*)
+        [ -f "$HOME/.claude/fdd-statusline.sh" ] && wrapper=1 ;;
+    esac
+    if [ "$wrapper" = 1 ]; then
+      # Saving the snippet over it would lose what is in it now.
+      printf 'It already runs ~/.claude/fdd-statusline.sh, which no longer calls the meter.\n'
+      printf 'Do not save over it: put the meter lines back by hand, as in this sample,\n'
+      printf 'and run fdd setup --user again:\n\n'
+      setup_snippet
+    else
+      printf 'To keep yours and add the meter, save this as ~/.claude/fdd-statusline.sh:\n\n'
+      setup_snippet
+      printf '\nPut your command in place of YOUR-CURRENT-COMMAND, set the statusLine command\n'
+      printf 'to "bash ~/.claude/fdd-statusline.sh", and run fdd setup --user again.\n'
+    fi
+  fi
+  if [ "$changes" = 0 ]; then
+    if [ "$mode" = remove ] && [ "$edited" = 1 ]; then
+      printf 'Nothing removed: the status line above is yours to take out.\n'
+    elif [ "$mode" = remove ]; then
+      printf 'Nothing to remove: none of the entries fdd setup writes is there.\n'
+    elif [ -z "$foreign" ]; then
+      printf 'Nothing to change: the meter is already on.\n'
+    fi
+    new_sessions_line
+    return 0
+  fi
+  if [ "$dry" = 1 ]; then new_sessions_line; return 0; fi
+  if [ "$yes" != 1 ]; then
+    new_sessions_line
+    printf 'Write this to %s? [y/N] ' "$file"
+    answer=""
+    read -r answer || true
+    [ -t 0 ] || printf '\n'
+    case "$answer" in
+      y|Y|yes|Yes|YES) ;;
+      *) printf 'Nothing changed.\n'; new_sessions_line; return 0 ;;
+    esac
+  fi
+
+  mkdir -p "$dir" || setup_die "could not make $dir; nothing changed"
+  if [ -f "$file" ]; then
+    mkdir -p "$dir/settings-backup" || setup_die "could not make $dir/settings-backup; nothing changed"
+    backup="$(mktemp "$dir/settings-backup/settings.json.XXXXXX")" || setup_die "could not back up $file; nothing changed"
+    cp "$file" "$backup" || { rm -f "$backup"; setup_die "could not back up $file; nothing changed"; }
+  fi
+  setup_tmp="$(mktemp "$dir/settings.json.XXXXXX")" || setup_die "could not write next to $file; nothing changed"
+  cat "$setup_new" >"$setup_tmp" || setup_die "could not write next to $file; nothing changed"
+  if [ -f "$file" ]; then
+    perl -e 'chmod((stat $ARGV[0])[2] & 07777, $ARGV[1])' "$file" "$setup_tmp"
+  fi
+  # Tests widen the window between the read and the move with this pause.
+  [ -n "${FDD_SETUP_TEST_SLEEP:-}" ] && sleep "$FDD_SETUP_TEST_SLEEP"
+  after="$(file_stamp "$file")"
+  if [ "$after" != "$before" ]; then
+    rm -f "$setup_tmp"
+    setup_tmp=""
+    printf 'fdd: settings changed while merging, run again. %s was not written.\n' "$file" >&2
+    [ -n "$backup" ] && printf 'The copy taken before is in %s.\n' "$backup"
+    new_sessions_line
+    return 1
+  fi
+  mv -f "$setup_tmp" "$file" || setup_die "could not replace $file; it is unchanged"
+  setup_tmp=""
+  printf 'Saved %s.\n' "$file"
+  [ -n "$backup" ] && printf 'The old file is in %s.\n' "$backup"
+  if [ "$mode" = add ]; then
+    printf 'To undo: fdd setup --user --remove\n'
+  else
+    printf 'To turn it on again: fdd setup --user\n'
+  fi
+  new_sessions_line
+}
+
 case "${1:-}" in
   snapshot) shift; cmd_snapshot "$@" ;;
   undo) shift; cmd_undo "$@" ;;
@@ -556,6 +971,7 @@ case "${1:-}" in
   commit) shift; cmd_commit "$@" ;;
   statusline) shift; cmd_statusline "$@"; exit 0 ;;
   hook) shift; cmd_hook "$@"; exit 0 ;;
+  setup) shift; cmd_setup "$@"; exit $? ;;
   -h|--help|help|"") usage ;;
   *) usage >&2; exit 2 ;;
 esac

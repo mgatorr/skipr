@@ -64,23 +64,103 @@ ignored file at a path an older snapshot had). Move that file away and retry.
 
 ## Context: `fdd statusline`
 
-Claude Code gives the status line the context fill (`context_window.used_percentage`).
-Hooks get no such figure, so the status line keeps it for the prompt hook.
+Claude Code gives the status line the context figures (`context_window.total_input_tokens`,
+`context_window_size`, `current_usage`, `used_percentage`). Hooks get none, so the status
+line keeps the latest count per session for the prompt hook.
 
 ```text
-context 32%                     under 50%, dim
-context 58% · /compact          from 50%, yellow
-context 81% · new session       from 75%, red
+context 82k                         under 150k, dim
+context 182k · finish this task     from 150k, yellow
+context 262k · new session          from 250k, red
 ```
 
-The rule is one slice per clean session. On the first prompt past 50% and past 75%, the
-`UserPromptSubmit` hook tells the human (a line above the answer) and Claude (extra context)
-once. A compaction drops the fill below 50% and arms both warnings again. Before the first
-answer of a session, and right after `/compact`, there is no figure and the line is empty.
+The meter counts tokens, not a share of the window, because every request re-sends the
+whole context: at 182k each message sends 182k tokens again, whether the window holds 200k
+or 1M. A 1M window only makes it worse, since autocompaction fires near its end. The levels
+are 150k and 250k, or half and three quarters of a smaller window (100k and 150k on 200k).
+The count is `total_input_tokens`, else the sum of `current_usage` (input, cache creation,
+cache read), else the percentage times the window size. With none of these, the line shows
+the percentage with a dim `?` and the hook gives no warning.
 
+The rule is one slice and one topic per clean session. On the first prompt at each level
+the `UserPromptSubmit` hook tells the human (a line above the answer) and Claude (extra
+context) once: at 150k, finish this task and start nothing new; at 250k, finish it, write
+the note's `Next` line and type `/clear`. A `/clear` or a compaction drops the count below
+the first level and arms both warnings again. Before the first answer of a session there is
+no figure and the line is empty.
+
+`fdd hook --warn-only` gives the warning and nothing else: it never snapshots, so it never
+copies files into `.git`. Use it at user level (`~/.claude/settings.json`), and in folders
+of photos. A user-level and a project-level hook on the same prompt print one warning.
+
+To measure a session by hand: `/context` in print mode undercounts. The `usage` of the
+first request in the session's transcript is the reliable start figure.
+
+To turn it on for every session, run `fdd setup --user` ([Setup at user level](#setup-at-user-level)).
 The `statusLine` entry in [`templates/claude-settings.json`](./templates/claude-settings.json)
-replaces any status line you already have. To keep yours, call `fdd statusline` from it with
-the same JSON on stdin and print its output next to your own.
+replaces any status line you already have; `fdd setup --user` keeps yours instead.
+
+## Setup at user level
+
+One command turns the meter on for every session on this computer:
+
+```bash
+~/.claude/skills/fdd/bin/fdd setup --user --dry-run   # show what it would add
+~/.claude/skills/fdd/bin/fdd setup --user             # add it; asks y/N first
+~/.claude/skills/fdd/bin/fdd setup --user --remove    # take it out again
+```
+
+It writes two keys into `~/.claude/settings.json`, from
+[`templates/user-settings.json`](./templates/user-settings.json): `statusLine` runs
+`fdd statusline`, and `hooks.UserPromptSubmit` runs `fdd hook --warn-only`. It prints each
+key and why before it asks, and `--yes` skips the question. Open sessions keep their old
+settings: close them and start a new one. The macOS installer offers it too, yes by
+default, or without asking with `--with-session-meter` (`scripts/README.md` in the skipr
+repo).
+
+The hook is `--warn-only` because a user-level hook runs in every folder, including folders
+of photos and video. It warns and never snapshots, so it never copies files into `.git`.
+Undo stays a per-project choice ([Setup](#setup)).
+
+What it never does:
+
+- **Lose your file.** Before writing it copies the file to
+  `~/.claude/settings-backup/settings.json.<suffix>`, byte for byte. It writes a temporary
+  file next to `settings.json` and moves it in. If the file changed while it was merging (an
+  open session saving it), it stops with `settings changed while merging, run again`.
+- **Touch a file it cannot read.** Invalid JSON, a symlink (a dotfiles setup) or a
+  read-only file it would change is refused, nothing changes, and it prints what to paste
+  or delete by hand.
+- **Replace your status line.** If you have one that does not call `fdd statusline`, it is
+  kept and the hook is not added: `Warnings stay off until your status line calls fdd
+  statusline`. To keep yours and add the meter, save this as
+  `~/.claude/fdd-statusline.sh` (a name setup owns, so it never overwrites a script of
+  yours), put your command in place of `YOUR-CURRENT-COMMAND`, set the `statusLine` command
+  to `bash ~/.claude/fdd-statusline.sh`, and run `fdd setup --user` again:
+
+```bash
+#!/bin/bash
+# ~/.claude/fdd-statusline.sh: your status line, then the context meter.
+in="$(cat)"
+mine="$(printf '%s' "$in" | YOUR-CURRENT-COMMAND)"
+meter="$(printf '%s' "$in" | "$HOME/.claude/skills/fdd/bin/fdd" statusline)"
+printf '%s  %s\n' "$mine" "$meter"
+```
+
+- **Add twice.** A second run finds its entries and changes nothing.
+
+To undo, `fdd setup --user --remove` takes out the exact hook command and the exact
+`statusLine` that setup writes, backup first, and leaves the rest as it was. Entries of
+yours stay, even fdd ones (a full `fdd hook`, a `Stop` hook, a status line you wrote);
+a status line that still runs `fdd statusline` is named so you can take it out by hand. An
+entry identical to what setup writes goes too, even if you had typed it by hand. Or copy
+the newest file in `~/.claude/settings-backup/` back over `~/.claude/settings.json`. The
+file is rewritten sorted, with two-space indents; the values stay the same, and a file
+with a number it cannot write back exactly, or a key twice in one object, is refused like
+invalid JSON.
+
+Uninstall: run fdd setup --user --remove before deleting the skill. Otherwise every session
+runs a status line and a hook that are gone.
 
 ## Commit: `fdd commit`
 

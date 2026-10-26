@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # skipr macOS installer (v0)
 # Sets up the L0/L1 path: Homebrew guidance, optional Ghostty, optional lean zsh extras,
-# Claude Code CLI guidance, and the setup-harness and fdd skills.
+# Claude Code CLI guidance, the setup-harness and fdd skills, and the optional
+# session meter (fdd setup --user).
 #
 # Usage:
-#   ./scripts/install-macos.sh [--help] [--dry-run] [--with-ghostty] [--with-zsh-extras] [--force]
+#   ./scripts/install-macos.sh [--help] [--dry-run] [--with-ghostty] [--with-zsh-extras]
+#                          [--with-session-meter] [--force]
 #
 # Primary path: git clone the repo, then run this script locally.
 # curl|bash is secondary (see scripts/README.md). Script messages are English (product canon).
@@ -33,7 +35,12 @@ ZSHRC_MARK_END="# <<< skipr zsh extras <<<"
 DRY_RUN=0
 WITH_GHOSTTY=0
 WITH_ZSH_EXTRAS=0
+WITH_SESSION_METER=0
 FORCE=0
+# Set by the skills step: the local source tree, and whether fdd is (or on
+# --dry-run would be) copied from it.
+SKIPR_SRC_ROOT=""
+FDD_WILL_REPLACE=0
 
 info()  { printf '==> %s\n' "$*"; }
 ok()    { printf '    OK  %s\n' "$*"; }
@@ -66,6 +73,9 @@ Options:
   --with-ghostty      Install Ghostty via Homebrew cask (otherwise ask / skip)
   --with-zsh-extras   Install lean zsh niceties (syntax-highlighting,
                       autosuggestions, fzf) and append a marked block to ~/.zshrc
+  --with-session-meter
+                      Turn on the session meter (fdd setup --user) without
+                      asking; otherwise ask [Y/n], or skip when non-interactive
   --force             Overwrite existing setup-harness and fdd skills.
                       Each previous copy is moved to
                       ~/.claude/skills-backup/<name>.<unique>
@@ -156,6 +166,10 @@ parse_args() {
         ;;
       --with-zsh-extras)
         WITH_ZSH_EXTRAS=1
+        shift
+        ;;
+      --with-session-meter)
+        WITH_SESSION_METER=1
         shift
         ;;
       --force)
@@ -426,6 +440,9 @@ install_one_skill() {
   if ! should_replace_skill "$dest" "$label"; then
     return 0
   fi
+  if [[ "$label" == fdd ]]; then
+    FDD_WILL_REPLACE=1
+  fi
   parent="$(dirname "$dest")"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     printf '    [dry-run] mkdir -p %s\n' "$parent"
@@ -573,6 +590,7 @@ ensure_skill() {
 
   if root="$(find_repo_root)"; then
     ok "Using local skill source: $root/skills"
+    SKIPR_SRC_ROOT="$root"
     install_skills_from_root "$root" || return 1
     return 0
   fi
@@ -615,6 +633,80 @@ EOF
   fi
 }
 
+# The session meter: fdd setup --user puts the context meter in Claude Code's
+# status line, backup first. Default yes when asked; skipped when nothing can
+# ask, unless --with-session-meter.
+ensure_session_meter() {
+  step "Session meter (context in tokens)"
+  local fdd="" plan out rc=0 ans
+  local nl=$'\n'
+  if [[ "$DRY_RUN" -eq 1 && "$FDD_WILL_REPLACE" -eq 1 ]]; then
+    # Nothing was copied on --dry-run: plan with the source tree's fdd.
+    if [[ -n "$SKIPR_SRC_ROOT" ]]; then
+      fdd="$SKIPR_SRC_ROOT/skills/fdd/bin/fdd"
+    fi
+  elif skill_exists "$FDD_DEST"; then
+    fdd="$FDD_DEST/bin/fdd"
+  fi
+  if [[ -z "$fdd" ]]; then
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      printf '    [dry-run] would offer fdd setup --user once the fdd skill is copied\n'
+    else
+      warn "No fdd skill at ${FDD_DEST}; the session meter is skipped."
+    fi
+    return 0
+  fi
+  # A kept fdd skill from before fdd setup cannot turn the meter on.
+  if [[ ! -x "$fdd" ]] || ! "$fdd" setup --help >/dev/null 2>&1; then
+    warn "your fdd skill is older; re-run with --force to update it"
+    info "The session meter is skipped."
+    return 0
+  fi
+  if [[ "$WITH_SESSION_METER" -ne 1 && ! -t 0 ]]; then
+    info "Skipping the session meter (non-interactive; pass --with-session-meter to turn it on)."
+    return 0
+  fi
+
+  info "It shows the context in tokens and warns before every message gets expensive."
+  if ! plan="$("$fdd" setup --user --dry-run 2>&1)"; then
+    printf '%s\n' "$plan" | sed 's/^/    /'
+    warn "fdd setup cannot merge ~/.claude/settings.json; the session meter is skipped."
+    return 0
+  fi
+  printf '%s\n' "$plan" | sed 's/^/    /'
+  # No "+" line: the meter is already on, or your own status line is kept.
+  if [[ "$plan" != *"${nl}  + "* ]]; then
+    return 0
+  fi
+
+  if [[ "$WITH_SESSION_METER" -ne 1 ]]; then
+    printf '\nTurn on the session meter? [Y/n] '
+    read -r ans || ans=""
+    case "$ans" in
+      ""|y|Y|yes|Yes|YES) ;;
+      *)
+        info "Skipping the session meter. Later: ~/.claude/skills/fdd/bin/fdd setup --user"
+        return 0
+        ;;
+    esac
+  fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '    [dry-run] %s setup --user --yes\n' "$FDD_DEST/bin/fdd"
+    return 0
+  fi
+  out="$("$fdd" setup --user --yes 2>&1)" || rc=$?
+  # The plan and the new-sessions line are already above: show what the write said.
+  if [[ "$rc" -eq 0 && "$out" == *"${nl}Saved "* ]]; then
+    out="$(printf '%s\n' "$out" | sed -n '/^Saved /,$p')"
+  fi
+  printf '%s\n' "$out" | sed -e '/^Applies to new sessions only/d' -e 's/^/    /'
+  if [[ "$rc" -ne 0 ]]; then
+    warn "The session meter was not turned on (see above)."
+    return 0
+  fi
+  ok "Session meter on for new Claude Code sessions"
+}
+
 print_next_steps() {
   step "Next steps"
   cat <<'EOF'
@@ -630,6 +722,9 @@ print_next_steps() {
 
   4. Smoke-test a checker:
        ./checks/naming.sh
+
+  5. One task per session: when the meter turns red, or the topic changes, type /clear.
+     Open Claude Code sessions keep their old settings; start new ones.
 
   Full guide: docs/novice-guide.md
 EOF
@@ -656,6 +751,7 @@ main() {
   ensure_zsh_extras
   ensure_claude
   ensure_skill
+  ensure_session_meter
   print_next_steps
 }
 

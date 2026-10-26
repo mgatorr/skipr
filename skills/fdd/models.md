@@ -32,3 +32,16 @@ https://platform.claude.com/docs/en/about-claude/pricing
 
 A 1M window is not a reason to fill it: one slice per clean session still holds (see
 [`tools.md`](./tools.md#context-fdd-statusline)).
+
+## Agents and workflows
+
+- Agents and workflow steps inherit the session's model and effort unless the script or the agent file sets them (`model:`, `effort:`). Set both per agent, and do not leave max effort on for days.
+- A fork carries the parent's whole context. Prefer a fresh agent with a self-contained brief.
+- Switching the model mid-session invalidates the cache; `/effort` keeps it.
+- Fewer agents and shorter contexts save more than a cheaper model: most of a long session is cache reads, and those cost little on Opus and Sonnet alike.
+- Every agent pays its own fixed start cost before it reads anything. One limited to Read, Grep, Glob and Bash starts at roughly half of a default one. In `~/.claude/agents/<name>.md`, below the required `name:` and `description:`:
+```yaml
+tools: Read, Grep, Glob, Bash
+model: claude-haiku-5-5
+omitClaudeMd: true
+```

@@ -136,6 +136,8 @@ Harness ready in: <pwd>
 4. To prove the harness works: break a checker on purpose
    (see checks/README.md) and ask the agent to fix it.
 
+New task? Type /clear first.
+
 Not a Second Brain. Do not copy 50 skills. Extra rules go in
 CLAUDE.md (keep it short) or a new checker under checks/.
 ```

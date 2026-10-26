@@ -9,9 +9,10 @@ Photographers: [for-photographers.md](./for-photographers.md). Fail/pass demo: [
 
 1. [The novice path](#the-novice-path) (step 0 is a two-minute fail/pass — no Claude yet)
 2. [What to do next](#what-to-do-next)
-3. [Harness deep-dive](#harness-setup-harness)
-4. [Levels L0 → L2](#levels-l0--l2)
-5. [This grows with you](#this-grows-with-you)
+3. [One task per session](#one-task-per-session)
+4. [Harness deep-dive](#harness-setup-harness)
+5. [Levels L0 → L2](#levels-l0--l2)
+6. [This grows with you](#this-grows-with-you)
 
 ---
 
@@ -155,6 +156,23 @@ You are done with “install” when all of this is true:
 2. When a rule keeps coming up, add one line to `CLAUDE.md` or one new checker. Keep both short.
 3. Read [Levels (L0 → L2)](#levels-l0--l2) so you know what to ignore for now. Cursor, OpenCode, and Hermes stay optional — guides live in [`docs/l2/`](./l2/).
 4. Optional: skim [`skills/setup-harness/SKILL.md`](../skills/setup-harness/SKILL.md) when you want the exact procedure the agent follows.
+
+---
+
+## One task per session
+
+1. Know the unit: a token is roughly three quarters of a word, and 150k tokens is a long book.
+2. Every message re-sends the whole conversation, so expect a long session to cost more with every message.
+3. Do one task per session. When the topic changes, type `/clear`, even if the meter is still dim.
+4. Read the token figure on the status line (`context 82k`), not a percentage.
+5. Yellow (150k, sooner on a small window): finish this task and start nothing new.
+6. Red (250k, sooner on a small window): type `/clear`, or quit and start a fresh `claude`.
+7. Back after an hour away from a big session? Start fresh; picking it up again costs more.
+8. Start `claude` in the project folder, not in a big shared folder.
+9. Put rules you want in every folder in `~/.claude/CLAUDE.md`.
+10. After you change settings, plugins or hooks, start a new session: open ones do not see the change.
+11. To turn the meter off, run `~/.claude/skills/fdd/bin/fdd setup --user --remove`,
+    or copy the newest file in `~/.claude/settings-backup/` back over `~/.claude/settings.json`.
 
 ---
 
