@@ -132,13 +132,14 @@ What it never does:
   nothing changes, and it prints the keys to paste by hand.
 - **Replace your status line.** If you have one that does not call `fdd statusline`, it is
   kept and the hook is not added: `Warnings stay off until your status line calls fdd
-  statusline`. To keep yours and add the meter, save this as `~/.claude/statusline.sh`, put
-  your command in place of `YOUR-CURRENT-COMMAND`, set the `statusLine` command to
-  `bash ~/.claude/statusline.sh`, and run `fdd setup --user` again:
+  statusline`. To keep yours and add the meter, save this as
+  `~/.claude/fdd-statusline.sh` (a name setup owns, so it never overwrites a script of
+  yours), put your command in place of `YOUR-CURRENT-COMMAND`, set the `statusLine` command
+  to `bash ~/.claude/fdd-statusline.sh`, and run `fdd setup --user` again:
 
 ```bash
 #!/bin/bash
-# ~/.claude/statusline.sh: your status line, then the context meter.
+# ~/.claude/fdd-statusline.sh: your status line, then the context meter.
 in="$(cat)"
 mine="$(printf '%s' "$in" | YOUR-CURRENT-COMMAND)"
 meter="$(printf '%s' "$in" | "$HOME/.claude/skills/fdd/bin/fdd" statusline)"
