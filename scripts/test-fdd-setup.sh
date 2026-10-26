@@ -251,6 +251,25 @@ put '{"hooks":{"UserPromptSubmit":[{"matcher":"x","hooks":[{"type":"command","co
 setup --user --remove --yes >/dev/null 2>&1
 check "matcher-kept: the matcher and your hook stay" '[ "$(jget "$settings" "\$j->{hooks}{UserPromptSubmit}[0]{matcher}")" = x ] && [ "$(hook_count "$settings" UserPromptSubmit "echo hi")" = 1 ] && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 0 ]'
 
+# 14. --remove names a status line that still runs the meter but is not setup's.
+fresh edited
+put '{}'
+setup --user --yes >/dev/null 2>&1
+SL="$S" jget "$settings" '$j->{statusLine}{padding} = 0; JSON::PP->new->utf8->canonical->encode($j)' >"$work/edited.json"
+cp "$work/edited.json" "$settings"
+ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
+check "edited: the hook goes, the edited status line stays" '[ "$ec" = 0 ] && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 0 ] && [ "$(status_cmd "$settings")" = "$S" ]'
+check "edited: says the status line still runs fdd statusline, remove it by hand" 'has "$out" "statusLine still runs fdd statusline" && has "$out" "remove it by hand"'
+ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
+check "edited, run again: names the status line, not nothing to remove" '[ "$ec" = 0 ] && has "$out" "statusLine still runs fdd statusline" && ! has "$out" "none of the entries"'
+# The pair: setup's own status line goes, and a second run has nothing to remove.
+fresh unedited
+put '{}'
+setup --user --yes >/dev/null 2>&1
+setup --user --remove --yes >/dev/null 2>&1
+ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
+check "unedited: removed, and the next run says nothing to remove" '[ "$ec" = 0 ] && [ -z "$(status_cmd "$settings")" ] && has "$out" "none of the entries" && ! has "$out" "still runs fdd statusline"'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0
