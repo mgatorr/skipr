@@ -307,6 +307,26 @@ chmod 600 "$settings"
 ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
 check "mode 600: written, and still mode 600" '[ "$ec" = 0 ] && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 1 ] && [ "$(perl -e "printf q(%o), (stat \$ARGV[0])[2] & 07777" "$settings")" = 600 ]'
 
+# 17. Numbers keep their value through the rewrite, or the file is refused.
+# same_number FILE VALUE: the file is valid JSON and .a is a number equal to VALUE.
+same_number() { perl -MJSON::PP -MMath::BigFloat -e 'local $/; open my $f, "<", $ARGV[0] or exit 2; my $s = <$f>; my $j = eval { JSON::PP->new->utf8->allow_bignum->decode($s) } or exit 1; exit 1 if $s =~ /"a"\s*:\s*"/; exit(Math::BigFloat->new("$j->{a}")->bcmp(Math::BigFloat->new($ARGV[1])) == 0 ? 0 : 1)' "$1" "$2"; }
+for v in 0.1234567890123456789 123456789012345678901234567890 1E400 18446744073709551616; do
+  fresh "num-$v"
+  put "{\"a\":$v}"
+  cp "$settings" "$work/num.orig"
+  ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
+  check "number $v: same value, or refused with the file unchanged" '{ [ "$ec" = 0 ] && same_number "$settings" "$v"; } || { [ "$ec" = 1 ] && cmp -s "$settings" "$work/num.orig" && has "$out" "number"; }'
+done
+fresh num-precise
+put '{"a":0.1234567890123456789}'
+ec=0; setup --user --yes >/dev/null 2>&1 || ec=$?
+check "number: a long decimal is written, not refused" '[ "$ec" = 0 ] && same_number "$settings" 0.1234567890123456789 && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 1 ]'
+# The pair: plain numbers are written as they were.
+fresh num-plain
+put '{"a":3,"b":0.5,"c":-2}'
+ec=0; setup --user --yes >/dev/null 2>&1 || ec=$?
+check "number: plain numbers are written and keep their value" '[ "$ec" = 0 ] && same_number "$settings" 3 && [ "$(jget "$settings" "\$j->{b}")" = 0.5 ] && [ "$(jget "$settings" "\$j->{c}")" = -2 ]'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0
