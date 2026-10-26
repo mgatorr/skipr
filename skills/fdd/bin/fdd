@@ -652,6 +652,18 @@ if (-e $path) {
   $j = eval { $js->decode($raw) };
   defined $j or invalid("it is not valid JSON");
   ref $j eq "HASH" or invalid("it is not a JSON object");
+  # A key twice in one object decodes to its last value only: the rewrite would
+  # drop the others. Each string followed by a colon is a key of the text.
+  my $keys_in_text = 0;
+  while ($raw =~ /"[^"\\]*(?:\\.[^"\\]*)*"(\s*:)?/gs) { $keys_in_text++ if defined $1 }
+  my $keys_decoded = 0;
+  my $walk; $walk = sub {
+    my $v = shift;
+    if (ref $v eq "HASH") { $keys_decoded += keys %$v; $walk->($_) for values %$v }
+    elsif (ref $v eq "ARRAY") { $walk->($_) for @$v }
+  };
+  $walk->($j);
+  invalid("it has a duplicate key") if $keys_in_text != $keys_decoded;
   # Every number must come back with the same value. The edit adds no number
   # and drops only entries of setup, so checking the file as read is enough.
   my @was = numbers($raw);
