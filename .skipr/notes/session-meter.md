@@ -22,14 +22,14 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - [x] 2. `fdd setup --user` turns the meter on in `~/.claude/settings.json`, backup first; `--remove` takes it out.
 - [x] 3. The installer offers the meter: plan first, `[Y/n]` yes by default, `--with-session-meter` when nothing can ask; an older kept fdd skill is warned and skipped.
 - [x] 4. The novice guide teaches one task per session, the meter and `/clear`; check-docs caps that section at 20 lines and wants `/clear` in the harness template.
-- [ ] 5. Subagents and workflows get their model and effort per agent (provisional).
+- [x] 5. models.md teaches model and effort per agent, the start cost, fork vs fresh agent and the cache; check-docs caps the file at 50 and the section at 12.
 
 ## Checks
 - 1: `bash scripts/test-fdd-context.sh` on /bin/bash (and /opt/homebrew/bin/bash when present).
 - 2: `bash scripts/test-fdd-setup.sh` on /bin/bash (CI: harness-checks and install-macos-test).
 - 3: `bash scripts/test-install-macos.sh` scenarios 14-19, plus `setup --help` in test-fdd-setup.sh.
 - 4: `scripts/check-docs.sh` with the real list, plus a test that the guide quotes the thresholds.
-- 5: a docs test that models.md names per-agent model and effort.
+- 5: `scripts/check-docs.sh` wants `## Agents and workflows` in models.md (at most 12 lines) and caps the file at 50; test-check-docs.sh case 13.
 - Every slice: `DOCS_BANNED=... GITHUB_ACTIONS=true bash scripts/check-docs.sh`.
 
 ## Evidence
@@ -42,6 +42,8 @@ Every message re-sends the whole context, and on a 1M window 18% is already 182k
 - 3: by hand through a pty (`script`): empty answer to `[Y/n]` wrote settings.json, `n` wrote nothing. Other tests and check-docs → PASS. Not run on Linux here.
 - 4: `/bin/bash scripts/test-check-docs.sh` → `check-docs redaction: PASS` (2026-10-26). At ef7a90d the 21-line, missing-heading and no-`/clear` fixtures failed; with the new check and before the docs, the real tree failed (missing heading, missing /clear). Mutations caught: cap 21, section not ended by `## `, trailing `---` counted, wrong template string.
 - 4: `test-fdd-context.sh` now also checks docs/novice-guide.md (150k, 250k, no 50% or 75%) → PASS; failed at ef7a90d. Other tests and check-docs with the real list → PASS. Only BSD awk here; mawk and gawk not run.
+- 5: `/bin/bash scripts/test-check-docs.sh` → PASS (2026-10-26). At 8d0fc84 the 51-line, missing-heading and 13-line fixtures failed; with the new check and before the docs, the real tree failed (missing heading). Mutations caught: section cap 13, file cap 51, section check removed.
+- 5: all 12 scripts/test-*.sh on /bin/bash → PASS; check-docs with the real list → `docs check ok`. models.md is 47 lines. /opt/homebrew/bin/bash not installed.
 
 ## Next
-Slice 5: subagents and workflows get their model and effort per agent. Still open from the old slice 3: photo folders get the meter through `--warn-only`, never snapshots.
+All five slices are done: the branch is ready for the review room, after a different agent reproduces it. Still open from the old slice 3: photo folders get the meter through `--warn-only`, never snapshots.
