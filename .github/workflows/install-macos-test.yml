@@ -8,6 +8,7 @@ on:
       - "scripts/test-fdd-undo.sh"
       - "scripts/test-fdd-commit.sh"
       - "scripts/test-fdd-context.sh"
+      - "scripts/test-fdd-setup.sh"
       - "skills/**"
       - ".github/workflows/install-macos-test.yml"
   push:
@@ -18,6 +19,7 @@ on:
       - "scripts/test-fdd-undo.sh"
       - "scripts/test-fdd-commit.sh"
       - "scripts/test-fdd-context.sh"
+      - "scripts/test-fdd-setup.sh"
       - "skills/**"
       - ".github/workflows/install-macos-test.yml"
 
@@ -34,3 +36,5 @@ jobs:
         run: /bin/bash scripts/test-fdd-commit.sh
       - name: fdd context meter on the bash that ships with macOS
         run: /bin/bash scripts/test-fdd-context.sh
+      - name: fdd setup --user on the bash that ships with macOS
+        run: /bin/bash scripts/test-fdd-setup.sh

@@ -72,6 +72,8 @@ jobs:
         run: bash scripts/test-fdd-commit.sh
       - name: fdd context meter
         run: bash scripts/test-fdd-context.sh
+      - name: fdd setup --user
+        run: bash scripts/test-fdd-setup.sh
 
   docs-check:
     runs-on: ubuntu-latest
