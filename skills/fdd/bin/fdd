@@ -765,10 +765,15 @@ file_stamp() {
   perl -MTime::HiRes=stat -e 'my @s = stat($ARGV[0]); print @s ? join(" ", @s[0, 1, 7, 9]) : "none"' "$1"
 }
 
-# Shown when the file cannot be merged safely: what to paste by hand.
+# Shown when the file cannot be merged safely: what to paste, or delete, by hand.
+# Args: add|remove, the file, the template.
 setup_by_hand() {
-  printf 'Nothing changed. To turn the meter on by hand, merge this into %s:\n\n' "$1"
-  cat "$2"
+  if [ "$1" = remove ]; then
+    printf 'Nothing changed. To turn the meter off by hand, delete these entries from %s:\n\n' "$2"
+  else
+    printf 'Nothing changed. To turn the meter on by hand, merge this into %s:\n\n' "$2"
+  fi
+  cat "$3"
   printf '\n'
 }
 
@@ -820,13 +825,13 @@ cmd_setup() {
   file="$dir/settings.json"
   if [ -L "$file" ]; then
     printf 'fdd: %s is a symlink; it is not touched.\n' "$file" >&2
-    setup_by_hand "the file it points to" "$tpl"
+    setup_by_hand "$mode" "the file it points to" "$tpl"
     new_sessions_line
     return 1
   fi
   if [ -e "$file" ] && [ ! -f "$file" ]; then
     printf 'fdd: %s is not a regular file; it is not touched.\n' "$file" >&2
-    setup_by_hand "$file" "$tpl"
+    setup_by_hand "$mode" "$file" "$tpl"
     new_sessions_line
     return 1
   fi
@@ -836,7 +841,7 @@ cmd_setup() {
   plan="$(perl -e "$SETTINGS_MERGE" -- "$mode" "$tpl" "$file" "$setup_new")" || rc=$?
   if [ "$rc" != 0 ]; then
     printf 'fdd: %s: %s.\n' "$file" "$(printf '%s\n' "$plan" | sed -n 's/^INVALID.//p' | head -1)" >&2
-    setup_by_hand "$file" "$tpl"
+    setup_by_hand "$mode" "$file" "$tpl"
     new_sessions_line
     return 1
   fi
@@ -844,7 +849,7 @@ cmd_setup() {
   # Only a plan that writes is refused; --dry-run says so too.
   if [ -f "$file" ] && [ ! -w "$file" ] && printf '%s\n' "$plan" | grep -qE '^(ADD|DEL)'; then
     printf 'fdd: %s is read-only; it is not touched.\n' "$file" >&2
-    setup_by_hand "$file" "$tpl"
+    setup_by_hand "$mode" "$file" "$tpl"
     new_sessions_line
     return 1
   fi
