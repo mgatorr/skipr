@@ -6,7 +6,7 @@
 # Scenario 9 shims mktemp to fail and records cp destinations.
 # Scenario 10 fails only the clone-path mktemp -d and records git clone.
 # Scenario 11 shims mv to send SIGINT right after the backup move.
-# Scenarios 14-19 cover the session meter offer (fdd setup --user). The [Y/n]
+# Scenarios 14-20 cover the session meter offer (fdd setup --user). The [Y/n]
 # question needs a TTY, so these runs are non-interactive and use the flag.
 set -u
 
@@ -835,6 +835,29 @@ begin 19
   [ -z "$left" ] || note "temp clone left behind ($left)"
   [ -z "$reasons" ] || sed 's/^/    | /' "$log"
   finish 19
+  rm -rf "$work"
+}
+
+# --- 20. a yes run shows the plan and the new-sessions line once ---
+begin 20
+{
+  work="$(new_home)"
+  home="$work/home dir"
+  log="$work/log"
+  mkdir -p "$home/.claude"
+  printf '%s\n' '{"env":{"X":"x"}}' > "$home/.claude/settings.json"
+  run_inst "$log" "$home" --with-session-meter
+  [ "$EC" -eq 0 ] || note "exit $EC"
+  meter_on "$home/.claude/settings.json"
+  grep -qF 'Saved ' "$log" || note "no Saved line"
+  grep -qF 'The old file is in ' "$log" || note "no backup line"
+  for s in 'Applies to new sessions only' '+ statusLine' '+ hooks.UserPromptSubmit' 'why: '; do
+    n="$(grep -cF -- "$s" "$log")"
+    case "$s" in 'why: ') want=2 ;; *) want=1 ;; esac
+    [ "$n" = "$want" ] || note "'$s' printed $n times, want $want"
+  done
+  [ -z "$reasons" ] || sed 's/^/    | /' "$log"
+  finish 20
   rm -rf "$work"
 }
 
