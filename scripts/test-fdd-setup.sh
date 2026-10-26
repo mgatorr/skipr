@@ -381,6 +381,20 @@ out="$(setup --user --bogus 2>&1)"; check "once: an unknown option does not say 
 out="$(setup --yes 2>&1)"; check "once: no --user does not say it" '[ "$(nsl "$out")" = 0 ] && has "$out" "--user"'
 out="$(setup --help 2>&1)"; check "once: --help does not say it" '[ "$(nsl "$out")" = 0 ]'
 
+# 20. A duplicate key is refused: the rewrite would keep only the last value.
+for d in '{"env":{"A":"x"},"permissions":{"allow":["Bash(ls)"]},"env":{"B":"y"}}' '{"a":"x","a":"y"}' '{"o":{"k":1,"k":2}}' '{"l":[{"k":true},{"k":false,"k":null}]}'; do
+  fresh dup
+  put "$d"
+  cp "$settings" "$work/dup.orig"
+  ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
+  check "duplicate key $d: exits 1, says duplicate key, file unchanged, no backup" '[ "$ec" = 1 ] && has "$out" "duplicate key" && cmp -s "$settings" "$work/dup.orig" && [ ! -e "$backups" ]'
+done
+# The pair: the same key in different objects, and key-like text inside strings, are fine.
+fresh no-dup
+put '{"a":{"k":1},"b":{"k":2},"s":"\"a\": 1, \"a\": 2","l":[{"k":1},{"k":2}],"k":"x:y"}'
+ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
+check "no duplicate: written, and every value kept" '[ "$ec" = 0 ] && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 1 ] && [ "$(jget "$settings" "\$j->{a}{k} . \$j->{b}{k} . \$j->{l}[1]{k} . \$j->{k}")" = "122x:y" ] && [ "$(jget "$settings" "\$j->{s}")" = "\"a\": 1, \"a\": 2" ]'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0
