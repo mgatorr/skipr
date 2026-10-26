@@ -26,6 +26,9 @@ last_line() { printf '%s\n' "$1" | sed '/^$/d' | tail -1; }
 S='"$HOME/.claude/skills/fdd/bin/fdd" statusline'
 H='"$HOME/.claude/skills/fdd/bin/fdd" hook --warn-only'
 FULL='"$HOME/.claude/skills/fdd/bin/fdd" hook'
+# The same two commands as JSON text, in the snippet to paste by hand.
+JS='\"$HOME/.claude/skills/fdd/bin/fdd\" statusline'
+JH='\"$HOME/.claude/skills/fdd/bin/fdd\" hook --warn-only'
 FOREIGN_LINE='Warnings stay off until your status line calls fdd statusline'
 SNIPPET_LINE='meter="$(printf '"'%s'"' "$in" | "$HOME/.claude/skills/fdd/bin/fdd" statusline)"'
 
@@ -107,7 +110,7 @@ ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
 check "invalid: exits 1" '[ "$ec" = 1 ]'
 check "invalid: file byte-identical" 'cmp -s "$settings" "$work/invalid.orig"'
 check "invalid: no backup and no temp file" '[ ! -e "$backups" ] && [ -z "$(strays)" ]'
-check "invalid: prints the snippet to paste by hand" 'has "$out" "$S" && has "$out" "$H"'
+check "invalid: prints the snippet to paste by hand" 'has "$out" "$JS" && has "$out" "$JH"'
 check "invalid: last line says new sessions only" 'has "$(last_line "$out")" "Applies to new sessions only"'
 
 # 5. A symlink is refused.
@@ -119,7 +122,7 @@ ln -s "$work/dotfiles-settings.json" "$settings"
 ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
 check "symlink: exits 1 and says symlink" '[ "$ec" = 1 ] && has "$out" "symlink"'
 check "symlink: the link and its target are untouched" '[ -L "$settings" ] && cmp -s "$work/dotfiles-settings.json" "$work/link.orig"'
-check "symlink: no backup, snippet printed" '[ ! -e "$backups" ] && has "$out" "$H"'
+check "symlink: no backup, snippet printed" '[ ! -e "$backups" ] && has "$out" "$JH"'
 
 # 6. A status line of your own is kept, and warnings stay off.
 fresh foreign
@@ -130,6 +133,8 @@ check "foreign: exit 0, status line kept, file byte-identical" '[ "$ec" = 0 ] &&
 check "foreign: no hook added" '[ "$(hook_count "$settings" UserPromptSubmit "$H")" = 0 ]'
 check "foreign: prints the exact warnings-off line" 'has_line "$out" "$FOREIGN_LINE"'
 check "foreign: prints the snippet that tools.md shows" 'has_line "$out" "$SNIPPET_LINE" && grep -qxF -- "$SNIPPET_LINE" "$tools"'
+snippet="$(printf "%s\n" "$out" | sed -n "/^#!\/bin\/bash$/,/^printf /p")"
+check "foreign: every snippet line is in tools.md" '[ "$(printf "%s\n" "$snippet" | wc -l | tr -d " ")" -ge 5 ] && printf "%s\n" "$snippet" | while IFS= read -r l; do grep -qxF -- "$l" "$tools" || exit 1; done'
 check "foreign: no backup" '[ "$(backup_count)" = 0 ]'
 # The pair: a status line script that calls fdd statusline gets the hook.
 fresh wraps
