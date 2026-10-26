@@ -239,6 +239,18 @@ check "tools.md has a Setup at user level section" 'grep -qE "^## Setup at user 
 check "tools.md says to remove before deleting the skill" 'grep -qF "run fdd setup --user --remove before deleting the skill" "$tools"'
 check "tools.md names the backup folder" 'grep -qF "~/.claude/settings-backup/" "$tools"'
 
+# 13. --remove drops an entry whose hooks list it empties, whatever else it holds.
+fresh matcher
+put '{"hooks":{"UserPromptSubmit":[{"matcher":"","hooks":[{"type":"command","command":"\"$HOME/.claude/skills/fdd/bin/fdd\" hook --warn-only"}]}]}}'
+ec=0; setup --user --remove --yes >/dev/null 2>&1 || ec=$?
+check "matcher: no entry is left without a hooks list" '[ "$ec" = 0 ] && [ "$(jget "$settings" "my \$n = 0; for my \$e (@{ \$j->{hooks}{UserPromptSubmit} || [] }) { \$n++ unless ref \$e->{hooks} eq q(ARRAY) } \$n")" = 0 ]'
+check "matcher: the emptied lists go too" '[ "$(jget "$settings" "exists \$j->{hooks} ? 1 : 0")" = 0 ]'
+# The pair: an entry that still holds a hook of yours keeps its matcher.
+fresh matcher-kept
+put '{"hooks":{"UserPromptSubmit":[{"matcher":"x","hooks":[{"type":"command","command":"echo hi"},{"type":"command","command":"\"$HOME/.claude/skills/fdd/bin/fdd\" hook --warn-only"}]}]}}'
+setup --user --remove --yes >/dev/null 2>&1
+check "matcher-kept: the matcher and your hook stay" '[ "$(jget "$settings" "\$j->{hooks}{UserPromptSubmit}[0]{matcher}")" = x ] && [ "$(hook_count "$settings" UserPromptSubmit "echo hi")" = 1 ] && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 0 ]'
+
 if [ "$fail" -eq 0 ]; then
   printf 'fdd setup: PASS\n'
   exit 0
