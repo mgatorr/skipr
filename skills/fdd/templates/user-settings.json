@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/skills/fdd/bin/fdd\" hook --warn-only" }] }
+    ]
+  },
+  "statusLine": { "type": "command", "command": "\"$HOME/.claude/skills/fdd/bin/fdd\" statusline" }
+}

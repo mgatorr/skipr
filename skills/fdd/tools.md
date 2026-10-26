@@ -96,9 +96,64 @@ of photos. A user-level and a project-level hook on the same prompt print one wa
 To measure a session by hand: `/context` in print mode undercounts. The `usage` of the
 first request in the session's transcript is the reliable start figure.
 
+To turn it on for every session, run `fdd setup --user` ([Setup at user level](#setup-at-user-level)).
 The `statusLine` entry in [`templates/claude-settings.json`](./templates/claude-settings.json)
-replaces any status line you already have. To keep yours, call `fdd statusline` from it with
-the same JSON on stdin and print its output next to your own.
+replaces any status line you already have; `fdd setup --user` keeps yours instead.
+
+## Setup at user level
+
+One command turns the meter on for every session on this computer:
+
+```bash
+~/.claude/skills/fdd/bin/fdd setup --user --dry-run   # show what it would add
+~/.claude/skills/fdd/bin/fdd setup --user             # add it; asks y/N first
+~/.claude/skills/fdd/bin/fdd setup --user --remove    # take it out again
+```
+
+It writes two keys into `~/.claude/settings.json`, from
+[`templates/user-settings.json`](./templates/user-settings.json): `statusLine` runs
+`fdd statusline`, and `hooks.UserPromptSubmit` runs `fdd hook --warn-only`. It prints each
+key and why before it asks, and `--yes` skips the question. Open sessions keep their old
+settings: close them and start a new one.
+
+The hook is `--warn-only` because a user-level hook runs in every folder, including folders
+of photos and video. It warns and never snapshots, so it never copies files into `.git`.
+Undo stays a per-project choice ([Setup](#setup)).
+
+What it never does:
+
+- **Lose your file.** Before writing it copies the file to
+  `~/.claude/settings-backup/settings.json.<suffix>`, byte for byte. It writes a temporary
+  file next to `settings.json` and moves it in. If the file changed while it was merging (an
+  open session saving it), it stops with `settings changed while merging, run again`.
+- **Touch a file it cannot read.** Invalid JSON or a symlink (a dotfiles setup) is refused,
+  nothing changes, and it prints the keys to paste by hand.
+- **Replace your status line.** If you have one that does not call `fdd statusline`, it is
+  kept and the hook is not added: `Warnings stay off until your status line calls fdd
+  statusline`. To keep yours and add the meter, save this as `~/.claude/statusline.sh`, put
+  your command in place of `YOUR-CURRENT-COMMAND`, set the `statusLine` command to
+  `bash ~/.claude/statusline.sh`, and run `fdd setup --user` again:
+
+```bash
+#!/bin/bash
+# ~/.claude/statusline.sh: your status line, then the context meter.
+in="$(cat)"
+mine="$(printf '%s' "$in" | YOUR-CURRENT-COMMAND)"
+meter="$(printf '%s' "$in" | "$HOME/.claude/skills/fdd/bin/fdd" statusline)"
+printf '%s  %s\n' "$mine" "$meter"
+```
+
+- **Add twice.** A second run finds its entries and changes nothing.
+
+To undo, `fdd setup --user --remove` takes out the exact hook command and the exact
+`statusLine` that setup writes, backup first, and leaves the rest as it was. Entries of
+yours stay, even fdd ones (a full `fdd hook`, a `Stop` hook, a status line you wrote). An
+entry identical to what setup writes goes too, even if you had typed it by hand. Or copy
+the newest file in `~/.claude/settings-backup/` back over `~/.claude/settings.json`. The
+file is rewritten sorted, with two-space indents; the values stay the same.
+
+Uninstall: run fdd setup --user --remove before deleting the skill. Otherwise every session
+runs a status line and a hook that are gone.
 
 ## Commit: `fdd commit`
 

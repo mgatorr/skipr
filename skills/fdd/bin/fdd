@@ -38,6 +38,9 @@ fdd: helpers for Fast Driven Development
   fdd statusline         context meter in tokens for Claude Code's status line
   fdd hook [--warn-only] entry point for Claude Code hooks (reads their JSON on stdin);
                          --warn-only only warns about context, never snapshots
+  fdd setup --user [--dry-run] [--yes] [--remove]
+                         turn the context meter on in ~/.claude/settings.json,
+                         backup first; --remove takes it out again
 
 Undo moves files only. HEAD, branches and what you staged stay as they are.
 Ignored files, secret-looking files (.env*, keys, .netrc, credentials.json...)
@@ -611,6 +614,273 @@ cmd_hook() {
   return 0
 }
 
+# --- setup --------------------------------------------------------------------
+
+# Merges templates/user-settings.json into a settings file, or takes it out.
+# Args: add|remove, template, settings file (may be missing), output file.
+# Prints one line per key, tab separated: ADD, DEL, KEEP or FOREIGN, the key and
+# its command; or INVALID and a reason (exit 1). Writes the output only when it
+# prints ADD or DEL. Removing drops only the exact command and the exact
+# statusLine value setup writes, and the lists and objects that leaves empty.
+SETTINGS_MERGE='
+use strict; use warnings; use JSON::PP;
+my ($mode, $tpl_path, $path, $out) = @ARGV;
+my $js = JSON::PP->new->utf8;
+my $cn = JSON::PP->new->utf8->canonical;
+sub slurp { open my $f, "<:raw", $_[0] or return undef; local $/; my $s = <$f>; close $f; defined $s ? $s : "" }
+sub invalid { print "INVALID\t$_[0]\n"; exit 1 }
+my $tpl = eval { $js->decode(slurp($tpl_path) // "") };
+ref $tpl eq "HASH" or invalid("the template $tpl_path is missing or broken");
+my $S = $tpl->{statusLine};
+my $entry = $tpl->{hooks}{UserPromptSubmit}[0];
+my $H = $entry->{hooks}[0]{command};
+my $j = {};
+if (-e $path) {
+  my $raw = slurp($path);
+  defined $raw or invalid("it cannot be read");
+  $j = eval { $js->decode($raw) };
+  defined $j or invalid("it is not valid JSON");
+  ref $j eq "HASH" or invalid("it is not a JSON object");
+}
+invalid("statusLine is not an object") if exists $j->{statusLine} && ref $j->{statusLine} ne "HASH";
+invalid("hooks is not an object") if exists $j->{hooks} && ref $j->{hooks} ne "HASH";
+my $ups = exists $j->{hooks} ? $j->{hooks}{UserPromptSubmit} : undef;
+invalid("hooks.UserPromptSubmit is not a list") if defined $ups && ref $ups ne "ARRAY";
+sub cmd_of { my $c = $_[0]{command}; (defined $c && !ref $c) ? $c : "" }
+sub is_h { my $h = shift; ref $h eq "HASH" && cmd_of($h) eq $H }
+# A status line calls the meter when its command runs fdd statusline, or runs
+# a script that does.
+sub calls_meter {
+  my $cmd = shift;
+  my $re = qr/fdd["\x27]?\s+statusline\b/;
+  return 1 if $cmd =~ $re;
+  for my $w (split /\s+/, $cmd) {
+    $w =~ s/^["\x27]+|["\x27]+$//g;
+    $w =~ s{^(?:~|\$HOME|\$\{HOME\})(?=/)}{$ENV{HOME}};
+    next unless -f $w && -s _ < 1048576;
+    my $s = slurp($w) // next;
+    return 1 if $s =~ $re;
+  }
+  return 0;
+}
+my $changed = 0;
+if ($mode eq "add") {
+  my $sl = $j->{statusLine};
+  my $ok = 1;
+  if (!defined $sl) {
+    $j->{statusLine} = $S; $changed = 1;
+    print "ADD\tstatusLine\t$S->{command}\n";
+  } elsif ($cn->encode($sl) eq $cn->encode($S) || calls_meter(cmd_of($sl))) {
+    print "KEEP\tstatusLine\t", cmd_of($sl), "\n";
+  } else {
+    $ok = 0;
+    print "FOREIGN\tstatusLine\t", (cmd_of($sl) eq "" ? "(no command)" : cmd_of($sl)), "\n";
+  }
+  if ($ok) {
+    my $there = 0;
+    for my $e (@{ $ups || [] }) {
+      next unless ref $e eq "HASH" && ref $e->{hooks} eq "ARRAY";
+      $there = 1 if grep { is_h($_) } @{ $e->{hooks} };
+    }
+    if ($there) {
+      print "KEEP\thooks.UserPromptSubmit\t$H\n";
+    } else {
+      push @{ $j->{hooks}{UserPromptSubmit} }, $entry; $changed = 1;
+      print "ADD\thooks.UserPromptSubmit\t$H\n";
+    }
+  }
+} else {
+  if (defined $j->{statusLine} && $cn->encode($j->{statusLine}) eq $cn->encode($S)) {
+    delete $j->{statusLine}; $changed = 1;
+    print "DEL\tstatusLine\t$S->{command}\n";
+  }
+  if (ref $ups eq "ARRAY") {
+    my (@keep, $gone);
+    for my $e (@$ups) {
+      if (ref $e eq "HASH" && ref $e->{hooks} eq "ARRAY") {
+        my @h = grep { !is_h($_) } @{ $e->{hooks} };
+        if (@h < @{ $e->{hooks} }) {
+          $gone = 1;
+          if (@h) { $e->{hooks} = \@h } else { delete $e->{hooks}; next unless %$e }
+        }
+      }
+      push @keep, $e;
+    }
+    if ($gone) {
+      $changed = 1;
+      print "DEL\thooks.UserPromptSubmit\t$H\n";
+      if (@keep) { $j->{hooks}{UserPromptSubmit} = \@keep }
+      else { delete $j->{hooks}{UserPromptSubmit}; delete $j->{hooks} unless %{ $j->{hooks} } }
+    }
+  }
+}
+if ($changed) {
+  open my $f, ">:raw", $out or invalid("cannot write a temporary file");
+  print $f JSON::PP->new->utf8->canonical->indent->indent_length(2)->space_after->encode($j);
+  close $f or invalid("cannot write a temporary file");
+}
+exit 0;
+'
+
+setup_new=""
+setup_tmp=""
+
+new_sessions_line() { printf 'Applies to new sessions only; close open Claude Code sessions first.\n'; }
+setup_die() { printf 'fdd: %s\n' "$*" >&2; new_sessions_line; exit 1; }
+
+# The size, inode and mtime (to the nanosecond where the system keeps it).
+file_stamp() {
+  perl -MTime::HiRes=stat -e 'my @s = stat($ARGV[0]); print @s ? join(" ", @s[0, 1, 7, 9]) : "none"' "$1"
+}
+
+# Shown when the file cannot be merged safely: what to paste by hand.
+setup_by_hand() {
+  printf 'Nothing changed. To turn the meter on by hand, merge this into %s:\n\n' "$1"
+  cat "$2"
+  printf '\n'
+}
+
+# Also in tools.md, under Setup at user level. Keep both the same.
+setup_snippet() {
+  cat <<'EOF'
+#!/bin/bash
+# ~/.claude/statusline.sh: your status line, then the context meter.
+in="$(cat)"
+mine="$(printf '%s' "$in" | YOUR-CURRENT-COMMAND)"
+meter="$(printf '%s' "$in" | "$HOME/.claude/skills/fdd/bin/fdd" statusline)"
+printf '%s  %s\n' "$mine" "$meter"
+EOF
+}
+
+setup_why() {
+  case "$1" in
+    statusLine) printf 'shows the context in tokens, yellow from %sk and red from %sk, and keeps the count the hook reads' \
+      "$((FDD_WARN_TOKENS / 1000))" "$((FDD_STOP_TOKENS / 1000))" ;;
+    *) printf 'tells you and Claude once per level; --warn-only never snapshots, so nothing is copied into .git' ;;
+  esac
+}
+
+# fdd setup --user: turn the context meter on in ~/.claude/settings.json, backup
+# first. --remove takes out exactly what it adds.
+cmd_setup() {
+  local user=0 dry=0 yes=0 remove=0 home dir file tpl plan rc=0 mode=add tab kind key cmd
+  local changes=0 foreign="" before after backup="" answer
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --user) user=1 ;;
+      --dry-run) dry=1 ;;
+      --yes|-y) yes=1 ;;
+      --remove) remove=1; mode=remove ;;
+      *) setup_die "unknown option $1; usage: fdd setup --user [--dry-run] [--yes] [--remove]" ;;
+    esac
+    shift
+  done
+  [ "$user" = 1 ] || setup_die "fdd setup needs --user: it edits ~/.claude/settings.json (see tools.md)"
+  home="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)"
+  tpl="$home/templates/user-settings.json"
+  [ -f "$tpl" ] || setup_die "missing $tpl; reinstall the fdd skill"
+  dir="$HOME/.claude"
+  file="$dir/settings.json"
+  if [ -L "$file" ]; then
+    printf 'fdd: %s is a symlink; it is not touched.\n' "$file" >&2
+    setup_by_hand "the file it points to" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+  if [ -e "$file" ] && [ ! -f "$file" ]; then
+    printf 'fdd: %s is not a regular file; it is not touched.\n' "$file" >&2
+    setup_by_hand "$file" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+
+  before="$(file_stamp "$file")"
+  setup_new="$(mktemp "${TMPDIR:-/tmp}/fdd-settings.XXXXXX")" || setup_die "could not make a temporary file"
+  trap 'rm -f "$setup_new" ${setup_tmp:+"$setup_tmp"}' EXIT
+  plan="$(perl -e "$SETTINGS_MERGE" -- "$mode" "$tpl" "$file" "$setup_new")" || rc=$?
+  if [ "$rc" != 0 ]; then
+    printf 'fdd: %s: %s.\n' "$file" "$(printf '%s\n' "$plan" | sed -n 's/^INVALID.//p' | head -1)" >&2
+    setup_by_hand "$file" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+
+  tab="$(printf '\t')"
+  if [ "$mode" = add ]; then printf 'fdd setup --user: %s\n' "$file"; else printf 'fdd setup --user --remove: %s\n' "$file"; fi
+  while IFS="$tab" read -r kind key cmd; do
+    case "$kind" in
+      ADD) changes=$((changes + 1)); printf '  + %s: %s\n    why: %s\n' "$key" "$cmd" "$(setup_why "$key")" ;;
+      DEL) changes=$((changes + 1)); printf '  - %s: %s\n' "$key" "$cmd" ;;
+      KEEP) printf '  = %s: %s (already there, kept)\n' "$key" "$cmd" ;;
+      FOREIGN) foreign="$cmd" ;;
+    esac
+  done <<EOF
+$plan
+EOF
+  if [ -n "$foreign" ]; then
+    printf 'Kept your status line: %s\n' "$foreign"
+    printf 'Warnings stay off until your status line calls fdd statusline\n'
+    printf 'To keep yours and add the meter, save this as ~/.claude/statusline.sh:\n\n'
+    setup_snippet
+    printf '\nPut your command in place of YOUR-CURRENT-COMMAND, set the statusLine command\n'
+    printf 'to "bash ~/.claude/statusline.sh", and run fdd setup --user again.\n'
+  fi
+  if [ "$changes" = 0 ]; then
+    if [ "$mode" = remove ]; then
+      printf 'Nothing to remove: none of the entries fdd setup writes is there.\n'
+    elif [ -z "$foreign" ]; then
+      printf 'Nothing to change: the meter is already on.\n'
+    fi
+    new_sessions_line
+    return 0
+  fi
+  new_sessions_line
+  [ "$dry" = 1 ] && return 0
+  if [ "$yes" != 1 ]; then
+    printf 'Write this to %s? [y/N] ' "$file"
+    answer=""
+    read -r answer || true
+    [ -t 0 ] || printf '\n'
+    case "$answer" in
+      y|Y|yes|Yes|YES) ;;
+      *) printf 'Nothing changed.\n'; new_sessions_line; return 0 ;;
+    esac
+  fi
+
+  mkdir -p "$dir" || setup_die "could not make $dir; nothing changed"
+  if [ -f "$file" ]; then
+    mkdir -p "$dir/settings-backup" || setup_die "could not make $dir/settings-backup; nothing changed"
+    backup="$(mktemp "$dir/settings-backup/settings.json.XXXXXX")" || setup_die "could not back up $file; nothing changed"
+    cp "$file" "$backup" || { rm -f "$backup"; setup_die "could not back up $file; nothing changed"; }
+  fi
+  setup_tmp="$(mktemp "$dir/settings.json.XXXXXX")" || setup_die "could not write next to $file; nothing changed"
+  cat "$setup_new" >"$setup_tmp" || setup_die "could not write next to $file; nothing changed"
+  if [ -f "$file" ]; then
+    perl -e 'chmod((stat $ARGV[0])[2] & 07777, $ARGV[1])' "$file" "$setup_tmp"
+  fi
+  # Tests widen the window between the read and the move with this pause.
+  [ -n "${FDD_SETUP_TEST_SLEEP:-}" ] && sleep "$FDD_SETUP_TEST_SLEEP"
+  after="$(file_stamp "$file")"
+  if [ "$after" != "$before" ]; then
+    rm -f "$setup_tmp"
+    setup_tmp=""
+    printf 'fdd: settings changed while merging, run again. %s was not written.\n' "$file" >&2
+    [ -n "$backup" ] && printf 'The copy taken before is in %s.\n' "$backup"
+    new_sessions_line
+    return 1
+  fi
+  mv -f "$setup_tmp" "$file" || setup_die "could not replace $file; it is unchanged"
+  setup_tmp=""
+  printf 'Saved %s.\n' "$file"
+  [ -n "$backup" ] && printf 'The old file is in %s.\n' "$backup"
+  if [ "$mode" = add ]; then
+    printf 'To undo: fdd setup --user --remove\n'
+  else
+    printf 'To turn it on again: fdd setup --user\n'
+  fi
+  new_sessions_line
+}
+
 case "${1:-}" in
   snapshot) shift; cmd_snapshot "$@" ;;
   undo) shift; cmd_undo "$@" ;;
@@ -620,6 +890,7 @@ case "${1:-}" in
   commit) shift; cmd_commit "$@" ;;
   statusline) shift; cmd_statusline "$@"; exit 0 ;;
   hook) shift; cmd_hook "$@"; exit 0 ;;
+  setup) shift; cmd_setup "$@"; exit $? ;;
   -h|--help|help|"") usage ;;
   *) usage >&2; exit 2 ;;
 esac
