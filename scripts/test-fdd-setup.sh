@@ -313,7 +313,26 @@ ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
 check "read-only, meter on: --dry-run exits 0 too" '[ "$ec" = 0 ] && has "$out" "Nothing to change" && ! has "$out" "read-only"'
 ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
 check "read-only, meter on: --remove would write, so it is refused" '[ "$ec" = 1 ] && has "$out" "read-only" && cmp -s "$settings" "$work/readonly-on.orig" && [ "$(backup_count)" = "$nb_on" ]'
+check "read-only --remove: says how to turn the meter off by hand, not on" 'has "$out" "To turn the meter off by hand, delete these entries from $settings:" && has "$out" "$JH" && ! has "$out" "turn the meter on by hand"'
 chmod 644 "$settings"
+# The pair: refused in add mode, it says how to turn the meter on.
+fresh readonly-add
+put '{"a":1}'
+chmod 444 "$settings"
+ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
+check "read-only add: says how to turn the meter on by hand, not off" '[ "$ec" = 1 ] && has "$out" "To turn the meter on by hand, merge this into $settings:" && ! has "$out" "turn the meter off"'
+chmod 644 "$settings"
+# Symlink and invalid JSON refusals in remove mode say off as well.
+fresh link-remove
+mkdir -p "$HOME/.claude"
+printf '{}\n' >"$work/link-remove.json"
+ln -s "$work/link-remove.json" "$settings"
+ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
+check "symlink --remove: says turn the meter off by hand" '[ "$ec" = 1 ] && has "$out" "To turn the meter off by hand, delete these entries from" && ! has "$out" "turn the meter on by hand"'
+fresh invalid-remove
+put '{"a":'
+ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
+check "invalid --remove: says turn the meter off by hand" '[ "$ec" = 1 ] && has "$out" "To turn the meter off by hand" && has "$out" "$JS" && ! has "$out" "turn the meter on by hand"'
 # The pair: a writable file with a narrow mode is written and keeps its mode.
 fresh mode600
 put '{"a":1}'
