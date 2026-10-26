@@ -166,7 +166,7 @@ You are done with “install” when all of this is true:
 3. Do one task per session. When the topic changes, type `/clear`, even if the meter is still dim.
 4. Read the token figure on the status line (`context 82k`), not a percentage.
 5. Yellow (150k, sooner on a small window): finish this task and start nothing new.
-6. Red (250k): type `/clear`, or quit and start a fresh `claude`.
+6. Red (250k, sooner on a small window): type `/clear`, or quit and start a fresh `claude`.
 7. Back after an hour away from a big session? Start fresh; picking it up again costs more.
 8. Start `claude` in the project folder, not in a big shared folder.
 9. Put rules you want in every folder in `~/.claude/CLAUDE.md`.

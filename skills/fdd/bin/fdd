@@ -775,7 +775,7 @@ EOF
 
 setup_why() {
   case "$1" in
-    statusLine) printf 'shows the context in tokens, yellow from %sk and red from %sk, and keeps the count the hook reads' \
+    statusLine) printf 'shows the context in tokens, yellow from %sk and red from %sk, sooner on a small window, and keeps the count the hook reads' \
       "$((FDD_WARN_TOKENS / 1000))" "$((FDD_STOP_TOKENS / 1000))" ;;
     *) printf 'tells you and Claude once per level; --warn-only never snapshots, so nothing is copied into .git' ;;
   esac
