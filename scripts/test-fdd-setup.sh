@@ -298,7 +298,21 @@ ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
 check "read-only: exits 1, says read-only, prints the keys to paste" '[ "$ec" = 1 ] && has "$out" "read-only" && has "$out" "$JH"'
 check "read-only: file byte-identical, no backup, no temp file" 'cmp -s "$settings" "$work/readonly.orig" && [ "$(hook_count "$settings" UserPromptSubmit "$H")" = 0 ] && [ ! -e "$backups" ] && [ -z "$(strays)" ]'
 ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
-check "read-only: --remove is refused too" '[ "$ec" = 1 ] && has "$out" "read-only"'
+check "read-only: --remove with nothing to remove exits 0 and says so" '[ "$ec" = 0 ] && has "$out" "none of the entries" && ! has "$out" "read-only" && cmp -s "$settings" "$work/readonly.orig"'
+chmod 644 "$settings"
+# A read-only file that already has the meter needs no write, so it is not refused.
+fresh readonly-on
+put '{}'
+setup --user --yes >/dev/null 2>&1
+chmod 444 "$settings"
+cp "$settings" "$work/readonly-on.orig"
+nb_on="$(backup_count)"
+ec=0; out="$(setup --user --yes 2>&1)" || ec=$?
+check "read-only, meter on: exit 0, nothing to change, not refused" '[ "$ec" = 0 ] && has "$out" "Nothing to change: the meter is already on." && ! has "$out" "read-only" && cmp -s "$settings" "$work/readonly-on.orig"'
+ec=0; out="$(setup --user --dry-run 2>&1)" || ec=$?
+check "read-only, meter on: --dry-run exits 0 too" '[ "$ec" = 0 ] && has "$out" "Nothing to change" && ! has "$out" "read-only"'
+ec=0; out="$(setup --user --remove --yes 2>&1)" || ec=$?
+check "read-only, meter on: --remove would write, so it is refused" '[ "$ec" = 1 ] && has "$out" "read-only" && cmp -s "$settings" "$work/readonly-on.orig" && [ "$(backup_count)" = "$nb_on" ]'
 chmod 644 "$settings"
 # The pair: a writable file with a narrow mode is written and keeps its mode.
 fresh mode600
