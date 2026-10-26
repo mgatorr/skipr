@@ -129,7 +129,8 @@ What it never does:
   file next to `settings.json` and moves it in. If the file changed while it was merging (an
   open session saving it), it stops with `settings changed while merging, run again`.
 - **Touch a file it cannot read.** Invalid JSON, a symlink (a dotfiles setup) or a
-  read-only file is refused, nothing changes, and it prints the keys to paste by hand.
+  read-only file it would change is refused, nothing changes, and it prints what to paste
+  or delete by hand.
 - **Replace your status line.** If you have one that does not call `fdd statusline`, it is
   kept and the hook is not added: `Warnings stay off until your status line calls fdd
   statusline`. To keep yours and add the meter, save this as

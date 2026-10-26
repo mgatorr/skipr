@@ -830,20 +830,20 @@ cmd_setup() {
     new_sessions_line
     return 1
   fi
-  # A file locked against edits stays locked: the move would replace it anyway.
-  if [ -f "$file" ] && [ ! -w "$file" ]; then
-    printf 'fdd: %s is read-only; it is not touched.\n' "$file" >&2
-    setup_by_hand "$file" "$tpl"
-    new_sessions_line
-    return 1
-  fi
-
   before="$(file_stamp "$file")"
   setup_new="$(mktemp "${TMPDIR:-/tmp}/fdd-settings.XXXXXX")" || setup_die "could not make a temporary file"
   trap 'rm -f "$setup_new" ${setup_tmp:+"$setup_tmp"}' EXIT
   plan="$(perl -e "$SETTINGS_MERGE" -- "$mode" "$tpl" "$file" "$setup_new")" || rc=$?
   if [ "$rc" != 0 ]; then
     printf 'fdd: %s: %s.\n' "$file" "$(printf '%s\n' "$plan" | sed -n 's/^INVALID.//p' | head -1)" >&2
+    setup_by_hand "$file" "$tpl"
+    new_sessions_line
+    return 1
+  fi
+  # A file locked against edits stays locked: the move would replace it anyway.
+  # Only a plan that writes is refused; --dry-run says so too.
+  if [ -f "$file" ] && [ ! -w "$file" ] && printf '%s\n' "$plan" | grep -qE '^(ADD|DEL)'; then
+    printf 'fdd: %s is read-only; it is not touched.\n' "$file" >&2
     setup_by_hand "$file" "$tpl"
     new_sessions_line
     return 1
