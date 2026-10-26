@@ -19,6 +19,7 @@ Beginner-friendly macOS installer for the L0/L1 path:
 - Optionally adds lean zsh niceties (`zsh-syntax-highlighting`, `zsh-autosuggestions`, `fzf`) behind `--with-zsh-extras` or a yes/no prompt — appends a **marked** block to `~/.zshrc`, never rewrites the whole file
 - Detects Claude Code CLI (`claude`); if missing, prints Anthropic’s official install docs/commands
 - Copies `skills/setup-harness` and `skills/fdd` into `~/.claude/skills/` (`--force` moves the previous folder to `~/.claude/skills-backup/<name>.<unique>`, outside `~/.claude/skills`)
+- Offers the **session meter** (`fdd setup --user`): the context in tokens in Claude Code's status line, warned once per level. It shows the plan first, then asks `[Y/n]` (yes by default); non-interactive runs skip it unless `--with-session-meter`. It backs up `~/.claude/settings.json` to `~/.claude/settings-backup/` first, and applies to new sessions only. A kept fdd skill too old for `fdd setup` gets a warning to re-run with `--force`. Undo: `~/.claude/skills/fdd/bin/fdd setup --user --remove`
 
 ### Primary path (clone — recommended)
 
@@ -38,6 +39,7 @@ Or download a zip from GitHub, unzip, then run the same script from the extracte
 | `--dry-run` | Print actions; change nothing |
 | `--with-ghostty` | Install Ghostty via Homebrew cask (otherwise ask / skip) |
 | `--with-zsh-extras` | Install lean zsh packages + append marked `~/.zshrc` block |
+| `--with-session-meter` | Turn on the session meter without asking (otherwise ask `[Y/n]`; non-interactive runs skip it) |
 | `--force` | Overwrite existing `~/.claude/skills/setup-harness` and `~/.claude/skills/fdd` (backup under `~/.claude/skills-backup/<name>.<unique>`) |
 
 ### curl | bash (secondary — use with care)
@@ -47,6 +49,8 @@ Or download a zip from GitHub, unzip, then run the same script from the extracte
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mgatorr/skipr/main/scripts/install-macos.sh | bash
 ```
+
+With a pipe there is nothing to answer a question, so pass flags after `-s --`, for example `| bash -s -- --with-session-meter`.
 
 When there is no local checkout, the script shallow-clones the public repo to copy the skill, then cleans up the temp dir.
 

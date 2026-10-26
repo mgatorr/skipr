@@ -771,6 +771,11 @@ cmd_setup() {
       --dry-run) dry=1 ;;
       --yes|-y) yes=1 ;;
       --remove) remove=1; mode=remove ;;
+      # The installer probes with --help that this fdd has setup.
+      -h|--help)
+        printf 'usage: fdd setup --user [--dry-run] [--yes] [--remove]\n'
+        printf 'Turns the context meter on in ~/.claude/settings.json, backup first.\n'
+        return 0 ;;
       *) setup_die "unknown option $1; usage: fdd setup --user [--dry-run] [--yes] [--remove]" ;;
     esac
     shift

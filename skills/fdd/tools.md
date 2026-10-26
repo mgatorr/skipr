@@ -114,7 +114,9 @@ It writes two keys into `~/.claude/settings.json`, from
 [`templates/user-settings.json`](./templates/user-settings.json): `statusLine` runs
 `fdd statusline`, and `hooks.UserPromptSubmit` runs `fdd hook --warn-only`. It prints each
 key and why before it asks, and `--yes` skips the question. Open sessions keep their old
-settings: close them and start a new one.
+settings: close them and start a new one. The macOS installer offers it too, yes by
+default, or without asking with `--with-session-meter` (`scripts/README.md` in the skipr
+repo).
 
 The hook is `--warn-only` because a user-level hook runs in every folder, including folders
 of photos and video. It warns and never snapshots, so it never copies files into `.git`.
