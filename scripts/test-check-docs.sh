@@ -322,6 +322,29 @@ if [ "$EC" -ne 1 ]; then note "13-line agents section exit $EC want 1"; fi
 printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md: section Agents and workflows has 13 lines (cap 12)' || note "13-line agents section wanted the cap message: $OUT"
 rm -rf "$work"
 
+# 14. docs/ai-spend.md: at most 60 lines.
+spend_fixture() { # work lines
+  local work="$1" n="$2" i=1
+  { printf '# Spend\n'; while [ "$i" -lt "$n" ]; do printf 'line %s\n' "$i"; i=$((i + 1)); done; } > "$work/docs/ai-spend.md"
+  git -C "$work" add -f docs/ai-spend.md
+  git -C "$work" commit -qm fixture
+}
+
+# 60 lines pass.
+work="$(new_repo)"
+spend_fixture "$work" 60
+run_repo "$work"
+if [ "$EC" -ne 0 ]; then note "60-line spend guide exit $EC want 0: $OUT"; fi
+rm -rf "$work"
+
+# 61 lines fail and name file, count and cap.
+work="$(new_repo)"
+spend_fixture "$work" 61
+run_repo "$work"
+if [ "$EC" -ne 1 ]; then note "61-line spend guide exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'docs/ai-spend.md has 61 lines (cap 60)' || note "61-line spend guide wanted the cap message: $OUT"
+rm -rf "$work"
+
 if [ "$fail" -eq 0 ]; then
   say "check-docs redaction: PASS"
   exit 0

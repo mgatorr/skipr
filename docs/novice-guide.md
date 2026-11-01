@@ -173,6 +173,7 @@ You are done with “install” when all of this is true:
 10. After you change settings, plugins or hooks, start a new session: open ones do not see the change.
 11. To turn the meter off, run `~/.claude/skills/fdd/bin/fdd setup --user --remove`,
     or copy the newest file in `~/.claude/settings-backup/` back over `~/.claude/settings.json`.
+12. Paying more than you expected, or hitting limits? Read [Spend less on AI](./ai-spend.md).
 
 ---
 
