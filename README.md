@@ -166,6 +166,7 @@ Levels overview: [novice guide](./docs/novice-guide.md#levels-l0--l2) · L2 fiel
 ├── docs/
 │   ├── novice-guide.md       # full beginner path
 │   ├── for-photographers.md  # L0/L1 path for photographers
+│   ├── ai-spend.md           # spend less on AI, do the same work
 │   ├── l2/                   # optional advanced tracks (Cursor, OpenCode, Hermes)
 │   └── ARCHIVE.md            # pointer to tag era-spec-kit
 ├── scripts/
