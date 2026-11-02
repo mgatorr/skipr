@@ -4,15 +4,29 @@ A starting point, not a rule. Pick the model with `/model <id>` in Claude Code, 
 subagent. Change it when a check tells you to, not by feel: a cheaper model that needs
 three tries is not cheaper.
 
-| FDD step | Model | Why |
-|---|---|---|
-| Explore: search the code, the rules, the logbook | `claude-haiku-5-5`, often as a subagent | Reading and finding; fast and cheap |
-| Close the questions, write the note | `claude-opus-5-5` | Judgment about what is a real decision |
-| Build a slice | `claude-opus-5-5` | The default. Its effort defaults to `medium`; raise it for a hard slice |
-| Many routine slices (renames, copy, wiring) | `claude-sonnet-5-5` | Same pattern repeated, at half the Opus price |
-| A bug that resists, or a design across many files | `claude-fable-5-1` | The most capable model; slower and the most expensive |
-| Reproduce: try to break the result | A different model from the author | A second model does not share the author's blind spots |
-| Commit messages, logbook distill | `claude-haiku-5-5` | Short, well-shaped text |
+| FDD step | Model | Effort | Why |
+|---|---|---|---|
+| Explore: search the code, the rules, the logbook | `claude-haiku-5-5`, often as a subagent | `low` | Reading and finding; fast and cheap |
+| Close the questions, write the note | `claude-opus-5-5` | `medium` | Judgment about what is a real decision |
+| Build a slice | `claude-opus-5-5` | `medium`; `high` for a hard slice | The default |
+| Many routine slices (renames, copy, wiring) | `claude-sonnet-5-5` | `low` | Same pattern repeated, at half the Opus price |
+| A bug that resists, or a design across many files | `claude-fable-5-1` | `high` | The most capable model; slower and the most expensive |
+| Reproduce: try to break the result | A different model from the author | `high` | A second model does not share the author's blind spots |
+| Commit messages, logbook distill | `claude-haiku-5-5` | `low` | Short, well-shaped text |
+
+## Effort
+
+The model is how capable Claude is; effort is how thoroughly it works and how much it decides
+without asking you. Higher is slower and asks you less. Keep the first yes:
+
+1. Going back and forth with Claude, or a simple task? `low`.
+2. Would a hidden mistake cost money, a client or a bad decision? `high`.
+3. Long, hard and critical, and you will be away for hours? `xhigh`; `max` only rarely: it can overthink, and it lasts one session.
+4. Everything else, long rule-following tasks included: `medium`, the default.
+
+Weak result? Check the prompt first; then raise the effort if it skipped a file or a test, or
+use a bigger model if it did not know enough. `/effort` keeps the cache and switching the
+model drops it, so a skill sets `effort:`, never `model:`.
 
 ## Prices
 
@@ -30,18 +44,17 @@ one uses your limits.
 Haiku 5.5 costs more above 100K tokens of prompt. Check current prices before quoting them:
 https://platform.claude.com/docs/en/about-claude/pricing
 
-A 1M window is not a reason to fill it: one slice per clean session still holds (see
-[`tools.md`](./tools.md#context-fdd-statusline)).
+A 1M window is not a reason to fill it: one slice per clean session still holds ([`tools.md`](./tools.md#context-fdd-statusline)).
 
 ## Agents and workflows
 
 - Agents and workflow steps inherit the session's model and effort unless the script or the agent file sets them (`model:`, `effort:`). Set both per agent, and do not leave max effort on for days.
 - A fork carries the parent's whole context. Prefer a fresh agent with a self-contained brief.
-- Switching the model mid-session invalidates the cache; `/effort` keeps it.
 - Fewer agents and shorter contexts save more than a cheaper model: most of a long session is cache reads, and those cost little on Opus and Sonnet alike.
 - Every agent pays its own fixed start cost before it reads anything. One limited to Read, Grep, Glob and Bash starts at roughly half of a default one. In `~/.claude/agents/<name>.md`, below the required `name:` and `description:`:
 ```yaml
 tools: Read, Grep, Glob, Bash
 model: claude-haiku-5-5
+effort: low
 omitClaudeMd: true
 ```

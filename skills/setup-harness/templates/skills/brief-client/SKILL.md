@@ -1,6 +1,7 @@
 ---
 name: brief-client
 description: Use when drafting or completing BRIEF.md for a client photo job in this folder — sections Client, Date, Deliverables, tone/use; never invent missing facts.
+effort: medium
 ---
 
 # Client brief

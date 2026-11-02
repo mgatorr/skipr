@@ -1,6 +1,7 @@
 ---
 name: delivery-checklist
 description: Use when preparing client delivery in this folder — fill deliverables/, write MANIFEST.md, run ./checks/delivery.sh; do not invent files that are not on disk.
+effort: high
 ---
 
 # Delivery checklist

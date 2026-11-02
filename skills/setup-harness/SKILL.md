@@ -1,6 +1,7 @@
 ---
 name: setup-harness
 description: Use when scaffolding a minimal AI harness for a photo (or other non-software) project folder — "setup harness", "set up the harness", checkers for a trip/client/culling folder, short CLAUDE.md + checks that can fail, without Spec Kit or a Second Brain. Also when helping photographers move from the Claude app to the terminal (Ghostty/Orca) with a lean setup.
+effort: medium
 ---
 
 # Setup Harness

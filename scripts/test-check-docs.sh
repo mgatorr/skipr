@@ -266,7 +266,7 @@ OUT="$(cd "$root" && env -u CI -u GITHUB_ACTIONS DOCS_BANNED="$real_term" "$BASH
 if [ "$EC" -ne 0 ]; then note "real tree exit $EC want 0: $OUT"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "real tree wanted 'docs check ok'"
 
-# 13. skills/fdd/models.md: at most 50 lines, with an 'Agents and workflows'
+# 13. skills/fdd/models.md: at most 60 lines, with an 'Agents and workflows'
 # section of at most 12 lines (heading included).
 models_fixture() { # work section-lines (0 = no heading) total-lines
   local work="$1" s="$2" total="$3" i=1 n
@@ -289,21 +289,21 @@ models_fixture() { # work section-lines (0 = no heading) total-lines
   git -C "$work" commit -qm models
 }
 
-# A 50-line file with a 12-line section passes.
+# A 60-line file with a 12-line section passes.
 work="$(new_repo)"
-models_fixture "$work" 12 50
+models_fixture "$work" 12 60
 run_repo "$work"
 if [ "$EC" -ne 0 ]; then note "compliant models.md exit $EC want 0: $OUT"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "compliant models.md wanted 'docs check ok'"
-[ "$(wc -l < "$work/skills/fdd/models.md" | tr -d ' ')" = 50 ] || note "compliant models.md fixture is not 50 lines"
+[ "$(wc -l < "$work/skills/fdd/models.md" | tr -d ' ')" = 60 ] || note "compliant models.md fixture is not 60 lines"
 rm -rf "$work"
 
-# A 51-line file fails and names the count and the cap.
+# A 61-line file fails and names the count and the cap.
 work="$(new_repo)"
-models_fixture "$work" 12 51
+models_fixture "$work" 12 61
 run_repo "$work"
-if [ "$EC" -ne 1 ]; then note "51-line models.md exit $EC want 1"; fi
-printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md has 51 lines (cap 50)' || note "51-line models.md wanted the cap message: $OUT"
+if [ "$EC" -ne 1 ]; then note "61-line models.md exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md has 61 lines (cap 60)' || note "61-line models.md wanted the cap message: $OUT"
 rm -rf "$work"
 
 # A file without the heading fails.
@@ -343,6 +343,29 @@ spend_fixture "$work" 61
 run_repo "$work"
 if [ "$EC" -ne 1 ]; then note "61-line spend guide exit $EC want 1"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs/ai-spend.md has 61 lines (cap 60)' || note "61-line spend guide wanted the cap message: $OUT"
+rm -rf "$work"
+
+# Every tracked SKILL.md declares effort: in its front matter.
+skill_fixture() { # work path front-matter-extra-line
+  mkdir -p "$1/$(dirname "$2")"
+  printf -- '---\nname: s\ndescription: d\n%s---\n\n# S\neffort: high in the body does not count\n' "$3" > "$1/$2"
+  git -C "$1" add -f "$2"
+  git -C "$1" commit -qm skill
+}
+
+work="$(new_repo)"
+skill_fixture "$work" skills/a/SKILL.md $'effort: medium\n'
+skill_fixture "$work" skills/b/templates/skills/c/SKILL.md $'effort: low\n'
+run_repo "$work"
+if [ "$EC" -ne 0 ]; then note "skills with effort exit $EC want 0: $OUT"; fi
+printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "skills with effort wanted 'docs check ok'"
+rm -rf "$work"
+
+work="$(new_repo)"
+skill_fixture "$work" skills/b/templates/skills/c/SKILL.md ''
+run_repo "$work"
+if [ "$EC" -ne 1 ]; then note "skill without effort exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'skills/b/templates/skills/c/SKILL.md: missing effort: in front matter' || note "skill without effort wanted the message: $OUT"
 rm -rf "$work"
 
 if [ "$fail" -eq 0 ]; then

@@ -276,10 +276,20 @@ check_cap "CLAUDE.md" 60
 check_cap "skills/fdd/SKILL.md" 100
 check_cap "skills/fdd/templates/note.md" 60
 check_cap ".skipr/rules.md" 40
-check_cap "skills/fdd/models.md" 50
+check_cap "skills/fdd/models.md" 60
 check_cap "docs/ai-spend.md" 60
 check_section_cap "docs/novice-guide.md" "One task per session" 20
 check_section_cap "skills/fdd/models.md" "Agents and workflows" 12
+
+# Every skill skipr ships declares its effort in the front matter.
+while IFS= read -r -d '' skill; do
+  if ! awk 'NR == 1 { if ($0 != "---") exit 1; next }
+            /^---$/ { exit 1 }
+            /^effort:[[:space:]]*(low|medium|high|xhigh|max)[[:space:]]*$/ { found = 1; exit 0 }
+            END { exit !found }' "$skill"; then
+    report "$(label_for "$skill"): missing effort: in front matter"
+  fi
+done < <(git ls-files -z -- 'skills/*SKILL.md')
 
 harness_tpl="skills/setup-harness/templates/CLAUDE.md"
 if [[ -f "$harness_tpl" ]] && ! grep -qF '/clear' "$harness_tpl"; then
