@@ -289,7 +289,7 @@ while IFS= read -r -d '' skill; do
   if ! awk '{ sub(/\r$/, "") }
             NR == 1 { if ($0 != "---") exit; next }
             /^---[[:space:]]*$/ { closed = 1; exit }
-            /^effort:[[:space:]]+["\047]?(low|medium|high|xhigh|max)["\047]?[[:space:]]*(#.*)?$/ { found = 1 }
+            /^effort:[[:space:]]+(low|medium|high|xhigh|max|"(low|medium|high|xhigh|max)"|\047(low|medium|high|xhigh|max)\047)([[:space:]]+#.*)?[[:space:]]*$/ { found = 1 }
             END { exit !(found && closed) }' "$skill" 2>/dev/null; then
     report "$(label_for "$skill"): missing effort: in frontmatter"
   fi

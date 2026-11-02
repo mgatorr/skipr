@@ -16,7 +16,7 @@ Effort is how thoroughly and how independently Claude works, not how smart it is
 - `model:` in any skill.
 
 ## Slices
-- [x] 1. check-docs fails when a tracked `SKILL.md` has no `effort:` in a closed frontmatter block (CRLF, quotes and a trailing comment are fine); a missing or unreadable file is skipped so its path is never printed; the five skipr skills declare one.
+- [x] 1. check-docs fails when a tracked `SKILL.md` has no `effort:` in a closed frontmatter block (CRLF, quotes and a trailing comment are fine; quotes must be paired and a comment needs a space before `#`); a missing or unreadable file is skipped so its path is never printed; the five skipr skills declare one.
 - [x] 2. models.md: an Effort column, an `## Effort` section with the four questions, `effort:` in the agent example; cap 60.
 
 ## Checks
