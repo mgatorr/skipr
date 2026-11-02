@@ -360,6 +360,7 @@ skill_raw "$work" skills/b/templates/skills/c/SKILL.md '---\nname: c\neffort: lo
 skill_raw "$work" skills/d/SKILL.md '---\r\nname: d\r\neffort: high\r\n---\r\n'
 skill_raw "$work" skills/e/SKILL.md '---\nname: e\neffort: "xhigh"\n---\n'
 skill_raw "$work" skills/f/SKILL.md '---\nname: f\neffort: max # rare\n---\n'
+skill_raw "$work" skills/h/SKILL.md '---\nname: h\neffort: \047low\047\n---\n'
 skill_raw "$work" skills/g/README-SKILL.md 'not a skill\n'
 run_repo "$work"
 if [ "$EC" -ne 0 ]; then note "skills with effort exit $EC want 0: $OUT"; fi
@@ -372,6 +373,9 @@ for content in \
   '---\nname: s\n---\n\n# S\neffort: high\n' \
   '---\nname: s\neffort: huge\n---\n' \
   '---\nname: s\neffort:high\n---\n' \
+  '---\nname: s\neffort: "high\047\n---\n' \
+  '---\nname: s\neffort: "high\n---\n' \
+  '---\nname: s\neffort: high#x\n---\n' \
   '---\nname: s\n\n# S body\neffort: low\n' \
   'name: s\neffort: low\n---\n'; do
   work="$(new_repo)"
