@@ -266,7 +266,7 @@ OUT="$(cd "$root" && env -u CI -u GITHUB_ACTIONS DOCS_BANNED="$real_term" "$BASH
 if [ "$EC" -ne 0 ]; then note "real tree exit $EC want 0: $OUT"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "real tree wanted 'docs check ok'"
 
-# 13. skills/fdd/models.md: at most 50 lines, with an 'Agents and workflows'
+# 13. skills/fdd/models.md: at most 60 lines, with an 'Agents and workflows'
 # section of at most 12 lines (heading included).
 models_fixture() { # work section-lines (0 = no heading) total-lines
   local work="$1" s="$2" total="$3" i=1 n
@@ -289,21 +289,21 @@ models_fixture() { # work section-lines (0 = no heading) total-lines
   git -C "$work" commit -qm models
 }
 
-# A 50-line file with a 12-line section passes.
+# A 60-line file with a 12-line section passes.
 work="$(new_repo)"
-models_fixture "$work" 12 50
+models_fixture "$work" 12 60
 run_repo "$work"
 if [ "$EC" -ne 0 ]; then note "compliant models.md exit $EC want 0: $OUT"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "compliant models.md wanted 'docs check ok'"
-[ "$(wc -l < "$work/skills/fdd/models.md" | tr -d ' ')" = 50 ] || note "compliant models.md fixture is not 50 lines"
+[ "$(wc -l < "$work/skills/fdd/models.md" | tr -d ' ')" = 60 ] || note "compliant models.md fixture is not 60 lines"
 rm -rf "$work"
 
-# A 51-line file fails and names the count and the cap.
+# A 61-line file fails and names the count and the cap.
 work="$(new_repo)"
-models_fixture "$work" 12 51
+models_fixture "$work" 12 61
 run_repo "$work"
-if [ "$EC" -ne 1 ]; then note "51-line models.md exit $EC want 1"; fi
-printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md has 51 lines (cap 50)' || note "51-line models.md wanted the cap message: $OUT"
+if [ "$EC" -ne 1 ]; then note "61-line models.md exit $EC want 1"; fi
+printf '%s\n' "$OUT" | grep -qx 'skills/fdd/models.md has 61 lines (cap 60)' || note "61-line models.md wanted the cap message: $OUT"
 rm -rf "$work"
 
 # A file without the heading fails.
@@ -343,6 +343,51 @@ spend_fixture "$work" 61
 run_repo "$work"
 if [ "$EC" -ne 1 ]; then note "61-line spend guide exit $EC want 1"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs/ai-spend.md has 61 lines (cap 60)' || note "61-line spend guide wanted the cap message: $OUT"
+rm -rf "$work"
+
+# Every tracked SKILL.md declares effort: in its frontmatter.
+skill_raw() { # work path content
+  mkdir -p "$1/$(dirname "$2")"
+  printf '%b' "$3" > "$1/$2"
+  git -C "$1" add -f "$2"
+  git -C "$1" commit -qm skill
+}
+
+# Valid YAML passes: plain, nested, CRLF, quoted, trailing comment.
+work="$(new_repo)"
+skill_raw "$work" skills/a/SKILL.md '---\nname: a\neffort: medium\n---\n\n# A\n'
+skill_raw "$work" skills/b/templates/skills/c/SKILL.md '---\nname: c\neffort: low\n---\n'
+skill_raw "$work" skills/d/SKILL.md '---\r\nname: d\r\neffort: high\r\n---\r\n'
+skill_raw "$work" skills/e/SKILL.md '---\nname: e\neffort: "xhigh"\n---\n'
+skill_raw "$work" skills/f/SKILL.md '---\nname: f\neffort: max # rare\n---\n'
+skill_raw "$work" skills/g/README-SKILL.md 'not a skill\n'
+run_repo "$work"
+if [ "$EC" -ne 0 ]; then note "skills with effort exit $EC want 0: $OUT"; fi
+printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "skills with effort wanted 'docs check ok'"
+rm -rf "$work"
+
+# Each of these fails with the message.
+for content in \
+  '---\nname: s\n---\n' \
+  '---\nname: s\n---\n\n# S\neffort: high\n' \
+  '---\nname: s\neffort: huge\n---\n' \
+  '---\nname: s\neffort:high\n---\n' \
+  '---\nname: s\n\n# S body\neffort: low\n' \
+  'name: s\neffort: low\n---\n'; do
+  work="$(new_repo)"
+  skill_raw "$work" skills/b/templates/skills/c/SKILL.md "$content"
+  run_repo "$work"
+  if [ "$EC" -ne 1 ]; then note "skill without frontmatter effort exit $EC want 1: $content"; fi
+  printf '%s\n' "$OUT" | grep -qx 'skills/b/templates/skills/c/SKILL.md: missing effort: in frontmatter' || note "skill without frontmatter effort wanted the message ($content): $OUT"
+  rm -rf "$work"
+done
+
+# A tracked skill deleted from the tree never prints its path.
+work="$(new_repo)"
+skill_raw "$work" "skills/${term}/SKILL.md" '---\nname: s\n---\n'
+rm "$work/skills/${term}/SKILL.md"
+run_repo "$work"
+leaks "$OUT" && note "deleted skill leaked its path: $OUT"
 rm -rf "$work"
 
 if [ "$fail" -eq 0 ]; then
