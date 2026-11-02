@@ -345,27 +345,49 @@ if [ "$EC" -ne 1 ]; then note "61-line spend guide exit $EC want 1"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs/ai-spend.md has 61 lines (cap 60)' || note "61-line spend guide wanted the cap message: $OUT"
 rm -rf "$work"
 
-# Every tracked SKILL.md declares effort: in its front matter.
-skill_fixture() { # work path front-matter-extra-line
+# Every tracked SKILL.md declares effort: in its frontmatter.
+skill_raw() { # work path content
   mkdir -p "$1/$(dirname "$2")"
-  printf -- '---\nname: s\ndescription: d\n%s---\n\n# S\neffort: high in the body does not count\n' "$3" > "$1/$2"
+  printf '%b' "$3" > "$1/$2"
   git -C "$1" add -f "$2"
   git -C "$1" commit -qm skill
 }
 
+# Valid YAML passes: plain, nested, CRLF, quoted, trailing comment.
 work="$(new_repo)"
-skill_fixture "$work" skills/a/SKILL.md $'effort: medium\n'
-skill_fixture "$work" skills/b/templates/skills/c/SKILL.md $'effort: low\n'
+skill_raw "$work" skills/a/SKILL.md '---\nname: a\neffort: medium\n---\n\n# A\n'
+skill_raw "$work" skills/b/templates/skills/c/SKILL.md '---\nname: c\neffort: low\n---\n'
+skill_raw "$work" skills/d/SKILL.md '---\r\nname: d\r\neffort: high\r\n---\r\n'
+skill_raw "$work" skills/e/SKILL.md '---\nname: e\neffort: "xhigh"\n---\n'
+skill_raw "$work" skills/f/SKILL.md '---\nname: f\neffort: max # rare\n---\n'
+skill_raw "$work" skills/g/README-SKILL.md 'not a skill\n'
 run_repo "$work"
 if [ "$EC" -ne 0 ]; then note "skills with effort exit $EC want 0: $OUT"; fi
 printf '%s\n' "$OUT" | grep -qx 'docs check ok' || note "skills with effort wanted 'docs check ok'"
 rm -rf "$work"
 
+# Each of these fails with the message.
+for content in \
+  '---\nname: s\n---\n' \
+  '---\nname: s\n---\n\n# S\neffort: high\n' \
+  '---\nname: s\neffort: huge\n---\n' \
+  '---\nname: s\neffort:high\n---\n' \
+  '---\nname: s\n\n# S body\neffort: low\n' \
+  'name: s\neffort: low\n---\n'; do
+  work="$(new_repo)"
+  skill_raw "$work" skills/b/templates/skills/c/SKILL.md "$content"
+  run_repo "$work"
+  if [ "$EC" -ne 1 ]; then note "skill without frontmatter effort exit $EC want 1: $content"; fi
+  printf '%s\n' "$OUT" | grep -qx 'skills/b/templates/skills/c/SKILL.md: missing effort: in frontmatter' || note "skill without frontmatter effort wanted the message ($content): $OUT"
+  rm -rf "$work"
+done
+
+# A tracked skill deleted from the tree never prints its path.
 work="$(new_repo)"
-skill_fixture "$work" skills/b/templates/skills/c/SKILL.md ''
+skill_raw "$work" "skills/${term}/SKILL.md" '---\nname: s\n---\n'
+rm "$work/skills/${term}/SKILL.md"
 run_repo "$work"
-if [ "$EC" -ne 1 ]; then note "skill without effort exit $EC want 1"; fi
-printf '%s\n' "$OUT" | grep -qx 'skills/b/templates/skills/c/SKILL.md: missing effort: in front matter' || note "skill without effort wanted the message: $OUT"
+leaks "$OUT" && note "deleted skill leaked its path: $OUT"
 rm -rf "$work"
 
 if [ "$fail" -eq 0 ]; then

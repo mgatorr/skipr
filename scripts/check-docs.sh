@@ -281,15 +281,19 @@ check_cap "docs/ai-spend.md" 60
 check_section_cap "docs/novice-guide.md" "One task per session" 20
 check_section_cap "skills/fdd/models.md" "Agents and workflows" 12
 
-# Every skill skipr ships declares its effort in the front matter.
+# Every skill skipr ships declares its effort in a closed frontmatter block.
+# A file missing from the tree or unreadable is skipped: awk would print its
+# path unredacted.
 while IFS= read -r -d '' skill; do
-  if ! awk 'NR == 1 { if ($0 != "---") exit 1; next }
-            /^---$/ { exit 1 }
-            /^effort:[[:space:]]*(low|medium|high|xhigh|max)[[:space:]]*$/ { found = 1; exit 0 }
-            END { exit !found }' "$skill"; then
-    report "$(label_for "$skill"): missing effort: in front matter"
+  [[ -f "$skill" && -r "$skill" ]] || continue
+  if ! awk '{ sub(/\r$/, "") }
+            NR == 1 { if ($0 != "---") exit; next }
+            /^---[[:space:]]*$/ { closed = 1; exit }
+            /^effort:[[:space:]]+["\047]?(low|medium|high|xhigh|max)["\047]?[[:space:]]*(#.*)?$/ { found = 1 }
+            END { exit !(found && closed) }' "$skill" 2>/dev/null; then
+    report "$(label_for "$skill"): missing effort: in frontmatter"
   fi
-done < <(git ls-files -z -- 'skills/*SKILL.md')
+done < <(git ls-files -z -- ':(glob)skills/**/SKILL.md')
 
 harness_tpl="skills/setup-harness/templates/CLAUDE.md"
 if [[ -f "$harness_tpl" ]] && ! grep -qF '/clear' "$harness_tpl"; then
